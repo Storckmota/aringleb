@@ -1,0 +1,541 @@
+/* ============================================================
+   Alexander Ringleb — Hero, art direction 02 (premium pass)
+   Bone paper · cut-out figure · name behind, role in front
+   ============================================================ */
+
+/* ---------- Fonts (from the existing brand) ---------- */
+@font-face {
+  font-family: 'Gamay';
+  src: url('../assets/fonts/GamayRegular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Gamay Editorial';
+  src: url('../assets/fonts/GamayEditorialBlack.woff2') format('woff2');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Gamay Narrow';
+  src: url('../assets/fonts/GamayNarrowBlackItalic.woff2') format('woff2');
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* ---------- Tokens ---------- */
+:root {
+  --paper: #f0ead9;
+  --paper-deep: #e7dfc9;
+  --pine: #103120;
+  --pine-70: rgba(16, 49, 32, .7);
+  --pine-45: rgba(16, 49, 32, .45);
+  --gold: #7d6433;
+  --gold-soft: #a98c4b;
+  --mx-page: clamp(20px, 3.6vw, 60px);
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  /* driven by JS */
+  --mx: 0;
+  --my: 0;
+  --sp: 0;
+  --sb: 0px;               /* marquee scroll boost */
+  color-scheme: light;
+}
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { background: var(--paper); scroll-behavior: smooth; }
+
+body {
+  font-family: 'Gamay', 'Segoe UI', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--pine);
+  background: var(--paper);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+::selection { background: var(--pine); color: var(--paper); }
+
+a { color: inherit; text-decoration: none; }
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* ---------- Header (minimal) ---------- */
+.site-head {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: clamp(18px, 2.6vh, 28px) var(--mx-page);
+}
+
+.monogram {
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-size: 1.05rem;
+  letter-spacing: .02em;
+}
+
+.site-nav { display: flex; gap: clamp(18px, 2.4vw, 36px); }
+
+.site-nav a {
+  font-size: .7rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--pine-70);
+  transition: color .3s;
+}
+.site-nav a:hover { color: var(--pine); }
+
+/* ---------- Hero shell ---------- */
+.hero {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  min-height: 640px;
+  overflow: hidden;
+}
+
+.paper {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(44% 52% at 50% 58%, #f4f0e4 0%, transparent 68%),
+    radial-gradient(56% 50% at 50% 62%, rgba(214, 186, 120, .12), transparent 74%),
+    linear-gradient(180deg, #f3eee0 0%, var(--paper) 42%, var(--paper-deep) 100%);
+}
+
+/* ---------- Masthead (z3): kicker + statement ---------- */
+.masthead {
+  position: absolute;
+  z-index: 3;
+  left: var(--mx-page);
+  right: var(--mx-page);
+  top: clamp(64px, 8vh, 100px);
+  text-align: center;
+  transform: translate3d(0, calc(var(--sp) * -6vh), 0);
+  opacity: calc(1 - var(--sp) * 1.3);
+}
+
+.kicker { overflow: hidden; margin-bottom: clamp(12px, 1.8vh, 18px); }
+.kicker-in {
+  display: inline-block;
+  font-size: .68rem;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.headline {
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(2.1rem, 4.35vw, 4.35rem);
+  line-height: 1.03;
+  letter-spacing: .002em;
+}
+
+.headline .line { display: block; overflow: hidden; padding-block: .04em; }
+.headline .line-in { display: inline-block; will-change: transform; }
+
+.headline em {
+  font-family: 'Gamay Narrow', Georgia, serif;
+  font-style: italic;
+  padding-right: .05em;
+}
+
+/* ---------- Proof stamps (z6) ---------- */
+.stamp {
+  position: absolute;
+  z-index: 6;
+  top: 37%;
+  display: flex;
+  flex-direction: column;
+  gap: .5em;
+  font-size: .66rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--pine-70);
+  opacity: calc(1 - var(--sp) * 1.6);
+}
+.stamp::before {
+  content: '';
+  width: 26px;
+  height: 1px;
+  background: var(--gold-soft);
+  margin-bottom: .55em;
+  transform-origin: left;
+}
+.stamp-l { left: var(--mx-page); }
+.stamp-r { right: var(--mx-page); text-align: right; align-items: flex-end; }
+.stamp-r::before { transform-origin: right; }
+.stamp-dim { color: var(--pine-45); }
+
+/* ---------- The name, monumental, behind the figure (z2) ---------- */
+/* Letters dissolve at the page edges — no hard-cut glyph slivers */
+.marquee {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  top: 44%;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 4.5%, #000 95.5%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 4.5%, #000 95.5%, transparent 100%);
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+  transform: translate3d(calc(var(--sb) + var(--mx) * -14px), 0, 0);
+}
+
+.marquee-run {
+  display: block;
+  animation: slide 92s linear infinite;
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(88px, 16vw, 300px);
+  line-height: .92;
+  letter-spacing: .005em;
+  white-space: nowrap;
+  color: var(--pine);
+  user-select: none;
+}
+
+@keyframes slide {
+  to { transform: translateX(-100%); }
+}
+
+/* ---------- Figure (z4): the cut-out, grounded at the fold ---------- */
+/* Grounded past the fold: the shins bleed off-screen, so the body
+   reads as standing on the page edge, never as fading away */
+.figure {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  bottom: -4vh;
+  height: min(72vh, 148vw);
+  aspect-ratio: 880 / 1788;
+  transform: translate3d(calc(-50% + var(--mx) * 6px), calc(var(--my) * 4px + var(--sp) * 6vh), 0);
+  pointer-events: none;
+}
+
+/* Whisper of a fade at the crop edge — only ever visible mid-scroll */
+.figure-in {
+  width: 100%;
+  height: 100%;
+  -webkit-mask-image: linear-gradient(#000 97%, transparent 100%);
+  mask-image: linear-gradient(#000 97%, transparent 100%);
+}
+
+/* Photographic direction — EDITORIAL, the adopted primary presentation:
+   regraded asset (muted shirt, film fade, natural skin). CSS stays
+   near-neutral so the grade lives in the file; shadow short and decided. */
+.figure img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: 50% 100%;
+  display: block;
+  filter:
+    sepia(.05)
+    drop-shadow(14px 20px 16px rgba(16, 49, 32, .15));
+}
+
+/* ?photo=refined — secondary alternative (comparison only):
+   the original photo, flash softened via CSS */
+html.photo-refined .figure img {
+  filter:
+    sepia(.12) saturate(.92) contrast(1.02) brightness(.99)
+    drop-shadow(12px 18px 18px rgba(16, 49, 32, .16));
+}
+
+/* ?photo=slot — internal reference only (not a launch version):
+   reserved plate for the future on-location shoot */
+.plate { display: none; }
+
+html.photo-slot .figure picture { display: none; }
+html.photo-slot .plate {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  border: 1px solid rgba(16, 49, 32, .3);
+  background: rgba(233, 226, 205, .72);
+  box-shadow: 12px 18px 30px rgba(16, 49, 32, .08);
+  text-align: center;
+  padding: 8%;
+}
+.plate-mark {
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-size: clamp(2rem, 3.4vw, 3.2rem);
+  color: rgba(16, 49, 32, .55);
+}
+.plate-note {
+  font-size: .62rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  line-height: 2.1;
+  color: var(--pine-70);
+}
+.plate-note span { color: var(--pine-45); }
+
+/* ---------- The role, small, in front of the figure (z5) ---------- */
+.ribbon {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  right: 0;
+  top: 88.5%;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: calc(.8 - var(--sp) * 1.4);
+}
+
+.ribbon-track {
+  display: flex;
+  width: max-content;
+  transform: translate3d(calc(var(--sb) * -.45 + var(--mx) * 8px), 0, 0);
+}
+
+.ribbon-run {
+  display: block;
+  animation: slide 68s linear infinite reverse;
+  font-size: .7rem;
+  letter-spacing: .32em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--gold);
+  text-shadow: 0 0 8px var(--paper);
+  user-select: none;
+}
+
+/* ---------- CTA (z7): editorial, bordered, label flip ----------
+   .cta-wrap owns position + entrance; .cta owns hover + magnetism. */
+.cta-wrap {
+  position: absolute;
+  z-index: 7;
+  right: var(--mx-page);
+  bottom: clamp(22px, 3.4vh, 34px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+/* Same hairline grammar as the stamps: the CTA belongs to the system */
+.cta-wrap::before {
+  content: '';
+  width: 26px;
+  height: 1px;
+  background: var(--gold-soft);
+}
+
+.cta {
+  display: inline-block;
+  border: 1px solid rgba(16, 49, 32, .32);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--pine);
+  padding: 1em 1.8em;
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  transition: background-color .45s var(--ease-out), border-color .45s, color .45s var(--ease-out), transform .45s var(--ease-out);
+  will-change: transform;
+}
+.cta:hover {
+  background: var(--pine);
+  border-color: var(--pine);
+  color: var(--paper);
+}
+
+.cta-flip {
+  display: block;
+  overflow: hidden;
+  height: 1.1em;
+}
+.cta-label {
+  display: block;
+  height: 1.1em;
+  line-height: 1.1;
+  transition: transform .5s var(--ease-out);
+}
+.cta:hover .cta-label { transform: translateY(-100%); }
+
+/* ---------- Mobile-only merged proof line ---------- */
+.stamp-mobile { display: none; }
+
+/* ---------- Atmosphere ---------- */
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+  opacity: .035;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+/* ============================================================
+   Entrance choreography
+   html.anim  = initial (hidden) states + transitions armed
+   html.is-ready = release to final states
+   ============================================================ */
+
+html.anim .marquee {
+  opacity: 0;
+  transform: translate3d(10vw, 24%, 0);
+  transition: opacity .8s var(--ease-out) .1s, transform 1.5s var(--ease-out) .1s;
+}
+html.anim .figure-in {
+  opacity: 0;
+  transform: translateY(7%);
+  transition: opacity 1s var(--ease-out) .4s, transform 1.4s var(--ease-out) .4s;
+}
+html.anim .kicker-in {
+  transform: translateY(110%);
+  transition: transform .9s var(--ease-out) .8s;
+}
+html.anim .headline .line-in {
+  transform: translateY(112%);
+  transition: transform 1.05s var(--ease-out);
+}
+html.anim .headline .line:nth-child(1) .line-in { transition-delay: .9s; }
+html.anim .headline .line:nth-child(2) .line-in { transition-delay: 1s; }
+html.anim .stamp::before {
+  transform: scaleX(0);
+  transition: transform .8s var(--ease-out) 1.2s;
+}
+html.anim .stamp span {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity .8s var(--ease-out) 1.3s, transform .8s var(--ease-out) 1.3s;
+}
+html.anim .stamp span:nth-child(2) { transition-delay: 1.42s; }
+html.anim .ribbon {
+  opacity: 0;
+  transition: opacity 1s var(--ease-out) 1.5s;
+}
+html.anim .cta-wrap {
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity .7s var(--ease-out) 1.62s, transform .7s var(--ease-out) 1.62s;
+}
+html.anim .site-head {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity .8s var(--ease-out) 1.7s, transform .8s var(--ease-out) 1.7s;
+}
+
+/* Release */
+html.anim.is-ready .marquee { opacity: 1; transform: translate3d(0, 0, 0); }
+html.anim.is-ready .figure-in { opacity: 1; transform: none; }
+html.anim.is-ready .kicker-in,
+html.anim.is-ready .headline .line-in { transform: none; }
+html.anim.is-ready .stamp::before { transform: scaleX(1); }
+html.anim.is-ready .stamp span { opacity: 1; transform: none; }
+html.anim.is-ready .ribbon { opacity: 1; }
+html.anim.is-ready .cta-wrap { opacity: 1; transform: none; }
+html.anim.is-ready .site-head { opacity: 1; transform: none; }
+
+/* ---------- Reduced motion ----------
+   JS bails out, vars stay 0; only the animations stop. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .marquee-run, .ribbon-run, .grain { animation: none; }
+  *, *::before, *::after { transition-duration: .01ms !important; }
+}
+
+/* ============================================================
+   Mobile — its own composition (≤860px)
+   Statement high, figure large and grounded, name behind the
+   chest, role ribbon at the thighs, single proof line, thumb CTA.
+   ============================================================ */
+@media (max-width: 860px) {
+  .site-nav a:not(:last-child) { display: none; }
+
+  .hero { min-height: 660px; }
+
+  .paper {
+    background:
+      radial-gradient(110% 46% at 50% 60%, #f3efe2 0%, transparent 74%),
+      linear-gradient(180deg, #f3eee0 0%, var(--paper) 42%, var(--paper-deep) 100%);
+  }
+
+  .masthead { top: clamp(60px, 9svh, 96px); }
+  .kicker { margin-bottom: 10px; }
+  .kicker-in { font-size: .58rem; letter-spacing: .24em; }
+  .headline { font-size: clamp(1.9rem, 8.6vw, 2.9rem); line-height: 1.05; }
+
+  .stamp-l, .stamp-r { display: none; }
+  .stamp-mobile {
+    display: block;
+    position: absolute;
+    z-index: 6;
+    left: 24px;
+    right: 24px;
+    bottom: calc(clamp(18px, 3vh, 32px) + 66px);
+    text-align: center;
+    text-wrap: balance;
+    font-size: .6rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--pine);
+    text-shadow: 0 0 12px var(--paper), 0 0 4px var(--paper), 0 0 2px var(--paper);
+    opacity: calc(1 - var(--sp) * 1.6);
+  }
+
+  .figure { height: min(70svh, 168vw); bottom: -3svh; }
+
+  .marquee { top: 46svh; }
+  .marquee-run { font-size: 22vw; }
+
+  .ribbon { top: 77svh; }
+  .ribbon-run { font-size: .6rem; letter-spacing: .26em; }
+
+  .cta-wrap {
+    right: 0;
+    left: 0;
+    width: max-content;
+    margin-inline: auto;
+    bottom: clamp(18px, 3vh, 32px);
+    align-items: center;
+  }
+  .cta-wrap::before { display: none; }
+  .cta {
+    padding: 1.1em 2em;
+    white-space: nowrap;
+    background: var(--paper);
+  }
+}
+
+/* Shorter desktop viewports: keep the head clear of the statement */
+@media (max-height: 820px) and (min-width: 861px) {
+  .headline { font-size: clamp(2rem, 4vw, 3.4rem); }
+  .figure { height: min(68vh, 148vw); }
+  .ribbon { top: 87%; }
+}
+
+/* Very short landscape viewports: keep the statement readable */
+@media (max-height: 560px) and (min-width: 861px) {
+  .masthead { top: 7vh; }
+  .marquee { top: 40%; }
+  .figure { height: 62vh; }
+}

@@ -1,0 +1,921 @@
+/* ============================================================
+   Alexander Ringleb — Site (faithful redesign of aringleb.com)
+   Tokens live in css/hero.css. Same system as the approved hero:
+   paper / pine / gold · Gamay · hairlines · editorial spacing.
+   Content, sections, links and copy mirror the official site.
+   ============================================================ */
+
+/* ---------- Utilities ---------- */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: fixed;
+  top: 12px; left: 12px;
+  z-index: 100;
+  transform: translateY(-200%);
+  background: var(--pine);
+  color: var(--paper);
+  padding: .8em 1.4em;
+  border-radius: 999px;
+  font-size: .72rem;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  transition: transform .3s var(--ease-out);
+}
+.skip-link:focus-visible { transform: translateY(0); }
+
+.wrap {
+  max-width: 1320px;
+  margin-inline: auto;
+  padding-inline: var(--mx-page);
+}
+
+/* ============================================================
+   Navigation — official menu (About▾ / Press / Social Media /
+   Opportunities / Contact), restyled. Fixed; gains paper after
+   the hero.
+   ============================================================ */
+.site-head {
+  position: fixed;
+  background: transparent;
+  transition: background-color .4s, box-shadow .4s;
+}
+.site-head.scrolled {
+  background: rgba(240, 234, 217, .92);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 1px 0 rgba(16, 49, 32, .14);
+}
+
+.nav-drop-wrap { position: relative; display: inline-block; }
+.nav-drop {
+  position: absolute;
+  top: 100%;
+  left: -20px;
+  padding-top: 14px;
+  min-width: 220px;
+  display: none;
+}
+.nav-drop-wrap:hover .nav-drop,
+.nav-drop-wrap:focus-within .nav-drop { display: block; }
+
+.nav-drop a {
+  display: block;
+  background: var(--paper);
+  border: 1px solid rgba(16, 49, 32, .14);
+  border-bottom: 0;
+  padding: 13px 20px;
+  font-size: .66rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--pine-70);
+  transition: color .25s, background-color .25s;
+}
+.nav-drop a:first-child { border-top: 2px solid var(--gold-soft); }
+.nav-drop a:last-child { border-bottom: 1px solid rgba(16, 49, 32, .14); }
+.nav-drop a:hover { color: var(--pine); background: var(--paper-deep); }
+
+.nav-pill {
+  font-size: .7rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--pine);
+  border: 1px solid rgba(16, 49, 32, .35);
+  border-radius: 999px;
+  padding: .7em 1.5em;
+  transition: background-color .4s var(--ease-out), color .4s var(--ease-out), border-color .4s;
+}
+.nav-pill:hover { background: var(--pine); border-color: var(--pine); color: var(--paper); }
+
+/* ============================================================
+   Credentials band — the official marquee, in the new voice
+   ============================================================ */
+.credits {
+  border-block: 1px solid rgba(16, 49, 32, .16);
+  padding-block: 18px;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
+}
+.credits-track { display: flex; width: max-content; }
+.credits-run {
+  display: flex;
+  animation: slide 56s linear infinite;
+}
+.credits-run > span {
+  font-size: .68rem;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--pine-70);
+  white-space: nowrap;
+  padding-right: clamp(48px, 6vw, 96px);
+}
+
+/* ---------- Shared section shell ---------- */
+.sec {
+  position: relative;
+  padding-block: clamp(88px, 13vh, 170px);
+}
+.sec-tint { background: var(--paper-deep); }
+.sec-gold-top { border-top: 2px solid var(--gold-soft); }
+
+.sec-pine {
+  background: var(--pine);
+  color: var(--paper);
+}
+.sec-pine ::selection { background: var(--paper); color: var(--pine); }
+
+.sec-head {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: clamp(28px, 4.5vh, 48px);
+}
+.sec-head::before {
+  content: '';
+  width: 26px;
+  height: 1px;
+  background: var(--gold-soft);
+}
+.sec-kicker {
+  font-size: .68rem;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.sec-pine .sec-kicker { color: var(--gold-soft); }
+
+.sec-display {
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(1.9rem, 3.5vw, 3.5rem);
+  line-height: 1.08;
+  letter-spacing: .002em;
+  max-width: 24ch;
+}
+.sec-display em {
+  font-family: 'Gamay Narrow', Georgia, serif;
+  font-style: italic;
+  padding-right: .05em;
+  color: var(--gold);
+}
+.sec-pine .sec-display em { color: var(--gold-soft); }
+
+.sec-support {
+  font-size: clamp(.98rem, 1.1vw, 1.08rem);
+  line-height: 1.75;
+  color: var(--pine-70);
+  max-width: 54ch;
+}
+.sec-pine .sec-support { color: rgba(240, 234, 217, .72); }
+
+.body-p {
+  font-size: clamp(1rem, 1.12vw, 1.1rem);
+  line-height: 1.85;
+  color: var(--pine-70);
+}
+.body-p + .body-p { margin-top: 1.3em; }
+.body-p strong { color: var(--pine); font-weight: 700; }
+.sec-pine .body-p { color: rgba(240, 234, 217, .68); }
+.sec-pine .body-p strong { color: var(--gold-soft); font-weight: 700; }
+
+/* Arrow link — the site's recurring CTA gesture */
+.link-arrow {
+  display: inline-flex;
+  align-items: baseline;
+  font-size: .72rem;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--gold);
+  border-bottom: 1px solid var(--gold-soft);
+  padding-bottom: 5px;
+  transition: color .3s;
+}
+.link-arrow .arr { display: inline-block; transition: transform .35s var(--ease-out); }
+.link-arrow:hover { color: var(--pine); }
+.link-arrow:hover .arr { transform: translateX(6px); }
+.sec-pine .link-arrow:hover { color: var(--paper); }
+
+.sec-cta { margin-top: clamp(44px, 6vh, 64px); text-align: center; }
+.sec-cta-left { margin-top: clamp(28px, 4vh, 40px); }
+
+/* ============================================================
+   The argument (official pain-point strip)
+   ============================================================ */
+.pain-head {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(32px, 5vw, 88px);
+  align-items: end;
+  margin-bottom: clamp(48px, 8vh, 88px);
+}
+
+.pain-cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: clamp(28px, 4vw, 64px);
+}
+.pain-col { border-top: 1px solid rgba(16, 49, 32, .3); padding-top: 22px; }
+.pain-n {
+  display: block;
+  font-size: .64rem;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+}
+.pain-h {
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(1.1rem, 1.6vw, 1.45rem);
+  line-height: 1.2;
+  margin-bottom: 12px;
+}
+.pain-p {
+  font-size: .96rem;
+  line-height: 1.75;
+  color: var(--pine-70);
+}
+
+/* ============================================================
+   01 · Story — About Alexander
+   ============================================================ */
+.about-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+  gap: clamp(40px, 6vw, 96px);
+  align-items: start;
+}
+
+.about-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(28px, 4vw, 56px);
+  margin-top: clamp(28px, 4.5vh, 48px);
+}
+
+.about-photo {
+  position: sticky;
+  top: 96px;
+}
+.about-photo img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid rgba(16, 49, 32, .18);
+  filter: sepia(.08) saturate(.96) contrast(1.02);
+}
+.about-photo figcaption {
+  padding-top: 12px;
+  font-size: .62rem;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.cred-strip {
+  margin-top: clamp(52px, 8vh, 84px);
+  border-top: 1px solid rgba(16, 49, 32, .3);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+.cred-cell {
+  padding: 26px 22px 0 0;
+  border-right: 1px solid rgba(16, 49, 32, .14);
+}
+.cred-cell:last-child { border-right: 0; }
+.cred-cell + .cred-cell { padding-left: 22px; }
+.cred-name {
+  display: block;
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(.88rem, 1.15vw, 1.05rem);
+  line-height: 1.35;
+  margin-bottom: 8px;
+}
+.cred-city {
+  font-size: .62rem;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+/* ============================================================
+   02 · Burgermeister Miami (pine chapter)
+   ============================================================ */
+.bm-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(40px, 6vw, 96px);
+  align-items: start;
+}
+
+.bm-photo img {
+  width: 100%;
+  height: auto;
+  max-height: 420px;
+  object-fit: cover;
+  object-position: center 20%;
+  display: block;
+  border: 1px solid rgba(240, 234, 217, .22);
+  filter: sepia(.1) saturate(.92) contrast(1.04);
+}
+
+.bm-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid rgba(240, 234, 217, .25);
+  margin-top: 28px;
+}
+.bm-stats > div {
+  padding: 20px 18px 0 0;
+  border-right: 1px solid rgba(240, 234, 217, .14);
+}
+.bm-stats > div + div { padding-left: 18px; }
+.bm-stats > div:last-child { border-right: 0; }
+.bm-stats dd {
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(1.7rem, 2.6vw, 2.5rem);
+  color: var(--gold-soft);
+  line-height: 1;
+}
+.bm-stats dt {
+  font-size: .58rem;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+  color: rgba(240, 234, 217, .5);
+  margin-bottom: 10px;
+}
+
+.bm-awards {
+  margin-top: clamp(48px, 7vh, 72px);
+  border-top: 1px solid rgba(240, 234, 217, .25);
+  padding-top: 24px;
+}
+.bm-aw-title {
+  font-size: .64rem;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+  margin-bottom: 16px;
+}
+.bm-aw-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6em 0;
+  font-size: .68rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(240, 234, 217, .6);
+}
+.bm-aw-list span::after {
+  content: '·';
+  margin-inline: 1.1em;
+  color: rgba(169, 140, 75, .6);
+}
+.bm-aw-list span:last-child::after { content: ''; margin: 0; }
+
+/* ============================================================
+   03 · The Office Delray
+   ============================================================ */
+#the-office { overflow: hidden; }
+
+.to-ghost {
+  position: absolute;
+  right: -1vw;
+  top: clamp(24px, 6vh, 72px);
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(160px, 22vw, 380px);
+  line-height: .8;
+  color: rgba(16, 49, 32, .06);
+  pointer-events: none;
+  user-select: none;
+}
+
+.to-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(40px, 6vw, 96px);
+  align-items: start;
+}
+.to-grid .body-p:first-of-type { margin-top: clamp(28px, 4.5vh, 48px); }
+
+.to-detail {
+  border-top: 1px solid rgba(16, 49, 32, .3);
+  margin-top: clamp(28px, 4.5vh, 48px);
+}
+.to-detail > div {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 20px;
+  align-items: baseline;
+  padding-block: 15px;
+  border-bottom: 1px solid rgba(16, 49, 32, .14);
+}
+.to-detail dt {
+  font-size: .62rem;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.to-detail dd { font-size: .98rem; color: var(--pine); }
+
+/* ============================================================
+   Quote — the voice
+   ============================================================ */
+.quote { padding-block: clamp(80px, 12vh, 150px); }
+.quote-in {
+  max-width: 880px;
+  margin-inline: auto;
+  text-align: center;
+}
+.quote-in::before {
+  content: '';
+  display: block;
+  width: 26px;
+  height: 1px;
+  background: var(--gold-soft);
+  margin: 0 auto 34px;
+}
+.quote-tx {
+  font-family: 'Gamay Narrow', Georgia, serif;
+  font-style: italic;
+  font-weight: 900;
+  font-size: clamp(1.5rem, 2.9vw, 2.6rem);
+  line-height: 1.45;
+  color: var(--paper);
+}
+.quote-by {
+  display: inline-block;
+  margin-top: 34px;
+  font-style: normal;
+  font-size: .64rem;
+  letter-spacing: .42em;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+}
+
+/* ============================================================
+   Press — the clippings index
+   ============================================================ */
+.press-head {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: clamp(40px, 6vh, 64px);
+}
+
+.press-index { border-top: 1px solid rgba(16, 49, 32, .3); }
+
+.press-row {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
+  gap: clamp(24px, 3.5vw, 56px);
+  align-items: center;
+  padding-block: clamp(24px, 3.6vh, 36px);
+  border-bottom: 1px solid rgba(16, 49, 32, .14);
+}
+
+.press-thumb {
+  width: 96px;
+  height: 96px;
+  overflow: hidden;
+}
+.press-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: sepia(.1) saturate(.94) contrast(1.03);
+  border: 1px solid rgba(16, 49, 32, .18);
+}
+.press-plate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border: 1px solid rgba(16, 49, 32, .25);
+  background: var(--paper-deep);
+}
+.press-plate span {
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: .72rem;
+  line-height: 1.3;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  padding: 8px;
+}
+
+.press-badge {
+  font-size: .58rem;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.press-pub {
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(1.2rem, 1.9vw, 1.7rem);
+  line-height: 1.1;
+  margin-bottom: 10px;
+}
+.press-desc {
+  font-size: .95rem;
+  line-height: 1.7;
+  color: var(--pine-70);
+  max-width: 62ch;
+}
+.press-link { white-space: nowrap; }
+.press-static {
+  font-size: .72rem;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--pine-45);
+}
+
+/* ============================================================
+   Social Media (pine chapter)
+   ============================================================ */
+.social-top {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: clamp(32px, 5vw, 88px);
+  align-items: end;
+  margin-bottom: clamp(40px, 6vh, 64px);
+}
+.social-desc {
+  font-size: clamp(.98rem, 1.08vw, 1.06rem);
+  line-height: 1.85;
+  color: rgba(240, 234, 217, .68);
+  margin-bottom: 24px;
+}
+
+.social-feed { margin-bottom: clamp(32px, 5vh, 56px); }
+.social-feed behold-widget { display: block; width: 100%; }
+
+.topics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(24px, 3vw, 48px);
+}
+.topic {
+  border-top: 1px solid rgba(240, 234, 217, .25);
+  padding-top: 20px;
+  position: relative;
+}
+.topic::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 26px;
+  height: 1px;
+  background: var(--gold-soft);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .5s var(--ease-out);
+}
+.topic:hover::before { transform: scaleX(1); }
+.topic-n {
+  display: block;
+  font-size: .62rem;
+  letter-spacing: .3em;
+  color: var(--gold-soft);
+  margin-bottom: 14px;
+}
+.topic-t {
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(.98rem, 1.3vw, 1.15rem);
+  line-height: 1.3;
+  color: var(--paper);
+  margin-bottom: 8px;
+}
+.topic-s {
+  font-size: .86rem;
+  line-height: 1.6;
+  color: rgba(240, 234, 217, .6);
+}
+
+/* ============================================================
+   Opportunities — E-2 / EB-5
+   ============================================================ */
+.opp-intro { margin-top: clamp(20px, 3vh, 32px); max-width: 60ch; }
+
+.visa-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(24px, 3vw, 48px);
+  margin-top: clamp(48px, 7vh, 80px);
+}
+
+.visa-plate {
+  border: 1px solid rgba(16, 49, 32, .22);
+  border-top: 2px solid var(--gold-soft);
+  padding: clamp(28px, 3.6vw, 52px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: rgba(233, 226, 205, .35);
+}
+.visa-badge {
+  font-size: .62rem;
+  letter-spacing: .34em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 18px;
+}
+.visa-title {
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(1.3rem, 2vw, 1.8rem);
+  line-height: 1.15;
+  margin-bottom: 16px;
+  max-width: 16ch;
+}
+.visa-sub {
+  font-size: .98rem;
+  line-height: 1.8;
+  color: var(--pine-70);
+  margin-bottom: 26px;
+}
+.visa-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 34px;
+}
+.visa-list li {
+  position: relative;
+  padding-left: 22px;
+  font-size: .94rem;
+  line-height: 1.65;
+  color: var(--pine-70);
+}
+.visa-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: .68em;
+  width: 10px;
+  height: 1px;
+  background: var(--gold-soft);
+}
+
+.visa-note {
+  margin-top: clamp(40px, 6vh, 64px);
+  border-left: 2px solid var(--gold-soft);
+  padding: 6px 0 6px clamp(20px, 2.6vw, 36px);
+  max-width: 70ch;
+}
+.visa-note p {
+  font-size: .98rem;
+  line-height: 1.85;
+  font-style: italic;
+  color: var(--pine-70);
+}
+.visa-note strong { font-style: normal; font-weight: 700; color: var(--pine); }
+
+/* ============================================================
+   Contact — channels + the official form
+   ============================================================ */
+.contact-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+  gap: clamp(40px, 6vw, 110px);
+  align-items: start;
+}
+
+.contact-list {
+  margin-top: clamp(28px, 4.5vh, 44px);
+  border-top: 1px solid rgba(16, 49, 32, .3);
+}
+.contact-list > div {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 20px;
+  align-items: baseline;
+  padding-block: 15px;
+  border-bottom: 1px solid rgba(16, 49, 32, .14);
+}
+.contact-list dt {
+  font-size: .62rem;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.contact-list dd { font-size: .98rem; }
+.contact-list a {
+  border-bottom: 1px solid rgba(169, 140, 75, .5);
+  padding-bottom: 2px;
+  transition: color .3s;
+}
+.contact-list a:hover { color: var(--gold); }
+
+.form { display: flex; flex-direction: column; gap: 22px; }
+.form-hp { display: none; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.form-field { display: flex; flex-direction: column; gap: 9px; }
+.form-label {
+  font-size: .62rem;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.form-input {
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(16, 49, 32, .28);
+  border-radius: 0;
+  padding: 10px 0;
+  font-family: 'Gamay', 'Segoe UI', system-ui, sans-serif;
+  font-size: .98rem;
+  color: var(--pine);
+  outline: none;
+  transition: border-color .3s;
+  appearance: none;
+  width: 100%;
+}
+.form-input::placeholder { color: rgba(16, 49, 32, .35); }
+.form-input:focus { border-bottom-color: var(--gold); }
+.form-input:focus-visible { outline: none; }
+.form-select {
+  background-image: linear-gradient(45deg, transparent 50%, var(--gold) 50%),
+                    linear-gradient(135deg, var(--gold) 50%, transparent 50%);
+  background-position: calc(100% - 14px) 55%, calc(100% - 9px) 55%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+.form-ta { resize: none; min-height: 96px; }
+
+.form-btn {
+  align-self: flex-start;
+  margin-top: 10px;
+  border: 1px solid var(--pine);
+  border-radius: 999px;
+  background: var(--pine);
+  color: var(--paper);
+  padding: 1.05em 2em;
+  font-family: 'Gamay', 'Segoe UI', system-ui, sans-serif;
+  font-size: .72rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color .4s var(--ease-out), color .4s var(--ease-out);
+}
+.form-btn .arr { display: inline-block; transition: transform .35s var(--ease-out); }
+.form-btn:hover { background: transparent; color: var(--pine); }
+.form-btn:hover .arr { transform: translateX(6px); }
+
+/* ============================================================
+   Footer — official columns and lines
+   ============================================================ */
+.footer {
+  background: #0c2718;
+  color: var(--paper);
+  padding-block: clamp(56px, 8vh, 88px) clamp(28px, 4vh, 40px);
+}
+
+.footer-top {
+  display: grid;
+  grid-template-columns: minmax(0, 6fr) minmax(0, 3fr) minmax(0, 3fr);
+  gap: clamp(32px, 4vw, 64px);
+  align-items: start;
+  padding-bottom: clamp(40px, 6vh, 64px);
+  border-bottom: 1px solid rgba(240, 234, 217, .16);
+}
+
+.footer-id .monogram { font-size: 1.4rem; color: var(--paper); }
+.footer-name {
+  margin-top: 16px;
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: 1.05rem;
+  letter-spacing: .04em;
+}
+.footer-line {
+  margin-top: 8px;
+  font-size: .64rem;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+  color: rgba(240, 234, 217, .5);
+}
+
+.footer-ch {
+  font-size: .62rem;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+  margin-bottom: 18px;
+}
+.footer-col { display: flex; flex-direction: column; gap: 11px; }
+.footer-col a {
+  width: max-content;
+  font-size: .8rem;
+  color: rgba(240, 234, 217, .65);
+  transition: color .3s;
+}
+.footer-col a:hover { color: var(--paper); }
+
+.footer-base {
+  padding-top: 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  font-size: .64rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(240, 234, 217, .55);
+}
+.footer-soc { display: flex; gap: 26px; }
+.footer-soc a { transition: color .3s; }
+.footer-soc a:hover { color: var(--paper); }
+
+/* ============================================================
+   Scroll reveal — armed only under html.anim (JS + motion OK):
+   no-JS and reduced-motion always see the final state.
+   ============================================================ */
+html.anim .rv {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity .9s var(--ease-out), transform .9s var(--ease-out);
+}
+html.anim .rv.in { opacity: 1; transform: none; }
+html.anim .rv.d1 { transition-delay: .08s; }
+html.anim .rv.d2 { transition-delay: .16s; }
+html.anim .rv.d3 { transition-delay: .24s; }
+
+html.anim .rv.sec-head::before,
+html.anim .rv .sec-head::before {
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .8s var(--ease-out) .15s;
+}
+html.anim .rv.in.sec-head::before,
+html.anim .rv.in .sec-head::before { transform: scaleX(1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .credits-run { animation: none; }
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 1080px) {
+  .pain-head { grid-template-columns: 1fr; align-items: start; }
+  .about-grid { grid-template-columns: minmax(0, 1fr) minmax(220px, 280px); }
+  .bm-grid, .to-grid, .social-top { grid-template-columns: 1fr; }
+  .bm-side { max-width: 560px; }
+  .contact-grid { grid-template-columns: 1fr; }
+  .topics { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 860px) {
+  .site-nav { display: none; }
+
+  .sec { padding-block: clamp(64px, 10vh, 110px); }
+
+  .pain-cols { grid-template-columns: 1fr; gap: 32px; }
+
+  .about-grid { grid-template-columns: 1fr; }
+  .about-cols { grid-template-columns: 1fr; gap: 0; }
+  .about-cols > div + div .body-p:first-child { margin-top: 1.3em; }
+  .about-photo { position: static; max-width: 420px; }
+  .cred-strip { grid-template-columns: 1fr 1fr; row-gap: 26px; }
+  .cred-cell:nth-child(2) { border-right: 0; }
+  .cred-cell:nth-child(3) { padding-left: 0; }
+
+  .bm-stats { grid-template-columns: repeat(3, 1fr); }
+
+  .to-ghost { font-size: clamp(120px, 34vw, 200px); top: 12px; }
+  .to-detail > div { grid-template-columns: 92px 1fr; }
+
+  .press-row {
+    grid-template-columns: 72px minmax(0, 1fr);
+    row-gap: 14px;
+  }
+  .press-thumb { width: 72px; height: 72px; }
+  .press-link { grid-column: 2; justify-self: start; }
+
+  .topics { grid-template-columns: 1fr; gap: 26px; }
+
+  .visa-grid { grid-template-columns: 1fr; }
+
+  .form-row { grid-template-columns: 1fr; }
+
+  .footer-top { grid-template-columns: 1fr; gap: 36px; }
+  .footer-base { flex-direction: column; align-items: flex-start; gap: 10px; }
+}
