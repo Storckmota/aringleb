@@ -26,15 +26,19 @@
   font-display: swap;
 }
 
-/* ---------- Tokens ---------- */
+/* ---------- Tokens ----------
+   Etapa 2 (seriedade): paper mais osso e menos amarelo, pine mais
+   profundo, e um pine-deep quase-preto para as cenas de fechamento
+   (quote, contact, footer). O dourado fica mais raro e mais escuro. */
 :root {
-  --paper: #f0ead9;
-  --paper-deep: #e7dfc9;
-  --pine: #103120;
-  --pine-70: rgba(16, 49, 32, .7);
-  --pine-45: rgba(16, 49, 32, .45);
-  --gold: #7d6433;
-  --gold-soft: #a98c4b;
+  --paper: #ede8db;
+  --paper-deep: #e3ddcb;
+  --pine: #0d2a1b;
+  --pine-deep: #081911;
+  --pine-70: rgba(13, 42, 27, .72);
+  --pine-45: rgba(13, 42, 27, .48);
+  --gold: #79623a;
+  --gold-soft: #a08549;
   --mx-page: clamp(20px, 3.6vw, 60px);
   --ease-out: cubic-bezier(.16, 1, .3, 1);
   /* driven by JS */
@@ -69,6 +73,9 @@ a { color: inherit; text-decoration: none; }
   outline-offset: 4px;
   border-radius: 2px;
 }
+/* On pine chapters the focus ring needs the lighter gold to read */
+.sec-pine :focus-visible,
+.footer :focus-visible { outline-color: var(--gold-soft); }
 
 /* ---------- Header (minimal) ---------- */
 .site-head {
@@ -90,13 +97,36 @@ a { color: inherit; text-decoration: none; }
 .site-nav { display: flex; gap: clamp(18px, 2.4vw, 36px); }
 
 .site-nav a {
+  position: relative;
   font-size: .7rem;
-  letter-spacing: .18em;
+  letter-spacing: .16em;
   text-transform: uppercase;
   color: var(--pine-70);
   transition: color .3s;
 }
 .site-nav a:hover { color: var(--pine); }
+
+/* Hairline draws under the item — leaves the way it came */
+.site-nav > a::after,
+.nav-drop-wrap > a::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 100%;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform .45s var(--ease-out);
+}
+.site-nav > a:hover::after,
+.site-nav > a:focus-visible::after,
+.nav-drop-wrap > a:hover::after,
+.nav-drop-wrap:focus-within > a::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
 
 /* ---------- Hero shell ---------- */
 .hero {
@@ -251,7 +281,7 @@ a { color: inherit; text-decoration: none; }
   display: block;
   filter:
     sepia(.05)
-    drop-shadow(14px 20px 16px rgba(16, 49, 32, .15));
+    drop-shadow(14px 20px 16px rgba(13, 42, 27,.15));
 }
 
 /* ?photo=refined — secondary alternative (comparison only):
@@ -259,7 +289,7 @@ a { color: inherit; text-decoration: none; }
 html.photo-refined .figure img {
   filter:
     sepia(.12) saturate(.92) contrast(1.02) brightness(.99)
-    drop-shadow(12px 18px 18px rgba(16, 49, 32, .16));
+    drop-shadow(12px 18px 18px rgba(13, 42, 27,.16));
 }
 
 /* ?photo=slot — internal reference only (not a launch version):
@@ -275,16 +305,16 @@ html.photo-slot .plate {
   align-items: center;
   justify-content: center;
   gap: 18px;
-  border: 1px solid rgba(16, 49, 32, .3);
+  border: 1px solid rgba(13, 42, 27,.3);
   background: rgba(233, 226, 205, .72);
-  box-shadow: 12px 18px 30px rgba(16, 49, 32, .08);
+  box-shadow: 12px 18px 30px rgba(13, 42, 27,.08);
   text-align: center;
   padding: 8%;
 }
 .plate-mark {
   font-family: 'Gamay Editorial', Georgia, serif;
   font-size: clamp(2rem, 3.4vw, 3.2rem);
-  color: rgba(16, 49, 32, .55);
+  color: rgba(13, 42, 27,.55);
 }
 .plate-note {
   font-size: .62rem;
@@ -348,7 +378,7 @@ html.photo-slot .plate {
 
 .cta {
   display: inline-block;
-  border: 1px solid rgba(16, 49, 32, .32);
+  border: 1px solid rgba(13, 42, 27,.32);
   border-radius: 999px;
   background: transparent;
   color: var(--pine);
@@ -377,6 +407,23 @@ html.photo-slot .plate {
   transition: transform .5s var(--ease-out);
 }
 .cta:hover .cta-label { transform: translateY(-100%); }
+
+/* Secondary CTA — the official site's "Explore my work →", kept quieter
+   than the pill: a caps hairline link in the stamps' grammar. */
+.cta-ghost {
+  font-size: .58rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--pine);
+  opacity: .58;
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--gold-soft);
+  transition: opacity .45s var(--ease-out), border-color .45s var(--ease-out);
+}
+.cta-ghost:hover {
+  opacity: 1;
+  border-color: var(--pine);
+}
 
 /* ---------- Mobile-only merged proof line ---------- */
 .stamp-mobile { display: none; }
@@ -524,6 +571,11 @@ html.anim.is-ready .site-head { opacity: 1; transform: none; }
     white-space: nowrap;
     background: var(--paper);
   }
+  /* Over the photo the hairline link needs the marquee's paper halo */
+  .cta-ghost {
+    opacity: .8;
+    text-shadow: 0 0 10px var(--paper);
+  }
 }
 
 /* Shorter desktop viewports: keep the head clear of the statement */
@@ -538,4 +590,48 @@ html.anim.is-ready .site-head { opacity: 1; transform: none; }
   .masthead { top: 7vh; }
   .marquee { top: 40%; }
   .figure { height: 62vh; }
+}
+
+/* ============================================================
+   Loader — minimal A—R hold (deliberately simple this round).
+   Paper ground so it dissolves straight into the hero — no dark
+   flash. Brief mark, quick fade. Hidden without JS ([hidden]);
+   only runs under html.anim; reduced motion barely shows it.
+   ============================================================ */
+.loader {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: var(--paper);
+  display: grid;
+  place-items: center;
+  transition: opacity .55s var(--ease-out);
+}
+.loader.reveal { opacity: 0; }
+.loader.done { display: none; }
+
+.loader-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: .5em;
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(1.25rem, 2vw, 1.7rem);
+  letter-spacing: .02em;
+  color: var(--pine);
+  opacity: 0;
+  transition: opacity .5s var(--ease-out);
+}
+.loader.mark .loader-mark { opacity: 1; }
+
+.lm-a, .lm-r { display: inline-block; }
+.lm-dash {
+  width: 24px;
+  height: 2px;
+  background: var(--gold-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader, .loader * { transition: none !important; }
+  .loader-mark { opacity: 1; }
 }

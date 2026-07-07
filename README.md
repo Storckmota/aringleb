@@ -52,6 +52,86 @@ Ordem idêntica ao site oficial:
 - Sem scroll cues; sem separadores chamativos em texto em movimento; sem
   cards SaaS/ícones/clichês de Miami.
 
+### Decisões da auditoria de conteúdo (2026-07-06)
+
+- **Headline da hero** ("Built in hospitality. Proven in Miami.") e kicker
+  ("For investors & partners in South Florida") são **decisões aprovadas de
+  redesign** — divergem de propósito da headline oficial e não devem ser
+  "corrigidos" de volta.
+- **Monograma A—R** mantido no header como decisão de identidade; a
+  fidelidade semântica fica no `aria-label="Alexander Ringleb"` +
+  `title="Alexander Ringleb"` do link (o nome completo segue no marquee da
+  hero e no footer).
+- **"Founder"** (stamp da hero): corrigido de "Co-founder" por fidelidade
+  factual — o site oficial credita "Founder" para o Burgermeister.
+- **"Explore my work →"** restaurado como **CTA secundário** da hero
+  (`.cta-ghost` → `#burgermeister`), por fidelidade ao site oficial;
+  "Start a conversation" permanece como CTA principal.
+- **Loader/loading screen** (palavras + A—R expandindo): adiado de
+  propósito — será tratado na etapa de motion/direção visual.
+
+### Etapa 2 — refinamento visual, motion e loader (2026-07-06)
+
+Conteúdo congelado (auditado na Etapa 1); apenas a forma mudou.
+
+- **Paleta**: paper mais osso (`#ede8db`), pine mais profundo (`#0d2a1b`)
+  e novo `--pine-deep` (`#081911`) para as cenas de fechamento (Quote,
+  Contact, Footer). Dourado mais escasso: kickers, hairlines e numerais.
+- **Tipografia**: Gamay mantida por decisão de direção (família da marca
+  oficial); o refino foi de escala (displays até ~5rem), tracking das
+  microcaps reduzido e Narrow Italic como contraponto.
+- **Composição por seção**: Pain como tese em ledger (label · claim ·
+  evidência); About como perfil de revista (lede + placa fotográfica
+  offset + índice de credenciais numerado); Burgermeister com stats
+  monumentais e Recognition como registro numerado; The Office com o
+  "17" em contorno monumental; Quote como pausa quase-preta; Press como
+  índice editorial numerado (hover sweep); Social com o feed Behold
+  emoldurado (observatório) e topics como notas; Opportunities como
+  dossiê (documentos com watermark E-2/EB-5 e CTA linha-de-assinatura);
+  Contact como fechamento escuro cinematográfico; Footer como assinatura.
+  Numerações de Press/credenciais/recognition são CSS counters
+  (decorativas, nada de copy nova).
+- **Loader A—R**: palavras multilíngues → A—R → o traço estende
+  full-width → painéis abrem sobre a hero. Só na primeira visita da
+  sessão (`sessionStorage: ar-intro`); `[hidden]` sem JS; killswitch de
+  4,5s; `?static=1` pula; reduced-motion vê A—R estático breve.
+- **Motion**: sem GSAP (decisão: zero dependências; IO + CSS cobre o
+  necessário). Variantes `.rv` (texto), `.rv-mask` (imagens por crop),
+  `.rv-ghost` (numerais em cauda longa), hairlines que desenham,
+  capítulos pine mais lentos. Estados ocultos só sob `html.anim` —
+  no-JS e reduced-motion veem o estado final.
+
+### Etapa 3 — recalibração para seriedade/credibilidade (2026-07-06)
+
+Feedback de designer sênior: a Etapa 2 ficou pesada e "experimental"
+demais. Conteúdo permanece congelado; só a forma foi recalibrada.
+
+Revertido/removido da Etapa 2:
+- **Numerais gigantes**: o "17" em contorno (The Office) e os watermarks
+  "E-2"/"EB-5" (Opportunities) foram **removidos**. Números agora só como
+  dado sóbrio (stats, fact-sheet ledger).
+- **Escala tipográfica**: `.sec-display` de ~4,4rem → ~2,75rem; Pain de
+  5rem → ~3,3rem; stats de 3,6rem → 2,4rem; footer-name de 2,5rem →
+  1,25rem; quote de 3rem → 2,2rem. "Institucional premium", não pôster.
+- **Itálico dourado nos títulos**: o `em` das seções deixou de ser
+  Gamay Narrow dourado e passou a **pinho, igual ao `em` da hero** —
+  dourado agora só como fio fino (kickers/hairlines).
+- **Blocos escuros**: Burgermeister e Social voltaram a **papel**;
+  Quote e Contact passaram de quase-preto (`sec-deep`) para pinho.
+  Escuro agora é intencional: Quote (pausa), Contact e Footer (fecho).
+  Papel/paper-deep alternam e dominam.
+- **Loader**: sequência de palavras + traço + painéis **substituída** por
+  um A—R mínimo em papel (fade in ~0,5s, hold, fade out; ~1,7s total),
+  sem flash escuro. Reduced-motion ~0,8s. Killswitch 3s.
+- **Motion**: `.rv-ghost` removido; `.rv` reduzido (16px, .7s);
+  crop de imagem mais leve; sem stagger longo nem entrada teatral.
+
+Recomposições: Pain como memo/briefing (label · claim · evidência em
+hairlines); The Office como fact-sheet; Opportunities como investment
+brief de duas colunas (letterhead pinho, bullets em régua, CTA
+linha-de-assinatura, sem card/massa); Social com feed contido em
+moldura discreta (max 900px) e topics como notas.
+
 ## Como editar
 
 - **Textos**: `index.html` (comentários marcam cada seção oficial). Manter

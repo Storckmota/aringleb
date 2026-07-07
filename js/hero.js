@@ -22,13 +22,45 @@
   /* ---------- 1. Entrance ---------- */
   const release = () => requestAnimationFrame(() => docEl.classList.add('is-ready'));
 
-  if (document.fonts && document.fonts.ready) {
-    Promise.race([
-      document.fonts.ready,
-      new Promise((r) => setTimeout(r, 900)) // never hold the cover hostage
-    ]).then(release);
+  const fontsReady = (document.fonts && document.fonts.ready)
+    ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 900))])
+    : new Promise((r) => setTimeout(r, 150));
+
+  /* ---------- 1b. Loader — minimal A—R hold ----------
+     Deliberately simple this round: the mark fades in, holds
+     briefly, then the paper panel fades out into the hero.
+     First load of the session only; skipped for ?static=1;
+     near-instant under reduced motion. Never blocks the page. */
+  const loader = document.getElementById('loader');
+  const isStatic = /[?&]static=1/.test(location.search);
+
+  let introSeen = true;
+  try {
+    introSeen = !!sessionStorage.getItem('ar-intro');
+    if (!introSeen) sessionStorage.setItem('ar-intro', '1');
+  } catch (e) { /* storage blocked → treat as seen */ }
+
+  const runLoader = loader && !isStatic && !introSeen;
+
+  if (!runLoader) {
+    if (loader) loader.remove();
+    fontsReady.then(release);
   } else {
-    setTimeout(release, 150);
+    loader.hidden = false;
+    const killswitch = setTimeout(() => { loader.remove(); release(); }, 3000);
+
+    if (reduced || !docEl.classList.contains('anim')) {
+      // Reduced motion: show the mark for a beat, then reveal
+      loader.classList.add('mark');
+      setTimeout(() => { clearTimeout(killswitch); loader.remove(); release(); }, 450);
+    } else {
+      requestAnimationFrame(() => loader.classList.add('mark')); // A—R fades in
+      setTimeout(() => {                                          // panel fades out
+        loader.classList.add('reveal');
+        fontsReady.then(release);                                 // hero scene begins
+      }, 900);
+      setTimeout(() => { clearTimeout(killswitch); loader.remove(); }, 1600);
+    }
   }
 
   /* ---------- Navigation: solid paper once past the hero top ----------
@@ -56,7 +88,8 @@
       });
     }, { rootMargin: '0px 0px -12% 0px', threshold: 0.05 });
 
-    document.querySelectorAll('.rv').forEach((el) => io.observe(el));
+    document.querySelectorAll('.rv, .rv-mask, .rv-line, .rv-draw, .rv-stamp')
+      .forEach((el) => io.observe(el));
   }
 
   /* ---------- 2 + 3. Shared frame state ---------- */

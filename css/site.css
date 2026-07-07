@@ -49,9 +49,9 @@
   transition: background-color .4s, box-shadow .4s;
 }
 .site-head.scrolled {
-  background: rgba(240, 234, 217, .92);
+  background: rgba(237, 232, 219,.92);
   backdrop-filter: blur(8px);
-  box-shadow: 0 1px 0 rgba(16, 49, 32, .14);
+  box-shadow: 0 1px 0 rgba(13, 42, 27,.14);
 }
 
 .nav-drop-wrap { position: relative; display: inline-block; }
@@ -61,15 +61,24 @@
   left: -20px;
   padding-top: 14px;
   min-width: 220px;
-  display: none;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity .3s var(--ease-out), transform .4s var(--ease-out),
+              visibility 0s .3s;
 }
 .nav-drop-wrap:hover .nav-drop,
-.nav-drop-wrap:focus-within .nav-drop { display: block; }
+.nav-drop-wrap:focus-within .nav-drop {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  transition: opacity .3s var(--ease-out), transform .4s var(--ease-out);
+}
 
 .nav-drop a {
   display: block;
   background: var(--paper);
-  border: 1px solid rgba(16, 49, 32, .14);
+  border: 1px solid rgba(13, 42, 27,.14);
   border-bottom: 0;
   padding: 13px 20px;
   font-size: .66rem;
@@ -79,7 +88,7 @@
   transition: color .25s, background-color .25s;
 }
 .nav-drop a:first-child { border-top: 2px solid var(--gold-soft); }
-.nav-drop a:last-child { border-bottom: 1px solid rgba(16, 49, 32, .14); }
+.nav-drop a:last-child { border-bottom: 1px solid rgba(13, 42, 27,.14); }
 .nav-drop a:hover { color: var(--pine); background: var(--paper-deep); }
 
 .nav-pill {
@@ -87,7 +96,7 @@
   letter-spacing: .18em;
   text-transform: uppercase;
   color: var(--pine);
-  border: 1px solid rgba(16, 49, 32, .35);
+  border: 1px solid rgba(13, 42, 27,.35);
   border-radius: 999px;
   padding: .7em 1.5em;
   transition: background-color .4s var(--ease-out), color .4s var(--ease-out), border-color .4s;
@@ -98,16 +107,37 @@
    Credentials band — the official marquee, in the new voice
    ============================================================ */
 .credits {
-  border-block: 1px solid rgba(16, 49, 32, .16);
+  position: relative;
+  border-block: 1px solid rgba(13, 42, 27,.16);
   padding-block: 18px;
   overflow: hidden;
+}
+/* The names dissolve at the register bounds — masked only on the track,
+   so the gold brackets stay crisp while the credentials pass behind them. */
+.credits-track {
+  display: flex;
+  width: max-content;
   -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
   mask-image: linear-gradient(90deg, transparent 0, #000 6%, #000 94%, transparent 100%);
 }
-.credits-track { display: flex; width: max-content; }
+/* Register brackets — short gold rules that frame the moving index,
+   the same precision language as the Social observatory frame. */
+.credits-edge {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 15px;
+  background: var(--gold-soft);
+  opacity: .7;
+  z-index: 2;
+  pointer-events: none;
+}
+.credits-edge-l { left: var(--mx-page); }
+.credits-edge-r { right: var(--mx-page); }
 .credits-run {
   display: flex;
-  animation: slide 56s linear infinite;
+  animation: slide 88s linear infinite;
 }
 .credits-run > span {
   font-size: .68rem;
@@ -152,21 +182,22 @@
 }
 .sec-pine .sec-kicker { color: var(--gold-soft); }
 
+/* Section headings — restrained, institutional. The em is the same
+   ink as the heading (like the approved hero), no decorative gold. */
 .sec-display {
   font-family: 'Gamay Editorial', Georgia, serif;
   font-weight: 900;
-  font-size: clamp(1.9rem, 3.5vw, 3.5rem);
-  line-height: 1.08;
+  font-size: clamp(1.7rem, 2.7vw, 2.75rem);
+  line-height: 1.1;
   letter-spacing: .002em;
-  max-width: 24ch;
+  max-width: 20ch;
 }
 .sec-display em {
   font-family: 'Gamay Narrow', Georgia, serif;
   font-style: italic;
   padding-right: .05em;
-  color: var(--gold);
+  color: inherit;
 }
-.sec-pine .sec-display em { color: var(--gold-soft); }
 
 .sec-support {
   font-size: clamp(.98rem, 1.1vw, 1.08rem);
@@ -174,7 +205,11 @@
   color: var(--pine-70);
   max-width: 54ch;
 }
-.sec-pine .sec-support { color: rgba(240, 234, 217, .72); }
+
+/* Air between a display and the prose that follows it */
+.sec-display + .body-p,
+.sec-display + .sec-support { margin-top: clamp(22px, 3.2vh, 36px); }
+.sec-pine .sec-support { color: rgba(237, 232, 219,.72); }
 
 .body-p {
   font-size: clamp(1rem, 1.12vw, 1.1rem);
@@ -183,8 +218,15 @@
 }
 .body-p + .body-p { margin-top: 1.3em; }
 .body-p strong { color: var(--pine); font-weight: 700; }
-.sec-pine .body-p { color: rgba(240, 234, 217, .68); }
+.sec-pine .body-p { color: rgba(237, 232, 219,.68); }
 .sec-pine .body-p strong { color: var(--gold-soft); font-weight: 700; }
+
+/* Magazine lede — the opening paragraph carries more voice */
+.body-p.lede {
+  font-size: clamp(1.14rem, 1.5vw, 1.36rem);
+  line-height: 1.72;
+  color: var(--pine);
+}
 
 /* Arrow link — the site's recurring CTA gesture */
 .link-arrow {
@@ -207,41 +249,97 @@
 .sec-cta-left { margin-top: clamp(28px, 4vh, 40px); }
 
 /* ============================================================
-   The argument (official pain-point strip)
+   The argument (official pain-point strip) — set as a thesis:
+   monumental claim, then a three-line ledger, not three cards.
    ============================================================ */
 .pain-head {
   display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
   gap: clamp(32px, 5vw, 88px);
   align-items: end;
-  margin-bottom: clamp(48px, 8vh, 88px);
+  margin-bottom: clamp(44px, 7vh, 80px);
+}
+.pain-head .sec-support { padding-bottom: .3em; }
+
+/* Executive briefing: a numbered memo read as one continuous process.
+   A gold spine runs down the number column, with a node at each step,
+   so Problem → Risk → Solution advances like a memo, not three cards. */
+.pain-args {
+  position: relative;
+  padding-left: 24px;
+  border-top: 1px solid rgba(13, 42, 27,.28);
+}
+.pain-args::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg, var(--gold-soft), rgba(13, 42, 27,.18));
 }
 
-.pain-cols {
+.pain-arg {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: clamp(28px, 4vw, 64px);
+  grid-template-columns: minmax(140px, 2fr) minmax(0, 3fr) minmax(0, 6fr);
+  gap: clamp(20px, 3.5vw, 64px);
+  align-items: baseline;
+  padding-block: clamp(26px, 3.8vh, 40px);
+  border-bottom: 1px solid rgba(13, 42, 27,.14);
 }
-.pain-col { border-top: 1px solid rgba(16, 49, 32, .3); padding-top: 22px; }
+
 .pain-n {
+  position: relative;
   display: block;
-  font-size: .64rem;
-  letter-spacing: .3em;
+  font-size: .6rem;
+  letter-spacing: .26em;
   text-transform: uppercase;
   color: var(--gold);
-  margin-bottom: 16px;
+}
+/* Node on the spine, aligned to each step's number */
+.pain-n::before {
+  content: '';
+  position: absolute;
+  left: -24px;
+  top: .1em;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  background: var(--paper);
 }
 .pain-h {
   font-family: 'Gamay Editorial', Georgia, serif;
   font-weight: 900;
-  font-size: clamp(1.1rem, 1.6vw, 1.45rem);
-  line-height: 1.2;
-  margin-bottom: 12px;
+  font-size: clamp(1.1rem, 1.5vw, 1.4rem);
+  line-height: 1.16;
+  max-width: 16ch;
 }
 .pain-p {
-  font-size: .96rem;
-  line-height: 1.75;
+  font-size: .95rem;
+  line-height: 1.78;
   color: var(--pine-70);
+  max-width: 56ch;
+}
+
+/* The turn — line 03 is the conclusion of the memo, not a third item.
+   It carries the argument's weight: a decided top rule, the label in
+   ink, the claim in full pine, and a quiet paper-deep bleed. */
+.pain-arg-turn {
+  border-top: 2px solid var(--pine);
+  border-bottom-color: transparent;
+  margin-top: -1px;
+  background:
+    linear-gradient(90deg, rgba(13, 42, 27,.035), transparent 62%);
+}
+.pain-arg-turn .pain-n { color: var(--pine); }
+.pain-arg-turn .pain-h { color: var(--pine); }
+.pain-arg-turn .pain-p { color: var(--pine); }
+/* The final node is filled — the process resolves */
+.pain-arg-turn .pain-n::before {
+  background: var(--gold);
+  border-color: var(--gold);
 }
 
 /* ============================================================
@@ -249,8 +347,8 @@
    ============================================================ */
 .about-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
-  gap: clamp(40px, 6vw, 96px);
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 400px);
+  gap: clamp(40px, 6vw, 110px);
   align-items: start;
 }
 
@@ -258,37 +356,58 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: clamp(28px, 4vw, 56px);
-  margin-top: clamp(28px, 4.5vh, 48px);
+  margin-top: clamp(32px, 5vh, 56px);
 }
 
+/* Investor-profile plate: the print sits on an offset frame */
 .about-photo {
   position: sticky;
   top: 96px;
+  margin-top: clamp(8px, 1.5vh, 20px);
+}
+.about-photo::before {
+  content: '';
+  position: absolute;
+  inset: 14px -14px -14px 14px;
+  border: 1px solid rgba(13, 42, 27,.22);
+  pointer-events: none;
 }
 .about-photo img {
+  position: relative;
   width: 100%;
   height: auto;
   display: block;
-  border: 1px solid rgba(16, 49, 32, .18);
-  filter: sepia(.08) saturate(.96) contrast(1.02);
+  border: 1px solid rgba(13, 42, 27,.2);
+  filter: sepia(.1) saturate(.94) contrast(1.04);
 }
 .about-photo figcaption {
-  padding-top: 12px;
-  font-size: .62rem;
+  padding-top: 14px;
+  font-size: .6rem;
   letter-spacing: .3em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--pine-45);
 }
 
+/* Career index — numbered like a colophon (CSS counters, decorative) */
 .cred-strip {
-  margin-top: clamp(52px, 8vh, 84px);
-  border-top: 1px solid rgba(16, 49, 32, .3);
+  counter-reset: cred;
+  margin-top: clamp(56px, 9vh, 96px);
+  border-top: 1px solid rgba(13, 42, 27,.35);
   display: grid;
   grid-template-columns: repeat(4, 1fr);
 }
 .cred-cell {
+  counter-increment: cred;
   padding: 26px 22px 0 0;
-  border-right: 1px solid rgba(16, 49, 32, .14);
+  border-right: 1px solid rgba(13, 42, 27,.14);
+}
+.cred-cell::before {
+  content: counter(cred, decimal-leading-zero);
+  display: block;
+  font-size: .6rem;
+  letter-spacing: .26em;
+  color: var(--gold);
+  margin-bottom: 14px;
 }
 .cred-cell:last-child { border-right: 0; }
 .cred-cell + .cred-cell { padding-left: 22px; }
@@ -296,19 +415,19 @@
   display: block;
   font-family: 'Gamay Editorial', Georgia, serif;
   font-weight: 900;
-  font-size: clamp(.88rem, 1.15vw, 1.05rem);
+  font-size: clamp(.94rem, 1.25vw, 1.15rem);
   line-height: 1.35;
   margin-bottom: 8px;
 }
 .cred-city {
-  font-size: .62rem;
+  font-size: .6rem;
   letter-spacing: .26em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--pine-45);
 }
 
 /* ============================================================
-   02 · Burgermeister Miami (pine chapter)
+   02 · Burgermeister Miami — proof of operation, on paper
    ============================================================ */
 .bm-grid {
   display: grid;
@@ -320,121 +439,151 @@
 .bm-photo img {
   width: 100%;
   height: auto;
-  max-height: 420px;
+  max-height: 520px;
   object-fit: cover;
-  object-position: center 20%;
+  object-position: center 18%;
   display: block;
-  border: 1px solid rgba(240, 234, 217, .22);
-  filter: sepia(.1) saturate(.92) contrast(1.04);
+  border: 1px solid rgba(13, 42, 27,.18);
+  filter: sepia(.08) saturate(.96) contrast(1.03);
 }
 
+/* Proof figures — a quiet data module, sober scale */
 .bm-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  border-top: 1px solid rgba(240, 234, 217, .25);
-  margin-top: 28px;
+  border-top: 1px solid rgba(13, 42, 27,.28);
+  margin-top: 26px;
 }
 .bm-stats > div {
-  padding: 20px 18px 0 0;
-  border-right: 1px solid rgba(240, 234, 217, .14);
+  padding: 20px 16px 0 0;
+  border-right: 1px solid rgba(13, 42, 27,.12);
 }
-.bm-stats > div + div { padding-left: 18px; }
+.bm-stats > div + div { padding-left: 16px; }
 .bm-stats > div:last-child { border-right: 0; }
 .bm-stats dd {
   font-family: 'Gamay Editorial', Georgia, serif;
   font-weight: 900;
-  font-size: clamp(1.7rem, 2.6vw, 2.5rem);
-  color: var(--gold-soft);
+  font-size: clamp(1.8rem, 2.6vw, 2.4rem);
+  color: var(--pine);
   line-height: 1;
 }
 .bm-stats dt {
-  font-size: .58rem;
+  font-size: .56rem;
   letter-spacing: .26em;
   text-transform: uppercase;
-  color: rgba(240, 234, 217, .5);
-  margin-bottom: 10px;
+  color: var(--pine-45);
+  margin-bottom: 12px;
 }
 
+/* Recognition — an organised register of proof, two sober columns */
 .bm-awards {
-  margin-top: clamp(48px, 7vh, 72px);
-  border-top: 1px solid rgba(240, 234, 217, .25);
+  margin-top: clamp(48px, 7vh, 76px);
+  border-top: 1px solid rgba(13, 42, 27,.28);
   padding-top: 24px;
 }
 .bm-aw-title {
-  font-size: .64rem;
+  font-size: .6rem;
   letter-spacing: .3em;
   text-transform: uppercase;
-  color: var(--gold-soft);
-  margin-bottom: 16px;
+  color: var(--gold);
+  margin-bottom: 4px;
 }
 .bm-aw-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: clamp(28px, 4vw, 72px);
+}
+/* Each mention reads as a seal of proof: a gold register tick, and a
+   quiet lift on hover so the recognition feels earned, not listed. */
+.bm-aw-list span {
+  position: relative;
   display: flex;
-  flex-wrap: wrap;
-  gap: .6em 0;
-  font-size: .68rem;
-  letter-spacing: .22em;
-  text-transform: uppercase;
-  color: rgba(240, 234, 217, .6);
+  align-items: center;
+  gap: 12px;
+  padding: 13px 4px 13px 0;
+  border-bottom: 1px solid rgba(13, 42, 27,.12);
+  font-size: .82rem;
+  letter-spacing: .06em;
+  color: var(--pine-70);
+  transition: color .3s, padding-left .4s var(--ease-out);
 }
-.bm-aw-list span::after {
-  content: '·';
-  margin-inline: 1.1em;
-  color: rgba(169, 140, 75, .6);
+.bm-aw-list span::before {
+  content: '';
+  flex: 0 0 auto;
+  width: 10px;
+  height: 1px;
+  background: var(--gold);
+  transition: width .4s var(--ease-out);
 }
-.bm-aw-list span:last-child::after { content: ''; margin: 0; }
+.bm-aw-list span:hover {
+  color: var(--pine);
+  padding-left: 6px;
+}
+.bm-aw-list span:hover::before { width: 18px; }
 
 /* ============================================================
-   03 · The Office Delray
+   03 · The Office Delray — longevity as a clean record of facts
    ============================================================ */
-#the-office { overflow: hidden; }
-
-.to-ghost {
-  position: absolute;
-  right: -1vw;
-  top: clamp(24px, 6vh, 72px);
-  font-family: 'Gamay Editorial', Georgia, serif;
-  font-weight: 900;
-  font-size: clamp(160px, 22vw, 380px);
-  line-height: .8;
-  color: rgba(16, 49, 32, .06);
-  pointer-events: none;
-  user-select: none;
-}
-
 .to-grid {
   display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
   gap: clamp(40px, 6vw, 96px);
   align-items: start;
 }
-.to-grid .body-p:first-of-type { margin-top: clamp(28px, 4.5vh, 48px); }
+.to-grid .body-p:first-of-type { margin-top: clamp(24px, 4vh, 40px); }
 
+/* Fact sheet — the credibility ledger */
 .to-detail {
-  border-top: 1px solid rgba(16, 49, 32, .3);
-  margin-top: clamp(28px, 4.5vh, 48px);
+  border-top: 1px solid rgba(13, 42, 27,.28);
 }
 .to-detail > div {
   display: grid;
-  grid-template-columns: 110px 1fr;
+  grid-template-columns: 120px 1fr;
   gap: 20px;
   align-items: baseline;
-  padding-block: 15px;
-  border-bottom: 1px solid rgba(16, 49, 32, .14);
+  padding-block: 16px;
+  border-bottom: 1px solid rgba(13, 42, 27,.12);
 }
 .to-detail dt {
-  font-size: .62rem;
+  font-size: .6rem;
   letter-spacing: .3em;
   text-transform: uppercase;
   color: var(--gold);
 }
 .to-detail dd { font-size: .98rem; color: var(--pine); }
 
+/* Continuity line — permanence rendered as a drawn rule between two
+   nodes (opening → today). Purely graphic; the words live in the sheet. */
+.to-line {
+  display: flex;
+  align-items: center;
+  margin: clamp(24px, 4vh, 40px) 0 clamp(8px, 1.5vh, 16px);
+  max-width: 460px;
+}
+.to-line-dot {
+  flex: 0 0 auto;
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--gold);
+  border-radius: 50%;
+  background: var(--paper-deep);
+}
+.to-line-dot-now { background: var(--gold); }
+.to-line-rule {
+  flex: 1 1 auto;
+  height: 1px;
+  margin: 0 10px;
+  background: linear-gradient(90deg, var(--gold-soft), rgba(13, 42, 27,.28));
+}
+
 /* ============================================================
-   Quote — the voice
+   Quote — the pause. Near-black chapter, cinematic breathing room.
    ============================================================ */
-.quote { padding-block: clamp(80px, 12vh, 150px); }
+.sec-deep { background: var(--pine-deep); }
+
+.quote { padding-block: clamp(96px, 16vh, 170px); }
 .quote-in {
-  max-width: 880px;
+  max-width: 860px;
   margin-inline: auto;
   text-align: center;
 }
@@ -444,25 +593,27 @@
   width: 26px;
   height: 1px;
   background: var(--gold-soft);
-  margin: 0 auto 34px;
+  margin: 0 auto 36px;
 }
 .quote-tx {
   font-family: 'Gamay Narrow', Georgia, serif;
   font-style: italic;
   font-weight: 900;
-  font-size: clamp(1.5rem, 2.9vw, 2.6rem);
-  line-height: 1.45;
+  font-size: clamp(1.45rem, 2.5vw, 2.2rem);
+  line-height: 1.42;
   color: var(--paper);
 }
 .quote-by {
   display: inline-block;
-  margin-top: 34px;
+  margin-top: 36px;
   font-style: normal;
-  font-size: .64rem;
-  letter-spacing: .42em;
+  font-size: .6rem;
+  letter-spacing: .4em;
   text-transform: uppercase;
   color: var(--gold-soft);
 }
+/* The attribution arrives a beat after the line has fully settled */
+html.anim .quote-by { transition-delay: .85s; }
 
 /* ============================================================
    Press — the clippings index
@@ -473,20 +624,36 @@
   margin-bottom: clamp(40px, 6vh, 64px);
 }
 
-.press-index { border-top: 1px solid rgba(16, 49, 32, .3); }
+.press-index {
+  counter-reset: press;
+  border-top: 1px solid rgba(13, 42, 27,.35);
+}
 
+/* Index entries — numbered clippings, publication as the headline */
 .press-row {
+  counter-increment: press;
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr) auto;
-  gap: clamp(24px, 3.5vw, 56px);
+  grid-template-columns: 52px 104px minmax(0, 1fr) auto;
+  gap: clamp(20px, 3vw, 52px);
   align-items: center;
-  padding-block: clamp(24px, 3.6vh, 36px);
-  border-bottom: 1px solid rgba(16, 49, 32, .14);
+  padding-block: clamp(26px, 4vh, 40px);
+  border-bottom: 1px solid rgba(13, 42, 27,.14);
+  transition: background-color .45s var(--ease-out);
+}
+.press-row:hover { background: rgba(13, 42, 27,.035); }
+
+.press-row::before {
+  content: counter(press, decimal-leading-zero);
+  font-size: .62rem;
+  letter-spacing: .24em;
+  color: var(--pine-45);
+  align-self: start;
+  padding-top: .4em;
 }
 
 .press-thumb {
-  width: 96px;
-  height: 96px;
+  width: 104px;
+  height: 104px;
   overflow: hidden;
 }
 .press-thumb img {
@@ -494,15 +661,17 @@
   height: 100%;
   object-fit: cover;
   display: block;
-  filter: sepia(.1) saturate(.94) contrast(1.03);
-  border: 1px solid rgba(16, 49, 32, .18);
+  filter: sepia(.1) saturate(.92) contrast(1.05);
+  border: 1px solid rgba(13, 42, 27,.18);
+  transition: transform .8s var(--ease-out);
 }
+.press-row:hover .press-thumb img { transform: scale(1.05); }
 .press-plate {
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  border: 1px solid rgba(16, 49, 32, .25);
+  border: 1px solid rgba(13, 42, 27,.25);
   background: var(--paper-deep);
 }
 .press-plate span {
@@ -517,28 +686,30 @@
 }
 
 .press-badge {
-  font-size: .58rem;
+  font-size: .54rem;
   letter-spacing: .3em;
   text-transform: uppercase;
   color: var(--gold);
-  margin-bottom: 8px;
+  margin-bottom: 9px;
 }
 .press-pub {
   font-family: 'Gamay Editorial', Georgia, serif;
   font-weight: 900;
-  font-size: clamp(1.2rem, 1.9vw, 1.7rem);
+  font-size: clamp(1.2rem, 1.7vw, 1.55rem);
   line-height: 1.1;
   margin-bottom: 10px;
+  transition: transform .5s var(--ease-out);
 }
+.press-row:hover .press-pub { transform: translateX(4px); }
 .press-desc {
-  font-size: .95rem;
-  line-height: 1.7;
+  font-size: .92rem;
+  line-height: 1.75;
   color: var(--pine-70);
-  max-width: 62ch;
+  max-width: 60ch;
 }
 .press-link { white-space: nowrap; }
 .press-static {
-  font-size: .72rem;
+  font-size: .68rem;
   letter-spacing: .24em;
   text-transform: uppercase;
   color: var(--pine-45);
@@ -557,21 +728,56 @@
 .social-desc {
   font-size: clamp(.98rem, 1.08vw, 1.06rem);
   line-height: 1.85;
-  color: rgba(240, 234, 217, .68);
-  margin-bottom: 24px;
+  color: var(--pine-70);
+  margin-bottom: 22px;
 }
 
-.social-feed { margin-bottom: clamp(32px, 5vh, 56px); }
-.social-feed behold-widget { display: block; width: 100%; }
+/* Feed held in a quiet plate and width-limited so it reads as a
+   controlled intelligence feed, not a pasted-in Instagram grid */
+.social-feed {
+  margin-bottom: clamp(40px, 6vh, 68px);
+}
+.social-frame {
+  position: relative;
+  max-width: 900px;
+  margin-inline: auto;
+  border: 1px solid rgba(13, 42, 27,.16);
+  background: var(--paper);
+  padding: clamp(14px, 2vw, 28px);
+}
+.social-frame behold-widget { display: block; width: 100%; }
 
+/* Registration marks — the feed is read as an observed plate, framed
+   with precision, not a pasted-in Instagram grid. */
+.frame-tick {
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  border: 0 solid var(--gold-soft);
+  opacity: .85;
+  pointer-events: none;
+}
+.tick-tl { top: -1px; left: -1px; border-top-width: 1px; border-left-width: 1px; }
+.tick-tr { top: -1px; right: -1px; border-top-width: 1px; border-right-width: 1px; }
+.tick-bl { bottom: -1px; left: -1px; border-bottom-width: 1px; border-left-width: 1px; }
+.tick-br { bottom: -1px; right: -1px; border-bottom-width: 1px; border-right-width: 1px; }
+
+/* The frame draws its marks in as it enters (armed only under html.anim) */
+html.anim .social-feed .frame-tick {
+  opacity: 0;
+  transition: opacity .6s var(--ease-out) .2s;
+}
+html.anim .social-feed.in .frame-tick { opacity: .85; }
+
+/* Topic tiles as editorial notes — hairline rule + observation */
 .topics {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: clamp(24px, 3vw, 48px);
+  gap: clamp(20px, 2.6vw, 40px);
 }
 .topic {
-  border-top: 1px solid rgba(240, 234, 217, .25);
-  padding-top: 20px;
+  border-top: 1px solid rgba(13, 42, 27,.24);
+  padding-top: 18px;
   position: relative;
 }
 .topic::before {
@@ -579,7 +785,7 @@
   position: absolute;
   top: -1px;
   left: 0;
-  width: 26px;
+  width: 24px;
   height: 1px;
   background: var(--gold-soft);
   transform: scaleX(0);
@@ -589,104 +795,132 @@
 .topic:hover::before { transform: scaleX(1); }
 .topic-n {
   display: block;
-  font-size: .62rem;
+  font-size: .58rem;
   letter-spacing: .3em;
-  color: var(--gold-soft);
-  margin-bottom: 14px;
+  color: var(--gold);
+  margin-bottom: 12px;
 }
 .topic-t {
   font-family: 'Gamay Editorial', Georgia, serif;
   font-weight: 900;
-  font-size: clamp(.98rem, 1.3vw, 1.15rem);
+  font-size: clamp(.95rem, 1.2vw, 1.08rem);
   line-height: 1.3;
-  color: var(--paper);
+  color: var(--pine);
   margin-bottom: 8px;
 }
 .topic-s {
-  font-size: .86rem;
+  font-size: .84rem;
   line-height: 1.6;
-  color: rgba(240, 234, 217, .6);
+  color: var(--pine-45);
 }
 
 /* ============================================================
    Opportunities — E-2 / EB-5
    ============================================================ */
-.opp-intro { margin-top: clamp(20px, 3vh, 32px); max-width: 60ch; }
+.opp-intro { margin-top: clamp(20px, 3vh, 32px); max-width: 62ch; }
 
 .visa-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: clamp(24px, 3vw, 48px);
-  margin-top: clamp(48px, 7vh, 80px);
+  gap: clamp(28px, 3.5vw, 56px);
+  margin-top: clamp(44px, 6vh, 72px);
 }
 
+/* Investment brief — two clean documents, letterhead rule, no card mass.
+   The 2px rule is a drawn element (.visa-rule) that traces in on enter,
+   so each plate reads as a document being issued, not a card appearing. */
 .visa-plate {
-  border: 1px solid rgba(16, 49, 32, .22);
-  border-top: 2px solid var(--gold-soft);
-  padding: clamp(28px, 3.6vw, 52px);
+  position: relative;
+  border-top: 2px solid rgba(13, 42, 27,.12);
+  padding-top: clamp(26px, 3vh, 38px);
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  background: rgba(233, 226, 205, .35);
+  align-items: stretch;
+}
+.visa-rule {
+  position: absolute;
+  top: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--pine);
+  transform-origin: left;
 }
 .visa-badge {
-  font-size: .62rem;
-  letter-spacing: .34em;
+  font-size: .6rem;
+  letter-spacing: .32em;
   text-transform: uppercase;
   color: var(--gold);
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
 .visa-title {
   font-family: 'Gamay Editorial', Georgia, serif;
   font-weight: 900;
-  font-size: clamp(1.3rem, 2vw, 1.8rem);
-  line-height: 1.15;
+  font-size: clamp(1.25rem, 1.7vw, 1.6rem);
+  line-height: 1.14;
   margin-bottom: 16px;
-  max-width: 16ch;
+  max-width: 18ch;
 }
 .visa-sub {
-  font-size: .98rem;
-  line-height: 1.8;
+  font-size: .96rem;
+  line-height: 1.78;
   color: var(--pine-70);
   margin-bottom: 26px;
+  max-width: 46ch;
 }
 .visa-list {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  margin-bottom: 34px;
+  margin-bottom: 32px;
+  border-top: 1px solid rgba(13, 42, 27,.16);
 }
 .visa-list li {
   position: relative;
-  padding-left: 22px;
-  font-size: .94rem;
-  line-height: 1.65;
+  padding: 13px 0 13px 26px;
+  border-bottom: 1px solid rgba(13, 42, 27,.1);
+  font-size: .93rem;
+  line-height: 1.6;
   color: var(--pine-70);
 }
 .visa-list li::before {
   content: '';
   position: absolute;
   left: 0;
-  top: .68em;
-  width: 10px;
+  top: 1.32em;
+  width: 12px;
   height: 1px;
-  background: var(--gold-soft);
+  background: var(--gold);
 }
 
+/* Signature-line CTA — closes the document */
+.visa-plate .link-arrow {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 0;
+  border-top: 1px solid rgba(13, 42, 27,.25);
+  padding: 16px 0 0;
+  transition: color .3s, border-color .3s;
+}
+.visa-plate .link-arrow:hover { border-top-color: var(--pine); }
+
+/* Formal notice — a sober counsel line, framed on the hairline */
 .visa-note {
   margin-top: clamp(40px, 6vh, 64px);
-  border-left: 2px solid var(--gold-soft);
-  padding: 6px 0 6px clamp(20px, 2.6vw, 36px);
-  max-width: 70ch;
+  border-top: 1px solid rgba(13, 42, 27,.2);
+  padding: clamp(20px, 2.4vw, 30px) 0 0;
+  max-width: 82ch;
 }
 .visa-note p {
-  font-size: .98rem;
-  line-height: 1.85;
-  font-style: italic;
+  font-size: .94rem;
+  line-height: 1.8;
   color: var(--pine-70);
+  padding-left: clamp(16px, 2vw, 28px);
+  border-left: 2px solid var(--gold-soft);
 }
-.visa-note strong { font-style: normal; font-weight: 700; color: var(--pine); }
+.visa-note strong { font-weight: 700; color: var(--pine); }
 
 /* ============================================================
    Contact — channels + the official form
@@ -698,76 +932,93 @@
   align-items: start;
 }
 
+/* Contact is the cinematic close — near-black chapter (.sec-deep) */
+#contact { border-top: 1px solid rgba(237, 232, 219,.12); }
+
 .contact-list {
   margin-top: clamp(28px, 4.5vh, 44px);
-  border-top: 1px solid rgba(16, 49, 32, .3);
+  border-top: 1px solid rgba(237, 232, 219,.28);
 }
 .contact-list > div {
   display: grid;
   grid-template-columns: 96px 1fr;
   gap: 20px;
   align-items: baseline;
-  padding-block: 15px;
-  border-bottom: 1px solid rgba(16, 49, 32, .14);
+  padding-block: 16px;
+  border-bottom: 1px solid rgba(237, 232, 219,.12);
 }
 .contact-list dt {
-  font-size: .62rem;
+  font-size: .6rem;
   letter-spacing: .3em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--gold-soft);
 }
-.contact-list dd { font-size: .98rem; }
+.contact-list dd { font-size: 1rem; color: var(--paper); }
 .contact-list a {
-  border-bottom: 1px solid rgba(169, 140, 75, .5);
+  border-bottom: 1px solid rgba(160, 133, 73,.5);
   padding-bottom: 2px;
-  transition: color .3s;
+  transition: color .3s, border-color .3s;
 }
-.contact-list a:hover { color: var(--gold); }
+.contact-list a:hover { color: var(--gold-soft); border-color: var(--gold-soft); }
 
-.form { display: flex; flex-direction: column; gap: 22px; }
+.form { display: flex; flex-direction: column; gap: 24px; }
 .form-hp { display: none; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-.form-field { display: flex; flex-direction: column; gap: 9px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.form-field { position: relative; display: flex; flex-direction: column; gap: 10px; }
 .form-label {
-  font-size: .62rem;
+  font-size: .6rem;
   letter-spacing: .3em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--gold-soft);
 }
 .form-input {
   background: transparent;
   border: 0;
-  border-bottom: 1px solid rgba(16, 49, 32, .28);
+  border-bottom: 1px solid rgba(237, 232, 219,.4);
   border-radius: 0;
-  padding: 10px 0;
+  padding: 11px 0;
   font-family: 'Gamay', 'Segoe UI', system-ui, sans-serif;
   font-size: .98rem;
-  color: var(--pine);
+  color: var(--paper);
   outline: none;
-  transition: border-color .3s;
   appearance: none;
   width: 100%;
 }
-.form-input::placeholder { color: rgba(16, 49, 32, .35); }
-.form-input:focus { border-bottom-color: var(--gold); }
+.form-input::placeholder { color: rgba(237, 232, 219,.4); }
 .form-input:focus-visible { outline: none; }
 .form-select {
-  background-image: linear-gradient(45deg, transparent 50%, var(--gold) 50%),
-                    linear-gradient(135deg, var(--gold) 50%, transparent 50%);
+  background-image: linear-gradient(45deg, transparent 50%, var(--gold-soft) 50%),
+                    linear-gradient(135deg, var(--gold-soft) 50%, transparent 50%);
   background-position: calc(100% - 14px) 55%, calc(100% - 9px) 55%;
   background-size: 5px 5px;
   background-repeat: no-repeat;
 }
+.form-select option { color: var(--pine); background: var(--paper); }
 .form-ta { resize: none; min-height: 96px; }
+
+/* Focus line — draws in gold under the active field */
+.form-field::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--gold-soft);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .55s var(--ease-out);
+}
+.form-field:focus-within::after { transform: scaleX(1); }
 
 .form-btn {
   align-self: flex-start;
-  margin-top: 10px;
-  border: 1px solid var(--pine);
+  margin-top: 12px;
+  border: 1px solid var(--paper);
   border-radius: 999px;
-  background: var(--pine);
-  color: var(--paper);
-  padding: 1.05em 2em;
+  background: var(--paper);
+  color: var(--pine);
+  padding: 1.05em 2.2em;
   font-family: 'Gamay', 'Segoe UI', system-ui, sans-serif;
   font-size: .72rem;
   letter-spacing: .22em;
@@ -776,16 +1027,18 @@
   transition: background-color .4s var(--ease-out), color .4s var(--ease-out);
 }
 .form-btn .arr { display: inline-block; transition: transform .35s var(--ease-out); }
-.form-btn:hover { background: transparent; color: var(--pine); }
+.form-btn:hover { background: transparent; color: var(--paper); }
 .form-btn:hover .arr { transform: translateX(6px); }
 
 /* ============================================================
    Footer — official columns and lines
    ============================================================ */
+/* Footer — the signature. Continues the dark close of Contact. */
 .footer {
-  background: #0c2718;
+  background: var(--pine-deep);
   color: var(--paper);
-  padding-block: clamp(56px, 8vh, 88px) clamp(28px, 4vh, 40px);
+  border-top: 1px solid rgba(237, 232, 219,.12);
+  padding-block: clamp(64px, 10vh, 110px) clamp(28px, 4vh, 40px);
 }
 
 .footer-top {
@@ -793,24 +1046,28 @@
   grid-template-columns: minmax(0, 6fr) minmax(0, 3fr) minmax(0, 3fr);
   gap: clamp(32px, 4vw, 64px);
   align-items: start;
-  padding-bottom: clamp(40px, 6vh, 64px);
-  border-bottom: 1px solid rgba(240, 234, 217, .16);
+  padding-bottom: clamp(44px, 7vh, 72px);
+  border-bottom: 1px solid rgba(237, 232, 219,.14);
 }
 
-.footer-id .monogram { font-size: 1.4rem; color: var(--paper); }
+.footer-id .monogram { font-size: 1.1rem; color: var(--gold-soft); }
+/* The signature mark warms to full paper on hover — a quiet close */
+.footer-mono { transition: color .4s var(--ease-out), letter-spacing .5s var(--ease-out); }
+.footer-mono:hover { color: var(--paper); letter-spacing: .06em; }
 .footer-name {
   margin-top: 16px;
   font-family: 'Gamay Editorial', Georgia, serif;
   font-weight: 900;
-  font-size: 1.05rem;
-  letter-spacing: .04em;
+  font-size: clamp(1.1rem, 1.6vw, 1.25rem);
+  line-height: 1.1;
+  letter-spacing: .02em;
 }
 .footer-line {
   margin-top: 8px;
   font-size: .64rem;
   letter-spacing: .26em;
   text-transform: uppercase;
-  color: rgba(240, 234, 217, .5);
+  color: rgba(237, 232, 219,.5);
 }
 
 .footer-ch {
@@ -824,10 +1081,10 @@
 .footer-col a {
   width: max-content;
   font-size: .8rem;
-  color: rgba(240, 234, 217, .65);
-  transition: color .3s;
+  color: rgba(237, 232, 219,.65);
+  transition: color .3s, transform .4s var(--ease-out);
 }
-.footer-col a:hover { color: var(--paper); }
+.footer-col a:hover { color: var(--paper); transform: translateX(4px); }
 
 .footer-base {
   padding-top: 22px;
@@ -838,34 +1095,81 @@
   font-size: .64rem;
   letter-spacing: .18em;
   text-transform: uppercase;
-  color: rgba(240, 234, 217, .55);
+  color: rgba(237, 232, 219,.55);
 }
 .footer-soc { display: flex; gap: 26px; }
 .footer-soc a { transition: color .3s; }
 .footer-soc a:hover { color: var(--paper); }
 
 /* ============================================================
-   Scroll reveal — armed only under html.anim (JS + motion OK):
-   no-JS and reduced-motion always see the final state.
+   Scroll reveal — quiet and functional. Armed only under
+   html.anim; no-JS and reduced-motion always see final state.
+   One vocabulary, several verbs, so no two sections enter alike:
+     .rv        text  — a short, even fade + rise (the default)
+     .rv-line   type  — a masked rise (display lines, the quote)
+     .rv-draw   rules — a hairline that draws in from the left
+     .rv-stamp  proof — evidence settling onto the page (seals)
+     .rv-mask   image — a light crop reveal (the print settles)
+   All share the .in toggle set by the IntersectionObserver, and
+   all collapse to their final state under reduced motion / no-JS.
    ============================================================ */
 html.anim .rv {
   opacity: 0;
-  transform: translateY(26px);
-  transition: opacity .9s var(--ease-out), transform .9s var(--ease-out);
+  transform: translateY(16px);
+  transition: opacity .7s var(--ease-out), transform .7s var(--ease-out);
 }
 html.anim .rv.in { opacity: 1; transform: none; }
-html.anim .rv.d1 { transition-delay: .08s; }
-html.anim .rv.d2 { transition-delay: .16s; }
-html.anim .rv.d3 { transition-delay: .24s; }
+
+/* rv-line — a masked rise: the line lifts out from under a crop */
+html.anim .rv-line {
+  opacity: 0;
+  clip-path: inset(0 0 102% 0);
+  transform: translateY(22px);
+  transition: opacity .9s var(--ease-out), clip-path 1s var(--ease-out),
+              transform 1s var(--ease-out);
+}
+html.anim .rv-line.in { opacity: 1; clip-path: inset(0 0 0 0); transform: none; }
+
+/* rv-draw — a rule that draws in from the left (documents, timelines) */
+html.anim .rv-draw {
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .9s var(--ease-out);
+}
+html.anim .rv-draw.in { transform: scaleX(1); }
+
+/* rv-stamp — proof settling onto the page: a small over-scale that eases in */
+html.anim .rv-stamp {
+  opacity: 0;
+  transform: scale(1.035);
+  transition: opacity .55s var(--ease-out), transform .7s var(--ease-out);
+}
+html.anim .rv-stamp.in { opacity: 1; transform: none; }
+
+/* Shared stagger — applies to any variant, so sequences can cascade */
+html.anim .d1 { transition-delay: .06s; }
+html.anim .d2 { transition-delay: .12s; }
+html.anim .d3 { transition-delay: .18s; }
+html.anim .d4 { transition-delay: .26s; }
+html.anim .d5 { transition-delay: .34s; }
+html.anim .d6 { transition-delay: .42s; }
 
 html.anim .rv.sec-head::before,
 html.anim .rv .sec-head::before {
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform .8s var(--ease-out) .15s;
+  transition: transform .7s var(--ease-out) .1s;
 }
 html.anim .rv.in.sec-head::before,
 html.anim .rv.in .sec-head::before { transform: scaleX(1); }
+
+/* Images reveal by a light crop — the print settles into the page */
+html.anim .rv-mask {
+  clip-path: inset(0 0 12% 0);
+  opacity: 0;
+  transition: clip-path .9s var(--ease-out), opacity .9s var(--ease-out);
+}
+html.anim .rv-mask.in { clip-path: inset(0 0 0% 0); opacity: 1; }
 
 @media (prefers-reduced-motion: reduce) {
   .credits-run { animation: none; }
@@ -876,11 +1180,13 @@ html.anim .rv.in .sec-head::before { transform: scaleX(1); }
    ============================================================ */
 @media (max-width: 1080px) {
   .pain-head { grid-template-columns: 1fr; align-items: start; }
-  .about-grid { grid-template-columns: minmax(0, 1fr) minmax(220px, 280px); }
+  .pain-arg { grid-template-columns: minmax(120px, 1fr) minmax(0, 5fr); }
+  .pain-arg .pain-p { grid-column: 2; }
+  .about-grid { grid-template-columns: minmax(0, 1fr) minmax(240px, 320px); }
   .bm-grid, .to-grid, .social-top { grid-template-columns: 1fr; }
   .bm-side { max-width: 560px; }
   .contact-grid { grid-template-columns: 1fr; }
-  .topics { grid-template-columns: repeat(2, 1fr); }
+  .topics { grid-template-columns: repeat(2, 1fr); row-gap: 36px; }
 }
 
 @media (max-width: 860px) {
@@ -888,29 +1194,32 @@ html.anim .rv.in .sec-head::before { transform: scaleX(1); }
 
   .sec { padding-block: clamp(64px, 10vh, 110px); }
 
-  .pain-cols { grid-template-columns: 1fr; gap: 32px; }
+  .pain-arg { grid-template-columns: 1fr; gap: 12px; padding-block: 28px; }
+  .pain-arg .pain-p { grid-column: auto; margin-top: 6px; }
+  .pain-n { padding-top: 0; }
 
   .about-grid { grid-template-columns: 1fr; }
   .about-cols { grid-template-columns: 1fr; gap: 0; }
   .about-cols > div + div .body-p:first-child { margin-top: 1.3em; }
-  .about-photo { position: static; max-width: 420px; }
+  .about-photo { position: static; max-width: 420px; margin-inline: 0 14px; }
   .cred-strip { grid-template-columns: 1fr 1fr; row-gap: 26px; }
   .cred-cell:nth-child(2) { border-right: 0; }
   .cred-cell:nth-child(3) { padding-left: 0; }
 
   .bm-stats { grid-template-columns: repeat(3, 1fr); }
+  .bm-aw-list { grid-template-columns: 1fr; }
 
-  .to-ghost { font-size: clamp(120px, 34vw, 200px); top: 12px; }
-  .to-detail > div { grid-template-columns: 92px 1fr; }
+  .to-detail > div { grid-template-columns: 96px 1fr; }
 
   .press-row {
     grid-template-columns: 72px minmax(0, 1fr);
     row-gap: 14px;
   }
+  .press-row::before { display: none; }
   .press-thumb { width: 72px; height: 72px; }
   .press-link { grid-column: 2; justify-self: start; }
 
-  .topics { grid-template-columns: 1fr; gap: 26px; }
+  .topics { grid-template-columns: 1fr; gap: 30px; }
 
   .visa-grid { grid-template-columns: 1fr; }
 
