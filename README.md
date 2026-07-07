@@ -5,9 +5,22 @@ conteúdo: mesmas seções, mesma ordem, mesma copy, mesmos links, mesmas
 imagens e mesmo menu do site oficial — sob a direção de arte aprovada na
 hero (papel-osso, verde-pinho, dourado, Gamay, hairlines).
 
-**Como abrir:** duplo clique em `index.html` (ou qualquer servidor estático
-na pasta). Sem build; a única dependência externa é o widget oficial de
-Instagram (Behold) que o próprio site atual já usa.
+**Como abrir:** use o servidor local do Vite para desenvolvimento e QA:
+`npm run dev`. Para validar a versão de produção: `npm run build` e
+`npm run preview`. A única dependência externa de runtime é o widget oficial
+de Instagram (Behold) que o próprio site atual já usa.
+
+## Desenvolvimento local
+
+```bash
+npm install
+npm run dev
+npm run build
+npm run preview
+```
+
+O projeto continua sendo HTML/CSS/JS puro: `index.html` permanece na raiz,
+sem React, sem framework de UI e sem pasta `src/`.
 
 ## Estrutura de arquivos
 
