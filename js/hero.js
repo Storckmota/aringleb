@@ -74,24 +74,6 @@
 
   if (reduced) return;
 
-  /* ---------- Section reveals (site chapters) ----------
-     Initial hidden states exist only under html.anim, so this
-     observer is meaningful only there; without it the chapters
-     are simply visible. */
-  if (docEl.classList.contains('anim') && 'IntersectionObserver' in window) {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('in');
-          io.unobserve(entry.target);
-        }
-      });
-    }, { rootMargin: '0px 0px -12% 0px', threshold: 0.05 });
-
-    document.querySelectorAll('.rv, .rv-mask, .rv-line, .rv-draw, .rv-stamp')
-      .forEach((el) => io.observe(el));
-  }
-
   /* ---------- 2 + 3. Shared frame state ---------- */
   const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
