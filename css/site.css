@@ -53,9 +53,15 @@
   box-shadow: 0 1px 0 rgba(13, 42, 27, .14);
 }
 
+/* Fix: align the About wrapper on the same visual line as its sibling
+   links. Override lives here (site.css loads after hero.css); hero.css
+   is not touched. */
+.site-nav { align-items: center; }
+
 .nav-drop-wrap {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
 }
 
 .nav-drop {
@@ -117,27 +123,78 @@
   color: var(--paper);
 }
 
-/* ---------- Proof strip ---------- */
+/* ---------- Proof strip — moving credential rule ----------
+   A slow, continuous horizontal track of credentials. Two identical
+   tracks slide as one; translateX(-50%) lands the second exactly where
+   the first began, so the loop is seamless. Overflow is clipped by the
+   strip (full-bleed), never the page. Edges fade with a mask. Pauses on
+   hover; static and wrapped under reduced motion. */
 .proof-strip {
   border-block: 1px solid rgba(13, 42, 27, .14);
   background: rgba(227, 221, 203, .46);
+  overflow: hidden;
 }
 
-.proof-strip-inner {
+.proof-marquee {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px clamp(22px, 3vw, 46px);
-  align-items: center;
-  justify-content: center;
-  padding-block: 18px;
+  width: max-content;
+  padding-block: 17px;
+  animation: proof-slide 48s linear infinite;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
 }
 
-.proof-strip span {
+.proof-strip:hover .proof-marquee { animation-play-state: paused; }
+
+.proof-track {
+  display: flex;
+  align-items: center;
+  gap: clamp(26px, 3.4vw, 52px);
+  margin: 0;
+  padding-left: clamp(26px, 3.4vw, 52px);
+  list-style: none;
+  flex: 0 0 auto;
+}
+
+.proof-track li {
   font-size: .64rem;
   letter-spacing: .22em;
   text-transform: uppercase;
   color: var(--pine-70);
   white-space: nowrap;
+}
+
+@keyframes proof-slide {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* Tablet & mobile: the strip sits right under the hero, so soften it —
+   lighter ink and a slower drift make it recede behind the hero
+   transition instead of competing with it. Desktop keeps its presence;
+   reduced motion (below) still wins and holds it static. */
+@media (max-width: 920px) {
+  .proof-marquee { animation-duration: 66s; }
+  .proof-track li { color: var(--pine-45); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .proof-marquee {
+    animation: none;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    -webkit-mask-image: none;
+            mask-image: none;
+  }
+  .proof-track {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px clamp(22px, 3vw, 46px);
+    padding-left: 0;
+  }
+  .proof-track--dup { display: none; }
+  .proof-track li { white-space: normal; }
 }
 
 /* ---------- Section system ---------- */
@@ -175,10 +232,8 @@
 }
 
 .sec-kicker,
-.pain-n,
 .press-badge,
 .bm-aw-title,
-.topic-n,
 .visa-badge {
   display: block;
   font-size: .62rem;
@@ -188,10 +243,8 @@
 }
 
 .sec-pine .sec-kicker,
-.sec-pine .pain-n,
 .sec-pine .press-badge,
 .sec-pine .bm-aw-title,
-.sec-pine .topic-n,
 .sec-pine .visa-badge {
   color: var(--gold-soft);
 }
@@ -296,51 +349,347 @@
 .sec-cta { text-align: center; }
 .sec-cta .link-arrow { margin-inline: auto; }
 
-/* ---------- Argument ---------- */
-.argument-grid {
+/* ---------- Pain — "Most investors get Miami wrong" ----------
+   A progressive diagnosis. The thesis holds the left column (sticky
+   while the argument runs); the three steps take turns in focus on the
+   right. The active step is fully inked with a gold spine; steps not in
+   focus recede. Motion is state, not decoration, and is armed only
+   under html.anim — reduced motion / no-JS render every step visible
+   and static (js/motion.js only adds the focus classes). */
+.pain-wrap {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(26px, 4vw, 58px);
+  grid-template-columns: minmax(0, 4.4fr) minmax(0, 5.6fr);
+  gap: clamp(40px, 6vw, 96px);
+  align-items: start;
 }
 
-.argument-item {
-  padding-top: 24px;
-  border-top: 1px solid rgba(13, 42, 27, .22);
+.pain-lede .sec-display { max-width: 16ch; }
+
+html.anim .pain-lede {
+  position: sticky;
+  top: clamp(100px, 20vh, 190px);
 }
 
-.pain-h {
-  max-width: 18ch;
-  margin-top: 18px;
-  font-family: 'Gamay Editorial', Georgia, serif;
-  font-weight: 900;
-  font-size: clamp(1.16rem, 1.5vw, 1.45rem);
-  line-height: 1.18;
-}
-
-.pain-p {
-  margin-top: 14px;
-  font-size: .96rem;
-  line-height: 1.76;
+.pain-dek {
+  max-width: 42ch;
+  margin-top: clamp(20px, 3vh, 30px);
+  font-size: clamp(1rem, 1.12vw, 1.1rem);
+  line-height: 1.78;
   color: var(--pine-70);
 }
 
-/* ---------- About ---------- */
-.about-grid {
-  grid-template-columns: minmax(0, 8fr) minmax(280px, 4fr);
+.pain-dek strong {
+  color: var(--pine);
+  font-weight: 700;
 }
 
-.about-cols {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: clamp(28px, 4vw, 54px);
-  margin-top: clamp(32px, 5vh, 54px);
-}
-
-.about-photo {
+.pain-steps {
+  list-style: none;
   margin: 0;
+  padding: 0;
 }
 
-.about-photo img,
+.pain-step {
+  padding-left: clamp(22px, 2.6vw, 44px);
+  border-left: 2px solid rgba(13, 42, 27, .12);
+  padding-block: clamp(30px, 5vh, 56px);
+}
+
+.pain-step:first-child { padding-top: 0; }
+
+.pain-step-n {
+  display: block;
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(2.1rem, 3.8vw, 3.3rem);
+  line-height: 1;
+  color: var(--pine-45);
+}
+
+.pain-step-k {
+  display: block;
+  margin-top: 12px;
+  font-size: .62rem;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.pain-step-h {
+  max-width: 20ch;
+  margin-top: 14px;
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(1.5rem, 2.3vw, 2.25rem);
+  line-height: 1.1;
+  color: var(--pine);
+}
+
+.pain-step-p {
+  max-width: 46ch;
+  margin-top: 14px;
+  font-size: clamp(1rem, 1.05vw, 1.06rem);
+  line-height: 1.75;
+  color: var(--pine-70);
+}
+
+/* Progressive focus — only under html.anim. JS sets .is-active on the
+   step in the viewport band and .is-past on the ones already read. */
+html.anim .pain-step {
+  min-height: 56vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  opacity: .3;
+  transition: opacity .5s var(--ease-out), border-color .5s var(--ease-out);
+}
+
+html.anim .pain-step.is-past { opacity: .5; }
+
+html.anim .pain-step.is-active {
+  opacity: 1;
+  border-left-color: var(--gold);
+}
+
+html.anim .pain-step.is-active .pain-step-n { color: var(--gold); }
+
+@media (max-width: 920px) {
+  .pain-wrap {
+    grid-template-columns: 1fr;
+    gap: clamp(30px, 5vh, 48px);
+  }
+
+  html.anim .pain-lede { position: static; }
+  .pain-lede .sec-display { max-width: 20ch; }
+  .pain-dek { max-width: 60ch; }
+
+  html.anim .pain-step { min-height: 46vh; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.anim .pain-lede { position: static; }
+  html.anim .pain-step {
+    min-height: 0;
+    display: block;
+    opacity: 1;
+    transition: none;
+  }
+}
+
+/* ---------- Story / About — an editorial reel ----------
+   Balena logic: a large image on one side, a paper editorial panel on
+   the other, read as one piece. On desktop with motion committed the
+   stage pins and the four chapters cross-wipe on scroll (image scales,
+   copy masks up). No slide numbers; the only progress cue is a hairline
+   at the foot of the stage. The career track record appears once, as a
+   closing credential block inside the final chapter. Base state (no-JS /
+   reduced motion / mobile) is a vertical run of the four image+text
+   chapters, the track record at the close and the CTA present. Pin,
+   wipe and the hairline are gated on html.motion-on AND a desktop
+   width, so nothing is ever hidden waiting on JS, and narrow screens
+   never carry a heavy pin. */
+.story {
+  position: relative;
+  background: var(--paper-deep);
+  padding-block: 0;
+}
+
+.story-stage { position: relative; }
+.story-reel { position: relative; }
+
+/* One chapter — image + editorial panel. Base: image over copy. */
+.story-slide {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: stretch;
+  background: var(--paper);
+}
+
+.story-slide + .story-slide { border-top: 1px solid rgba(13, 42, 27, .12); }
+
+/* Image side */
+.story-shot {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  background: var(--pine-deep);
+}
+
+.story-shot img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: clamp(300px, 52vh, 460px);
+  object-fit: cover;
+  transform: scale(var(--crop, 1));
+  transform-origin: center;
+  filter: sepia(.06) saturate(.96) contrast(1.02);
+}
+
+/* Four framings drawn from the two available photographs: each pair
+   is the same photo read at a very different distance — a wide
+   establishing shot and a close portrait — so all four read distinctly. */
+.story-shot--operator img { object-position: 50% 18%; }
+.story-shot--portrait img { object-position: 52% 24%; }
+.story-shot--tight.story-shot--operator img { object-position: 33% 4%; --crop: 1.95; }
+.story-shot--tight.story-shot--portrait img { object-position: 20% 20%; --crop: 1.72; }
+
+/* Editorial panel */
+.story-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(20px, 3vh, 30px);
+  padding: clamp(36px, 7vw, 60px) var(--mx-page) clamp(40px, 7vw, 60px);
+  min-width: 0;
+}
+
+.story-say > * + * { margin-top: clamp(18px, 2.8vh, 28px); }
+
+.story-headline {
+  max-width: 15ch;
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(2.1rem, 3.5vw, 3.5rem);
+  line-height: 1.03;
+  letter-spacing: .002em;
+  color: var(--pine);              /* "The operator investors" — pine */
+}
+
+.story-headline em {
+  font-family: 'Gamay Narrow', Georgia, serif;
+  font-style: italic;
+  color: var(--gold);              /* "trust in Miami." — bronze */
+}
+
+/* One consistent body setting across all four chapters. Nudged up a
+   step to hold its own against the large image, still clearly below the
+   headline and above the track record. ~17.6px on phones → ~19.4px on
+   desktop. max-width keeps the measure comfortable, not blocky. */
+.story-body {
+  max-width: 46ch;
+  font-size: clamp(1.1rem, 1.35vw, 1.25rem);
+  line-height: 1.68;
+  color: var(--pine-70);
+}
+
+.story-body strong { color: var(--pine); font-weight: 700; }
+
+/* CTA — an editorial button: bordered box, fill-on-hover, moving
+   arrow. Unmistakably an action, resolving the final chapter. It sits
+   below the track record with a clear breath (not a gap), so the button
+   reads as the slide's natural close. */
+.story-act { margin-top: clamp(28px, 4.4vh, 46px); }
+
+.story-cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 1.08em 1.9em;
+  border: 1px solid rgba(13, 42, 27, .4);
+  overflow: hidden;
+  isolation: isolate;
+  font-size: .7rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--pine);
+  transition: color .5s var(--ease-out), border-color .5s var(--ease-out);
+}
+
+.story-cta > span { position: relative; z-index: 1; }
+
+.story-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--pine);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .5s var(--ease-out);
+}
+
+.story-cta::after {
+  content: '\2192';
+  position: relative;
+  z-index: 1;
+  font-size: 1.05rem;
+  line-height: 1;
+  transition: transform .5s var(--ease-out);
+}
+
+.story-cta:hover,
+.story-cta:focus-visible {
+  color: var(--paper);
+  border-color: var(--pine);
+}
+
+.story-cta:hover::before,
+.story-cta:focus-visible::before { transform: scaleX(1); }
+
+.story-cta:hover::after,
+.story-cta:focus-visible::after { transform: translateX(6px); }
+
+/* Track record — the career appears once, as a closing credential
+   block inside the final chapter (not a fixed index, not a table): a
+   fine single-column list with hairlines, era over place per row. */
+.story-proof {
+  list-style: none;
+  margin: clamp(24px, 3.4vh, 34px) 0 0;
+  padding: 0;
+  border-top: 1px solid rgba(13, 42, 27, .24);
+  max-width: 34ch;
+}
+
+.story-proof li {
+  padding: clamp(9px, 1.4vh, 12px) 0;
+  border-bottom: 1px solid rgba(13, 42, 27, .12);
+}
+
+.pf-era {
+  display: block;
+  margin-bottom: 4px;
+  font-size: .56rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--pine-45);
+}
+
+.pf-place {
+  display: block;
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(.86rem, .98vw, .98rem);
+  line-height: 1.25;
+  color: var(--pine);
+}
+
+/* Progress — a single hairline at the foot of the stage, filling with
+   the reel (no numbers). Desktop/pinned only; hidden in the vertical
+   run where the scrollbar itself is the cue. */
+.story-progress {
+  display: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  height: 2px;
+  background: rgba(13, 42, 27, .12);
+  overflow: hidden;
+}
+
+.story-progress i {
+  position: absolute;
+  inset: 0;
+  background: var(--gold);
+  transform: scaleX(var(--line-p, 0));
+  transform-origin: left;
+  will-change: transform;
+}
+
+/* Preserved shared image rules (Burgermeister / Press thumbnails) */
 .bm-photo img,
 .press-thumb img {
   display: block;
@@ -348,162 +697,677 @@
   height: auto;
 }
 
-.about-photo img,
 .bm-photo img {
   border: 1px solid rgba(13, 42, 27, .16);
   filter: sepia(.06) saturate(.96) contrast(1.02);
 }
 
-.about-photo figcaption {
-  margin-top: 13px;
-  font-size: .6rem;
-  letter-spacing: .26em;
-  text-transform: uppercase;
-  color: var(--pine-45);
+/* ===== Desktop reel: two-column chapters; pinned + cross-wiped when
+   motion is committed. Below this width the reel is a vertical run. === */
+@media (min-width: 861px) {
+  .story-slide {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    min-height: clamp(460px, 66vh, 640px);
+  }
+
+  .story-copy {
+    padding: clamp(48px, 5vw, 88px) clamp(40px, 5vw, 80px);
+  }
+
+  /* --- Pinned reel (motion committed) --- */
+  html.motion-on #about { height: 420vh; }
+
+  html.motion-on .story-stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  html.motion-on .story-reel {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* Progress hairline visible only on the pinned reel */
+  html.motion-on .story-progress { display: block; }
+
+  html.motion-on .story-slide {
+    position: absolute;
+    inset: 0;
+    min-height: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .7s var(--ease-out);
+  }
+
+  html.motion-on .story-slide.is-active {
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 1;
+  }
+
+  html.motion-on .story-slide + .story-slide { border-top: 0; }
+
+  /* Copy panel clears the fixed nav while pinned */
+  html.motion-on .story-copy {
+    padding-top: clamp(104px, 13vh, 150px);
+  }
+
+  /* Image wipes in from the left and settles its scale */
+  html.motion-on .story-shot { transition: clip-path .85s var(--ease-out); }
+  html.motion-on .story-slide:not(.is-active) .story-shot { clip-path: inset(0 100% 0 0); }
+  html.motion-on .story-slide.is-active .story-shot { clip-path: inset(0 0 0 0); }
+
+  html.motion-on .story-shot img { transition: transform 1.1s var(--ease-out); }
+  html.motion-on .story-slide:not(.is-active) .story-shot img {
+    transform: scale(calc(var(--crop, 1) * 1.07));
+  }
+
+  /* Copy masks up on enter, a beat after the image */
+  html.motion-on .story-say {
+    transition: opacity .7s var(--ease-out) .12s,
+                transform .8s var(--ease-out) .12s,
+                clip-path .85s var(--ease-out) .12s;
+  }
+  html.motion-on .story-slide:not(.is-active) .story-say {
+    opacity: 0;
+    transform: translateY(26px);
+    clip-path: inset(0 0 100% 0);
+  }
+  html.motion-on .story-slide.is-active .story-say {
+    opacity: 1;
+    transform: none;
+    clip-path: inset(0 0 0 0);
+  }
+
+  /* The credential block belongs to the final chapter only, so it
+     rides that slide's reveal; nothing extra needed here. */
 }
 
-.cred-list {
+/* ---------- Burgermeister — flagship case feature ----------
+   Breaks the common split: a dominant cover headline runs full
+   width, a large lead image carries the composition, and the
+   metrics read as a big-numeral ledger. Reads as the site's main
+   feature, not another portfolio split. */
+.bm-feature {
+  --bm-p: 0;
+  overflow: clip;
+  padding-block: 0;
+  background: var(--paper);
+  color: var(--pine);
+}
+
+.bm-cover {
+  position: relative;
+  overflow: clip;
+  min-height: clamp(700px, 92vh, 840px);
+  padding-block: clamp(58px, 8vh, 88px) clamp(60px, 8vh, 94px);
+  background:
+    radial-gradient(circle at 82% 14%, rgba(160, 133, 73, .22), transparent 30%),
+    linear-gradient(135deg, #061d14 0%, #0b281a 54%, #14341f 100%);
+  color: var(--paper);
+}
+
+.bm-cover::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 1px;
+  background: rgba(237, 232, 219, .24);
+}
+
+.bm-cover-grid {
+  position: relative;
+  z-index: 1;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0;
-  margin-top: clamp(48px, 8vh, 84px);
-  border-top: 1px solid rgba(13, 42, 27, .24);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-template-rows: auto 1fr;
+  min-height: clamp(590px, 72vh, 690px);
+  align-items: start;
 }
 
-.cred-item {
-  padding: 24px 22px 0 0;
-  border-right: 1px solid rgba(13, 42, 27, .12);
-}
-
-.cred-item + .cred-item { padding-left: 22px; }
-.cred-item:last-child { border-right: 0; }
-
-.cred-name {
-  display: block;
+.bm-monument-word {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  left: 50%;
+  width: max-content;
+  margin: 0;
+  transform: translate3d(calc(-50% - var(--bm-p, 0) * 24px),
+                         calc(-50% + var(--bm-p, 0) * 10px), 0);
   font-family: 'Gamay Editorial', Georgia, serif;
   font-weight: 900;
-  font-size: clamp(.94rem, 1.2vw, 1.12rem);
-  line-height: 1.34;
+  font-size: clamp(5rem, 12.4vw, 13.5rem);
+  line-height: .72;
+  letter-spacing: 0;
+  white-space: nowrap;
+  color: rgba(237, 232, 219, .018);   /* atmosphere only, never a title */
+  pointer-events: none;
 }
 
-.cred-city {
+.bm-case-head {
+  position: relative;
+  z-index: 3;
+  grid-column: 1 / span 6;
+  grid-row: 1;
+  margin-top: clamp(10px, 3.4vh, 40px);   /* let the opening breathe */
+}
+
+.bm-case-head .sec-head {
+  max-width: 260px;
+  margin-bottom: clamp(20px, 4vh, 42px);
+}
+
+.bm-title {
+  max-width: 11ch;
+  font-size: clamp(3.2rem, 5.5vw, 5.7rem);
+  line-height: .9;
+  letter-spacing: -.006em;
+  color: var(--paper);
+}
+
+.bm-title-main {
   display: block;
-  margin-top: 9px;
-  font-size: .6rem;
-  letter-spacing: .24em;
-  text-transform: uppercase;
-  color: var(--pine-45);
 }
 
-/* ---------- Burgermeister ---------- */
-.bm-grid {
-  grid-template-columns: minmax(0, 7fr) minmax(290px, 5fr);
-}
-
-.bm-main .body-p:first-of-type,
-.to-grid .body-p:first-of-type {
-  margin-top: clamp(24px, 4vh, 38px);
+/* Secondary line: a clearly subordinate gold standfirst, not a second
+   monument — smaller, wider measure, its own comfortable leading. */
+.bm-title em {
+  display: block;
+  max-width: 17ch;
+  margin-top: .32em;
+  font-size: .56em;
+  line-height: 1.06;
+  font-style: normal;
+  letter-spacing: 0;
+  color: #cbb06a;
 }
 
 .bm-photo {
-  margin: 0;
+  position: relative;
+  z-index: 2;
+  grid-column: 7 / -1;
+  grid-row: 1 / 3;
+  align-self: start;
+  justify-self: end;
+  width: min(42vw, 560px);
+  height: clamp(410px, 57vh, 600px);
+  margin: clamp(52px, 7vh, 82px) 0 0;
+  overflow: hidden;
+  background: rgba(237, 232, 219, .16);
+  clip-path: inset(0);
+  box-shadow: -26px 32px 62px rgba(0, 0, 0, .24);
+  transform: scale(var(--bm-hover, 1));   /* parallax drift lives on the img */
+  transition: transform .6s var(--ease-out), box-shadow .6s var(--ease-out);
+  will-change: transform;
+}
+
+/* Hover: the frame gains presence — a touch larger, a touch more light.
+   Scoped to pointer devices; the growth respects reduced motion, the
+   luminance lift is harmless either way. */
+@media (hover: hover) {
+  .bm-photo:hover img {
+    filter: contrast(1.06) saturate(1.03) brightness(1.07);
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .bm-photo:hover {
+    --bm-hover: 1.026;
+    box-shadow: -30px 40px 80px rgba(0, 0, 0, .3);
+  }
+}
+
+.bm-photo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(6, 29, 20, 0) 54%, rgba(6, 29, 20, .28) 100%);
+  pointer-events: none;
 }
 
 .bm-photo img {
-  max-height: 520px;
+  display: block;
+  width: 100%;
+  height: 112%;
   object-fit: cover;
-  object-position: center 18%;
+  object-position: 50% 16%;
+  filter: contrast(1.06) saturate(.96);
+  transform: translate3d(0, calc(var(--bm-p, 0) * -24px), 0) scale(1.025);
+  transform-origin: center 18%;
+  transition: filter .6s var(--ease-out);
+  will-change: transform;
+}
+
+/* No card: the copy lives directly on the green ground as an editorial
+   block, aligned to the headline's left edge, opened by a gold hairline. */
+.bm-editorial-panel {
+  position: relative;
+  z-index: 4;
+  grid-column: 1 / span 5;
+  grid-row: 2;
+  align-self: end;
+  max-width: 40ch;
+  color: var(--paper);
+}
+
+.bm-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 42ch;
+  margin-top: clamp(6px, 1.6vh, 16px);
+}
+
+/* Body reads light on the deep green; slightly larger than the paper
+   sections so it holds its own against the image. */
+.bm-copy .body-p {
+  max-width: 40ch;
+  font-size: clamp(1.04rem, 1.14vw, 1.16rem);
+  line-height: 1.68;
+  color: rgba(237, 232, 219, .76);
+}
+
+.bm-copy .body-p strong { color: var(--paper); font-weight: 700; }
+
+.bm-copy .body-p:first-of-type {
+  margin-top: 0;
+}
+
+.bm-action {
+  margin-top: clamp(28px, 4.5vh, 44px);
+}
+
+/* CTA on the green ground: paper outline that fills paper on hover
+   (pine label), so it reads as a clear action against the dark field. */
+.bm-cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 52px;
+  padding: 1.05em 1.7em;
+  border: 1px solid rgba(237, 232, 219, .5);
+  overflow: hidden;
+  isolation: isolate;
+  font-size: .7rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--paper);
+  transition: color .45s var(--ease-out), border-color .45s var(--ease-out);
+}
+
+.bm-cta span {
+  position: relative;
+  z-index: 1;
+}
+
+.bm-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--paper);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .45s var(--ease-out);
+}
+
+.bm-cta:hover,
+.bm-cta:focus-visible {
+  color: var(--pine);
+  border-color: var(--paper);
+}
+
+.bm-cta:hover::before,
+.bm-cta:focus-visible::before {
+  transform: scaleX(1);
+}
+
+.bm-proof {
+  display: grid;
+  grid-template-columns: minmax(0, 6.2fr) minmax(300px, 4.1fr);
+  gap: clamp(34px, 5.4vw, 82px);
+  align-items: stretch;
+  padding-block: clamp(58px, 10vh, 118px);
 }
 
 .bm-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin-top: 24px;
-  border-top: 1px solid rgba(13, 42, 27, .22);
+  margin: 0;
+  border-top: 1px solid rgba(13, 42, 27, .32);
+  border-bottom: 1px solid rgba(13, 42, 27, .22);
 }
 
 .bm-stats > div {
-  padding: 20px 16px 0 0;
-  border-right: 1px solid rgba(13, 42, 27, .12);
+  min-width: 0;
+  min-height: clamp(160px, 21vh, 230px);
+  padding: clamp(20px, 3vw, 32px) clamp(18px, 2.6vw, 34px) clamp(22px, 3vw, 34px);
+  border-right: 1px solid rgba(13, 42, 27, .15);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-.bm-stats > div + div { padding-left: 16px; }
 .bm-stats > div:last-child { border-right: 0; }
 
 .bm-stats dt {
-  margin-bottom: 10px;
+  max-width: 13ch;
   font-size: .56rem;
   letter-spacing: .24em;
   text-transform: uppercase;
   color: var(--pine-45);
 }
 
+/* Numbers seated at the foot of each equal column, on their own
+   baseline, clear of the column rules. */
 .bm-stats dd {
+  margin-top: clamp(24px, 4vh, 48px);
   font-family: 'Gamay Editorial', Georgia, serif;
   font-weight: 900;
-  font-size: clamp(1.8rem, 2.6vw, 2.45rem);
-  line-height: 1;
+  font-size: clamp(3.5rem, 5.6vw, 5.6rem);
+  line-height: .9;
+  letter-spacing: -.01em;
   color: var(--pine);
 }
 
 .bm-awards {
-  margin-top: clamp(48px, 7vh, 76px);
-  border-top: 1px solid rgba(13, 42, 27, .2);
-  padding-top: 22px;
+  display: grid;
+  grid-template-columns: minmax(92px, .8fr) minmax(0, 2.8fr);
+  gap: clamp(18px, 2.8vw, 38px);
+  align-items: start;
+  min-width: 0;
+  padding: clamp(22px, 3vw, 34px) 0 clamp(18px, 2.8vw, 30px);
+  border-top: 1px solid rgba(13, 42, 27, .22);
+  border-bottom: 1px solid rgba(13, 42, 27, .18);
+}
+
+.bm-aw-title {
+  margin-top: 2px;
 }
 
 .bm-aw-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 28px;
-  margin-top: 15px;
+  list-style: none;
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.bm-aw-list li {
+  position: relative;
+  min-width: 0;
+  padding: clamp(10px, 1.5vw, 16px) 0 clamp(10px, 1.5vw, 16px) clamp(14px, 1.8vw, 22px);
+  border-top: 1px solid rgba(13, 42, 27, .12);
+  overflow: hidden;
+}
+
+.bm-aw-list li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.bm-aw-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: clamp(14px, 1.6vw, 18px);
+  width: 5px;
+  height: 5px;
+  background: var(--gold);
+}
+
+.bm-aw-list li::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .3s var(--ease-out);
 }
 
 .bm-aw-list span {
-  font-size: .78rem;
-  line-height: 1.5;
-  color: var(--pine-70);
+  display: block;
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(1rem, 1.52vw, 1.62rem);
+  line-height: 1.04;
+  color: var(--pine);
+  transition: color .25s var(--ease-out), transform .25s var(--ease-out);
 }
 
-/* ---------- The Office ---------- */
-.to-grid {
-  grid-template-columns: minmax(0, 6fr) minmax(290px, 5fr);
+.bm-aw-list li:hover::after {
+  transform: scaleX(1);
+}
+
+.bm-aw-list li:hover span {
+  color: var(--gold);
+  transform: translateX(6px);
+}
+
+html.motion-on .bm-feature.bm-motion .bm-title {
+  transform: translate3d(calc(var(--bm-p, 0) * -12px), 0, 0);
+  transition: transform .2s linear;
+}
+
+html.motion-on .bm-feature.bm-motion .bm-photo {
+  clip-path: inset(0 0 0 0);
+  transition: transform .6s var(--ease-out), box-shadow .6s var(--ease-out);
+}
+
+/* Copy enters progressively: each paragraph (then the CTA) rises out of
+   the green and settles as it reaches the reading line — its own trigger,
+   driven by scroll (motion.js adds .is-in per element). A verb of its own
+   (rise-and-settle), distinct from Story's horizontal wipe and Pain's
+   focus steps. The hidden state keeps full geometry (opacity + shift, no
+   zero-area clip) so the per-element observer can actually see it enter.
+   Reduced motion / no-JS (no .is-in, no motion-on) show the finished
+   block. */
+html.motion-on .bm-feature.bm-motion .bm-copy > * {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity .75s var(--ease-out), transform .9s var(--ease-out);
+}
+
+html.motion-on .bm-feature.bm-motion .bm-copy > *.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+html.motion-on .bm-feature.bm-motion .bm-stats > div,
+html.motion-on .bm-feature.bm-motion .bm-aw-list li {
+  opacity: .22;
+  transform: translateY(18px);
+  transition: opacity .65s var(--ease-out), transform .65s var(--ease-out);
+}
+
+html.motion-on .bm-feature.bm-motion.is-proof-inview .bm-stats > div,
+html.motion-on .bm-feature.bm-motion.is-proof-inview .bm-aw-list li {
+  opacity: 1;
+  transform: none;
+}
+
+html.motion-on .bm-feature.bm-motion.is-proof-inview .bm-stats > div:nth-child(2),
+html.motion-on .bm-feature.bm-motion.is-proof-inview .bm-aw-list li:nth-child(2) {
+  transition-delay: .08s;
+}
+
+html.motion-on .bm-feature.bm-motion.is-proof-inview .bm-stats > div:nth-child(3),
+html.motion-on .bm-feature.bm-motion.is-proof-inview .bm-aw-list li:nth-child(3) {
+  transition-delay: .16s;
+}
+
+/* ---------- The Office — operational dossier / fact sheet ----------
+   A dry, horizontal record of longevity. A compact masthead states
+   the case; a wide operational ledger, bracketed by document rules,
+   carries the facts in scanned rows. Reads as a registry, not
+   another case split. */
+.to-masthead {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 5fr);
+  gap: clamp(28px, 5vw, 80px);
+  align-items: start;
+}
+
+.to-title { max-width: 14ch; }
+
+.to-note {
+  max-width: 54ch;
+}
+
+.to-note .body-p:first-of-type {
+  margin-top: 0;
 }
 
 .to-detail {
-  border-top: 1px solid rgba(13, 42, 27, .24);
+  margin-top: clamp(42px, 6.5vh, 78px);
+  border-top: 2px solid rgba(13, 42, 27, .48);
+  border-bottom: 1px solid rgba(13, 42, 27, .24);
 }
 
 .to-detail > div {
   display: grid;
-  grid-template-columns: 128px minmax(0, 1fr);
-  gap: 20px;
+  grid-template-columns: minmax(150px, 250px) minmax(0, 1fr);
+  gap: clamp(20px, 4vw, 56px);
   align-items: baseline;
-  padding-block: 17px;
+  padding-block: clamp(16px, 2.4vh, 24px);
   border-bottom: 1px solid rgba(13, 42, 27, .12);
 }
 
+.to-detail > div:last-child { border-bottom: 0; }
+
 .to-detail dt {
-  font-size: .6rem;
-  letter-spacing: .26em;
+  font-size: .62rem;
+  letter-spacing: .28em;
   text-transform: uppercase;
   color: var(--gold);
 }
 
 .to-detail dd {
   min-width: 0;
-  font-size: .98rem;
-  line-height: 1.55;
+  font-size: clamp(1rem, 1.25vw, 1.14rem);
+  line-height: 1.5;
   color: var(--pine);
 }
 
-/* ---------- Quote ---------- */
+/* Row affordance (pointer devices): a whisper of tint marks the row the
+   cursor is reading, and the label warms — signalling the preview
+   without a tooltip, bracket or icon. */
+@media (hover: hover) and (pointer: fine) {
+  .to-detail > div {
+    transition: background-color .3s var(--ease-out);
+  }
+  .to-detail > div:hover {
+    background: rgba(13, 42, 27, .04);
+  }
+  .to-detail > div:hover dt {
+    color: var(--gold-soft);
+  }
+}
+
+/* Cursor image preview — an editorial plate that follows the cursor over
+   the dossier rows and swaps per row. Fixed + pointer-events:none, so it
+   never affects layout or creates overflow. js/motion.js drives the
+   follow and the src swap; CSS owns the look and the show/settle. */
+.to-preview {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 60;
+  width: clamp(188px, 17vw, 248px);
+  aspect-ratio: 4 / 5;
+  overflow: hidden;
+  border: 1px solid rgba(13, 42, 27, .3);
+  border-top: 2px solid var(--gold-soft);
+  background: var(--pine-deep);
+  box-shadow: 0 26px 60px rgba(0, 0, 0, .3);
+  opacity: 0;
+  transform: translate3d(-100px, -100px, 0);
+  transition: opacity .34s var(--ease-out);
+  pointer-events: none;
+  will-change: transform;
+}
+
+.to-preview.is-on { opacity: 1; }
+
+.to-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: sepia(.05) saturate(.98) contrast(1.02);
+  transform: scale(1.08);
+  transition: transform .6s var(--ease-out);
+}
+
+.to-preview.is-on img { transform: scale(1); }
+
+/* The preview is a desktop-pointer flourish only — never on touch,
+   coarse pointers, narrow screens, or under reduced motion. */
+@media (hover: none), (pointer: coarse), (max-width: 860px) {
+  .to-preview { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .to-preview { display: none; }
+}
+
+/* Scroll entrance — the dossier assembles like a document: the masthead
+   settles, then the rows draw down in a short cascade. Opacity + shift
+   only (full geometry), gated on motion-on + is-inview, so no-JS /
+   reduced motion render it complete. Distinct from Pain (focus) and
+   Story (wipe): a record being laid out. */
+html.motion-on .to-dossier.to-motion .to-title,
+html.motion-on .to-dossier.to-motion .to-note,
+html.motion-on .to-dossier.to-motion .to-detail > div {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity .7s var(--ease-out), transform .8s var(--ease-out);
+}
+
+html.motion-on .to-dossier.to-motion.is-inview .to-title,
+html.motion-on .to-dossier.to-motion.is-inview .to-note,
+html.motion-on .to-dossier.to-motion.is-inview .to-detail > div {
+  opacity: 1;
+  transform: none;
+}
+
+html.motion-on .to-dossier.to-motion.is-inview .to-note { transition-delay: .08s; }
+html.motion-on .to-dossier.to-motion.is-inview .to-detail > div:nth-child(1) { transition-delay: .16s; }
+html.motion-on .to-dossier.to-motion.is-inview .to-detail > div:nth-child(2) { transition-delay: .22s; }
+html.motion-on .to-dossier.to-motion.is-inview .to-detail > div:nth-child(3) { transition-delay: .28s; }
+html.motion-on .to-dossier.to-motion.is-inview .to-detail > div:nth-child(4) { transition-delay: .34s; }
+html.motion-on .to-dossier.to-motion.is-inview .to-detail > div:nth-child(5) { transition-delay: .40s; }
+
+/* ---------- Quote — cinematic interlude ----------
+   A tall, deep-pine stage. A slow particle field (canvas, motion.js) sits
+   behind the quote; the CSS gradient is the calm static atmosphere that
+   stands alone under reduced motion / no-JS. The quote holds the centre. */
 .quote {
-  padding-block: clamp(88px, 14vh, 145px);
+  position: relative;
+  overflow: hidden;
+  min-height: clamp(560px, 92vh, 980px);
+  display: flex;
+  align-items: center;
+  padding-block: clamp(84px, 12vh, 150px);
+  /* Plain deep-pine (var(--pine) via .sec-pine) — the sophistication is in the
+     typographic entrance, not the background. */
+}
+
+.quote .wrap {
+  position: relative;
+  z-index: 1;
 }
 
 .quote-in {
-  max-width: 860px;
+  max-width: min(940px, 88vw);
   margin-inline: auto;
   text-align: center;
 }
@@ -512,19 +1376,82 @@
   font-family: 'Gamay Narrow', Georgia, serif;
   font-style: italic;
   font-weight: 900;
-  font-size: clamp(1.55rem, 2.65vw, 2.5rem);
-  line-height: 1.36;
+  font-size: clamp(1.65rem, 2.8vw, 2.7rem);
+  line-height: 1.34;
   color: var(--paper);
+  text-wrap: balance;
 }
 
 .quote-by {
   display: inline-block;
-  margin-top: 30px;
+  margin-top: clamp(30px, 4.4vh, 52px);
   font-style: normal;
-  font-size: .6rem;
-  letter-spacing: .34em;
+  font-size: .62rem;
+  letter-spacing: .38em;
   text-transform: uppercase;
   color: var(--gold-soft);
+}
+
+/* Word-split entrance (GSAP). Each word is inline-block so it can rise + fade
+   in with a short stagger. Anti-FOUC: once motion commits the quote is held
+   hidden until the script reveals it; reduced motion / no-JS show it at rest. */
+.quote-word {
+  display: inline-block;
+  will-change: transform, opacity, filter;
+}
+html.motion-on .quote-in { opacity: 0; }
+
+/* ==================== Preloader ====================
+   Paper overlay: a multilingual word-scan resolves into the A—R monogram,
+   which opens outward, then the panel wipes up (JS: initPreloader). Repeat
+   visits / ?static=1 add .preloader-skip (inline script) → never shown. */
+.preloader-skip .site-preloader { display: none; }
+
+.site-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: grid;
+  place-items: center;
+  background: var(--paper);
+  /* Belt-and-braces: if the module never loads, the overlay fades out on its
+     own so the page is never trapped. JS removes it well before this fires. */
+  animation: preloaderFail .5s ease 4.6s forwards;
+}
+
+.preloader-inner { display: grid; place-items: center; }
+
+.preloader-word,
+.preloader-mark { grid-area: 1 / 1; text-align: center; }
+
+.preloader-word {
+  font-family: 'Gamay Narrow', Georgia, serif;
+  font-style: italic;
+  font-weight: 900;
+  font-size: clamp(1.35rem, 3.4vw, 2.35rem);
+  color: var(--pine);
+  white-space: nowrap;
+}
+
+.preloader-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: .28em;
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(1.7rem, 3.6vw, 2.6rem);
+  color: var(--pine);
+  opacity: 0;               /* revealed by JS after the word-scan */
+}
+.preloader-mark .pm-dash {
+  width: .9em;
+  height: 2px;
+  background: var(--gold-soft);
+  display: inline-block;
+}
+
+@keyframes preloaderFail {
+  to { opacity: 0; visibility: hidden; pointer-events: none; }
 }
 
 /* ---------- Press ---------- */
@@ -607,194 +1534,555 @@
   color: var(--pine-45);
 }
 
-/* ---------- Social ---------- */
-.social-top {
+/* ---------- Social — living content showcase (pinned arc) ----------
+   A deep-green stage: a compact masthead sits above a set of post cards
+   that travel through an arc on scroll (desktop). Base state is a
+   horizontal scroll-snap rail, so no-JS / reduced motion / mobile keep
+   every card visible and every link live. */
+.social {
+  position: relative;
+  padding-block: 0;
+  background:
+    radial-gradient(circle at 84% 10%, rgba(160, 133, 73, .16), transparent 34%),
+    linear-gradient(160deg, #061d14 0%, #0b281a 56%, #12321e 100%);
+  color: var(--paper);
+}
+
+.social-stage {
+  position: relative;
+  padding-block: clamp(64px, 10vh, 118px);
+}
+
+.social-head {
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(280px, 5fr);
-  gap: clamp(34px, 6vw, 88px);
+  gap: clamp(28px, 5vw, 80px);
   align-items: end;
-  margin-bottom: clamp(38px, 6vh, 64px);
 }
+
+.social-title { color: var(--paper); }
+.social-title em { color: var(--gold-soft); }
+.social-head .sec-kicker { color: var(--gold-soft); }
 
 .social-desc {
-  max-width: 54ch;
+  max-width: 46ch;
   margin-bottom: 22px;
   font-size: clamp(.98rem, 1.08vw, 1.06rem);
-  line-height: 1.78;
-  color: var(--pine-70);
+  line-height: 1.74;
+  color: rgba(237, 232, 219, .74);
 }
 
-.social-feed {
-  max-width: 980px;
-  margin-inline: auto;
-  margin-bottom: clamp(40px, 6vh, 66px);
-  padding: clamp(12px, 2vw, 22px);
-  border: 1px solid rgba(13, 42, 27, .12);
+/* Follow — a clear action on the green field */
+.social-follow {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+  isolation: isolate;
+  padding: 1.02em 1.7em;
+  border: 1px solid rgba(237, 232, 219, .5);
+  font-size: .7rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--paper);
+  transition: color .45s var(--ease-out), border-color .45s var(--ease-out);
+}
+.social-follow > span { position: relative; z-index: 1; }
+.social-follow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   background: var(--paper);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .45s var(--ease-out);
 }
+.social-follow:hover,
+.social-follow:focus-visible { color: var(--pine); border-color: var(--paper); }
+.social-follow:hover::before,
+.social-follow:focus-visible::before { transform: scaleX(1); }
 
-.social-feed behold-widget {
+/* Arc — base: a horizontal scroll-snap rail (the universal fallback).
+   The arc is full-bleed already (outside .wrap), so it scrolls its cards
+   internally with padded insets — never widening the page. */
+.social-arc {
+  display: flex;
+  gap: clamp(22px, 3.2vw, 46px);
+  margin-top: clamp(54px, 8vh, 96px);
+  padding: 6px var(--mx-page) 20px;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.social-arc::-webkit-scrollbar { display: none; }
+
+/* Card — an anchor that reads as a phone/Reel post */
+.social-card {
+  flex: 0 0 auto;
+  width: clamp(220px, 64vw, 264px);
+  scroll-snap-align: center;
   display: block;
+  color: var(--paper);
+  text-decoration: none;
+}
+
+/* Phone / Reels geometry (9:16). The covers are the real 9:16 reel
+   frames, so they fill it natively with no crop. */
+.social-card-media {
+  position: relative;
+  display: block;
+  aspect-ratio: 9 / 16;
+  overflow: hidden;
+  border: 1px solid rgba(237, 232, 219, .2);
+  border-radius: 6px;                /* subtle — takes the hard edge off */
+  background: var(--pine-deep);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, .3);
+}
+
+.social-card-media img {
   width: 100%;
-  min-height: 220px;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(.98) contrast(1.03) brightness(.94);
+  transition: transform .6s var(--ease-out), filter .6s var(--ease-out);
 }
 
-.topics {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: clamp(22px, 3vw, 42px);
+/* Play mark — signals video/reel; quiet until hover */
+.social-card-play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: clamp(44px, 4vw, 56px);
+  height: clamp(44px, 4vw, 56px);
+  transform: translate(-50%, -50%) scale(.9);
+  border: 1px solid rgba(237, 232, 219, .8);
+  border-radius: 999px;
+  opacity: .55;
+  transition: opacity .4s var(--ease-out), transform .4s var(--ease-out), background-color .4s var(--ease-out);
+}
+.social-card-play::before {
+  content: '';
+  position: absolute;
+  left: 54%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-style: solid;
+  border-width: 7px 0 7px 12px;
+  border-color: transparent transparent transparent var(--paper);
 }
 
-.topic {
-  padding-top: 18px;
-  border-top: 1px solid rgba(13, 42, 27, .18);
+.social-card-n {
+  display: block;
+  margin-top: 16px;
+  font-size: .66rem;
+  letter-spacing: .24em;
+  font-weight: 600;
+  color: var(--gold-soft);
 }
 
-.topic-t {
-  margin-top: 12px;
-  margin-bottom: 8px;
+.social-card-t {
+  max-width: 18ch;
+  margin-top: 9px;
   font-family: 'Gamay Editorial', Georgia, serif;
   font-weight: 900;
-  font-size: clamp(.96rem, 1.2vw, 1.08rem);
-  line-height: 1.28;
+  font-size: clamp(1.12rem, 1.4vw, 1.4rem);
+  line-height: 1.12;
+  color: var(--paper);
+}
+
+.social-card-s {
+  margin-top: 8px;
+  max-width: 30ch;
+  font-size: .92rem;
+  line-height: 1.5;
+  color: rgba(237, 232, 219, .6);
+}
+
+/* Hover — the card lifts and lights, the play mark asserts */
+@media (hover: hover) and (pointer: fine) {
+  .social-card:hover .social-card-media img { transform: scale(1.05); filter: saturate(1.02) contrast(1.03) brightness(1.04); }
+  .social-card:hover .social-card-play { opacity: 1; transform: translate(-50%, -50%) scale(1); background: rgba(13, 42, 27, .3); }
+  .social-card:hover .social-card-t { color: var(--gold-soft); }
+}
+
+/* ===== Desktop pinned arc (motion committed) ===== */
+@media (min-width: 861px) {
+  html.motion-on .social.social-motion { height: 400vh; }
+
+  html.motion-on .social.social-motion .social-stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding-top: clamp(70px, 10vh, 104px);   /* clears the fixed nav */
+    padding-bottom: clamp(28px, 4.5vh, 50px);
+  }
+
+  /* The header keeps its own row above the card stage, always on top */
+  html.motion-on .social.social-motion .social-head {
+    position: relative;
+    z-index: 5;
+  }
+
+  /* The card stage is a separate band that starts well BELOW the header,
+     with a generous gap, so the editorial block reads first and the cards
+     never crowd the headline / support / CTA. */
+  html.motion-on .social.social-motion .social-arc {
+    position: relative;
+    flex: 1;
+    display: block;
+    margin: clamp(60px, 10vh, 132px) 0 0;
+    padding: 0;
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  /* Cards stack at the card-band centre; JS drives the arc transform.
+     Phone geometry (9:16), sized by width AND viewport height so the tall
+     card plus its caption always fits the pinned band. Uniform size across
+     all cards → the arc keeps an even gap between every pair. */
+  html.motion-on .social.social-motion .social-card {
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    width: min(clamp(206px, 15vw, 258px), 25.5vh);
+    transform: translate(-50%, -50%);
+    will-change: transform, opacity, filter;
+  }
+
+  html.motion-on .social.social-motion .social-card-t,
+  html.motion-on .social.social-motion .social-card-s,
+  html.motion-on .social.social-motion .social-card-n {
+    opacity: 0;
+    transition: opacity .4s var(--ease-out);
+  }
+  /* Only the active (centre) card shows its caption */
+  html.motion-on .social.social-motion .social-card.is-active .social-card-t,
+  html.motion-on .social.social-motion .social-card.is-active .social-card-s,
+  html.motion-on .social.social-motion .social-card.is-active .social-card-n {
+    opacity: 1;
+  }
+}
+
+/* Low-height desktops / laptops (1366x768, 1440x800, 1536x864 …): the
+   pinned 100vh has little room, so the card stage crowded the editorial
+   block. Trim the header padding, hold a firm gap in px (not vh, which
+   collapses when short), push the card band lower, and cap the card a
+   touch smaller — still 9:16 Reels, just enough to breathe. Only applies
+   below this height; taller screens keep the approved composition. */
+@media (min-width: 861px) and (max-height: 880px) {
+  html.motion-on .social.social-motion .social-stage {
+    padding-top: clamp(60px, 8vh, 84px);
+  }
+
+  html.motion-on .social.social-motion .social-arc {
+    margin-top: clamp(78px, 11vh, 104px);
+  }
+
+  html.motion-on .social.social-motion .social-card {
+    top: 50%;
+    width: min(clamp(168px, 12.5vw, 220px), 22vh);
+  }
+}
+
+/* ---------- Opportunities — four pinned panels ----------
+   Thesis → E-2 → EB-5 → closing note. Base state (no-JS / reduced motion
+   / mobile) is a normal vertical run of full editorial moments. On a
+   desktop width with motion committed, motion.js adds .is-pinned and GSAP
+   ScrollTrigger pins each panel so the next slides up over it (with inner
+   overscroll for any panel taller than the viewport). Palette alternates
+   paper / deep pine so the two routes read as siblings, not clones. */
+.opps { position: relative; }
+.opps-panels { position: relative; }
+
+.opps-panel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-block: clamp(88px, 13vh, 148px);
+  overflow: hidden;
+  background: var(--paper-deep);
   color: var(--pine);
 }
 
-.topic-s {
-  font-size: .86rem;
-  line-height: 1.6;
-  color: var(--pine-45);
+.opps-p1 { border-top: 1px solid rgba(160, 133, 73, .45); }
+.opps-p3 { background: var(--paper); }
+
+/* Pine panels — deep green stage, light type */
+.opps-pine {
+  background:
+    radial-gradient(circle at 84% 12%, rgba(160, 133, 73, .14), transparent 34%),
+    linear-gradient(155deg, #061d14 0%, #0b281a 55%, #12321e 100%);
+  color: var(--paper);
 }
 
-/* ---------- Opportunities ---------- */
-.opp-intro {
-  margin-top: clamp(20px, 3vh, 30px);
-}
+/* When pinned (desktop + motion), each panel holds the viewport so the
+   next can slide up over it. */
+.opps.is-pinned .opps-panel { min-height: 100vh; }
 
-.visa-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(32px, 5vw, 70px);
-  margin-top: clamp(46px, 7vh, 76px);
-}
-
-.visa-plate {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  padding-top: 28px;
-  border-top: 1px solid rgba(13, 42, 27, .24);
-}
-
-.visa-badge {
-  margin-bottom: 14px;
-}
-
-.visa-title {
-  max-width: 20ch;
-  margin-bottom: 16px;
+/* --- Panel 1: thesis --- */
+.opps-thesis-in { max-width: 100%; }
+.opps-thesis-h {
+  max-width: 15ch;
+  margin-top: clamp(16px, 2.4vh, 26px);
   font-family: 'Gamay Editorial', Georgia, serif;
   font-weight: 900;
-  font-size: clamp(1.25rem, 1.65vw, 1.58rem);
-  line-height: 1.16;
+  font-size: clamp(2.6rem, 6vw, 6rem);
+  line-height: .98;
+  letter-spacing: .002em;
+  color: var(--pine);
 }
-
-.visa-sub {
-  max-width: 50ch;
-  margin-bottom: 26px;
-  font-size: .96rem;
-  line-height: 1.76;
+.opps-thesis-h em {
+  font-family: 'Gamay Narrow', Georgia, serif;
+  font-style: italic;
+  color: var(--gold);
+}
+.opps-thesis-p {
+  max-width: 54ch;
+  margin-top: clamp(26px, 4vh, 44px);
+  font-size: clamp(1.05rem, 1.2vw, 1.22rem);
+  line-height: 1.72;
   color: var(--pine-70);
 }
 
-.visa-list {
+/* --- Panels 2 & 3: the routes --- */
+.opps-route-in {
+  display: grid;
+  grid-template-columns: minmax(0, 4.4fr) minmax(0, 6fr);
+  gap: clamp(32px, 5vw, 92px);
+  align-items: start;
+  width: 100%;
+}
+
+/* EB-5 keeps the SAME structure as E-2 (identity left, content right);
+   the two routes vary only in palette (paper vs pine), not in layout, so
+   they read as comparable siblings within one system. */
+
+.opps-route-aside { position: relative; }
+
+.opps-code {
+  display: block;
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(3.4rem, 6.4vw, 6.6rem);
+  line-height: .84;
+  letter-spacing: -.016em;
+  color: var(--paper);
+}
+.opps-mirror .opps-code { color: var(--pine); }
+
+.opps-kind {
+  display: block;
+  margin-top: 14px;
+  font-size: .62rem;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+}
+.opps-mirror .opps-kind { color: var(--gold); }
+
+.opps-route-title {
+  max-width: 16ch;
+  margin-top: clamp(20px, 3vh, 32px);
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(1.5rem, 2.1vw, 2.05rem);
+  line-height: 1.1;
+  color: var(--paper);
+}
+.opps-mirror .opps-route-title { color: var(--pine); }
+
+.opps-route-body { min-width: 0; }
+
+.opps-route-sub {
+  max-width: 52ch;
+  font-size: clamp(1rem, 1.12vw, 1.1rem);
+  line-height: 1.72;
+  color: rgba(237, 232, 219, .76);
+}
+.opps-mirror .opps-route-sub { color: var(--pine-70); }
+
+/* Scannable criteria — hairline rows with a gold marker; the lead fact
+   (the investment figure) reads a step stronger. */
+.opps-facts {
   list-style: none;
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 32px;
-  border-top: 1px solid rgba(13, 42, 27, .12);
+  margin: clamp(24px, 3.4vh, 36px) 0 clamp(28px, 4vh, 42px);
+  padding: 0;
+  border-top: 1px solid rgba(237, 232, 219, .22);
 }
+.opps-mirror .opps-facts { border-top-color: rgba(13, 42, 27, .18); }
 
-.visa-list li {
-  padding-block: 13px;
-  border-bottom: 1px solid rgba(13, 42, 27, .1);
-  font-size: .94rem;
-  line-height: 1.6;
+.opps-facts li {
+  position: relative;
+  padding: 13px 0 13px 24px;
+  border-bottom: 1px solid rgba(237, 232, 219, .12);
+  font-size: .95rem;
+  line-height: 1.55;
+  color: rgba(237, 232, 219, .72);
+}
+.opps-mirror .opps-facts li {
+  border-bottom-color: rgba(13, 42, 27, .1);
   color: var(--pine-70);
 }
 
-.visa-plate .link-arrow {
-  margin-top: auto;
+.opps-facts li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 20px;
+  width: 10px;
+  height: 1px;
+  background: var(--gold-soft);
 }
 
-.visa-note {
-  max-width: 86ch;
-  margin-top: clamp(40px, 6vh, 64px);
-  padding-top: 22px;
-  border-top: 1px solid rgba(13, 42, 27, .18);
+.opps-facts li:first-child { color: var(--paper); font-weight: 600; }
+.opps-mirror .opps-facts li:first-child { color: var(--pine); }
+
+/* CTA — one clear action per route, tuned to its background */
+.opps-cta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 1.05em 1.9em;
+  border: 1px solid rgba(237, 232, 219, .5);
+  overflow: hidden;
+  isolation: isolate;
+  font-size: .7rem;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--paper);
+  transition: color .45s var(--ease-out), border-color .45s var(--ease-out);
+}
+.opps-mirror .opps-cta { border-color: rgba(13, 42, 27, .42); color: var(--pine); }
+
+.opps-cta > span { position: relative; z-index: 1; }
+
+.opps-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: var(--paper);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .45s var(--ease-out);
+}
+.opps-mirror .opps-cta::before { background: var(--pine); }
+
+.opps-cta::after {
+  content: '\2192';
+  position: relative;
+  z-index: 1;
+  margin-left: 14px;
+  font-size: 1.05rem;
+  line-height: 1;
+  transition: transform .45s var(--ease-out);
 }
 
-.visa-note p {
-  font-size: .94rem;
-  line-height: 1.78;
-  color: var(--pine-70);
+.opps-cta:hover,
+.opps-cta:focus-visible { color: var(--pine); border-color: var(--paper); }
+.opps-mirror .opps-cta:hover,
+.opps-mirror .opps-cta:focus-visible { color: var(--paper); border-color: var(--pine); }
+.opps-cta:hover::before,
+.opps-cta:focus-visible::before { transform: scaleX(1); }
+.opps-cta:hover::after,
+.opps-cta:focus-visible::after { transform: translateX(6px); }
+
+/* --- Panel 4: closing note --- */
+/* Closing note — a strong institutional close: "Important" leads in
+   gold, the statement follows in bright paper, clean and confident. No
+   rule, no box. */
+.opps-close-in { width: 100%; max-width: 1100px; }
+
+.opps-close-lead {
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(2.2rem, 3.9vw, 3.9rem);
+  line-height: .96;
+  letter-spacing: -.012em;
+  color: var(--gold-soft);
+  margin-bottom: clamp(22px, 3.4vh, 42px);
 }
 
-.visa-note strong {
-  color: var(--pine);
-  font-weight: 700;
+.opps-close-text {
+  max-width: 60ch;
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 400;
+  font-size: clamp(1.2rem, 1.75vw, 1.78rem);
+  line-height: 1.5;
+  color: rgba(237, 232, 219, .92);
 }
 
 /* ---------- Contact ---------- */
+/* Contact — its own paper atmosphere (a clear break from the pine close
+   before it): a big headline + contact lines on the left, an editorial
+   hairline form on the right, with room to breathe. */
+.contact-sec {
+  background: var(--paper-deep);
+  color: var(--pine);
+  padding-block: clamp(98px, 15vh, 176px);
+}
+
+/* Two-tone headline: statement in pine, "in Miami?" in gold italic */
+.contact-sec .sec-display em { color: var(--gold); }
+
 .contact-grid {
   display: grid;
-  grid-template-columns: minmax(0, 6fr) minmax(300px, 6fr);
-  gap: clamp(42px, 7vw, 112px);
+  grid-template-columns: minmax(0, 5.4fr) minmax(320px, 6fr);
+  gap: clamp(46px, 8vw, 128px);
   align-items: start;
 }
 
+.contact-sec .sec-support { color: var(--pine-70); }
+
 .contact-list {
-  margin-top: clamp(30px, 5vh, 48px);
-  border-top: 1px solid rgba(237, 232, 219, .22);
+  margin-top: clamp(32px, 5vh, 52px);
+  border-top: 1px solid rgba(13, 42, 27, .24);
 }
 
 .contact-list > div {
   display: grid;
-  grid-template-columns: 96px minmax(0, 1fr);
+  grid-template-columns: 100px minmax(0, 1fr);
   gap: 20px;
   align-items: baseline;
-  padding-block: 16px;
-  border-bottom: 1px solid rgba(237, 232, 219, .12);
+  padding-block: 17px;
+  border-bottom: 1px solid rgba(13, 42, 27, .12);
 }
 
 .contact-list dt {
   font-size: .6rem;
   letter-spacing: .28em;
   text-transform: uppercase;
-  color: var(--gold-soft);
+  color: var(--gold);
 }
 
 .contact-list dd {
   min-width: 0;
-  font-size: 1rem;
-  color: var(--paper);
+  font-size: 1.02rem;
+  color: var(--pine);
 }
 
 .contact-list a {
-  border-bottom: 1px solid rgba(160, 133, 73, .55);
+  border-bottom: 1px solid rgba(121, 98, 58, .5);
   padding-bottom: 2px;
   transition: color .25s, border-color .25s;
 }
 
 .contact-list a:hover {
-  color: var(--gold-soft);
-  border-color: var(--gold-soft);
+  color: var(--gold);
+  border-color: var(--gold);
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 26px;
 }
 
 .form-hp { display: none; }
@@ -802,7 +2090,7 @@
 .form-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
+  gap: clamp(20px, 3vw, 34px);
 }
 
 .form-field {
@@ -816,25 +2104,25 @@
   font-size: .6rem;
   letter-spacing: .28em;
   text-transform: uppercase;
-  color: var(--gold-soft);
+  color: var(--gold);
 }
 
 .form-input {
   width: 100%;
   appearance: none;
   border: 0;
-  border-bottom: 1px solid rgba(237, 232, 219, .4);
+  border-bottom: 1px solid rgba(13, 42, 27, .34);
   border-radius: 0;
   background: transparent;
-  padding: 11px 0;
+  padding: 12px 0;
   font-family: 'Gamay', 'Segoe UI', system-ui, sans-serif;
-  font-size: .98rem;
-  color: var(--paper);
+  font-size: 1rem;
+  color: var(--pine);
   outline: none;
 }
 
 .form-input::placeholder {
-  color: rgba(237, 232, 219, .42);
+  color: rgba(13, 42, 27, .4);
 }
 
 .form-field::after {
@@ -843,8 +2131,8 @@
   left: 0;
   bottom: 0;
   width: 100%;
-  height: 1px;
-  background: var(--gold-soft);
+  height: 2px;
+  background: var(--gold);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform .3s var(--ease-out);
@@ -854,8 +2142,8 @@
 
 .form-select {
   background-image:
-    linear-gradient(45deg, transparent 50%, var(--gold-soft) 50%),
-    linear-gradient(135deg, var(--gold-soft) 50%, transparent 50%);
+    linear-gradient(45deg, transparent 50%, var(--gold) 50%),
+    linear-gradient(135deg, var(--gold) 50%, transparent 50%);
   background-position: calc(100% - 14px) 55%, calc(100% - 9px) 55%;
   background-size: 5px 5px;
   background-repeat: no-repeat;
@@ -867,20 +2155,21 @@
 }
 
 .form-ta {
-  min-height: 100px;
+  min-height: 108px;
   resize: vertical;
 }
 
+/* Action — the clearest element in the section: a pine pill on paper */
 .form-btn {
   align-self: flex-start;
-  margin-top: 10px;
-  border: 1px solid var(--paper);
+  margin-top: 14px;
+  border: 1px solid var(--pine);
   border-radius: 999px;
-  background: var(--paper);
-  color: var(--pine);
-  padding: 1.05em 2.2em;
+  background: var(--pine);
+  color: var(--paper);
+  padding: 1.15em 2.4em;
   font-family: 'Gamay', 'Segoe UI', system-ui, sans-serif;
-  font-size: .72rem;
+  font-size: .74rem;
   letter-spacing: .22em;
   text-transform: uppercase;
   cursor: pointer;
@@ -894,18 +2183,44 @@
 
 .form-btn:hover {
   background: transparent;
-  color: var(--paper);
+  color: var(--pine);
 }
 
 .form-btn:hover .arr { transform: translateX(5px); }
 
-/* ---------- Footer ---------- */
+/* ---------- Footer — a monumental signature ----------
+   A giant, near-transparent RINGLEB wordmark anchors the base like a
+   watermark; the navigation and credits sit above it, small and calm.
+   The word bleeds past the edges (clipped by the footer) for scale. */
 .footer {
+  position: relative;
+  overflow: hidden;
   background: var(--pine-deep);
   color: var(--paper);
   border-top: 1px solid rgba(237, 232, 219, .12);
-  padding-block: clamp(58px, 9vh, 98px) clamp(28px, 4vh, 40px);
+  padding-block: clamp(60px, 9vh, 104px) clamp(150px, 25vh, 320px);
 }
+
+/* Monumental signature — raised enough that the full word, including the
+   "g" descender, reads clearly; line-height keeps that descender inside. */
+.footer-sign {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(24px, 4vh, 70px);
+  transform: translateX(-50%);
+  margin: 0;
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(5rem, 22vw, 21rem);
+  line-height: .9;
+  letter-spacing: -.02em;
+  color: rgba(237, 232, 219, .06);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
+.footer-in { position: relative; z-index: 1; }
 
 .footer-top {
   display: grid;
@@ -1000,21 +2315,58 @@
 /* ---------- Responsive ---------- */
 @media (max-width: 1080px) {
   .section-grid,
-  .about-grid,
-  .bm-grid,
-  .to-grid,
-  .social-top,
+  .bm-proof,
+  .to-masthead,
+  .social-head,
   .contact-grid {
     grid-template-columns: 1fr;
   }
 
-  .about-photo,
-  .bm-side {
-    max-width: 520px;
+  /* Social masthead stacks; the arc keeps its scroll-snap rail */
+  .social-head { align-items: start; gap: clamp(20px, 4vw, 32px); }
+  .social-desc { max-width: 60ch; }
+
+  .bm-cover {
+    min-height: auto;
+    padding-block: clamp(62px, 9vh, 88px) clamp(64px, 9vh, 96px);
   }
 
-  .argument-grid,
-  .topics {
+  .bm-cover-grid {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    min-height: clamp(560px, 70vh, 690px);
+  }
+
+  .bm-case-head {
+    grid-column: 1 / span 5;
+    grid-row: 1;
+  }
+
+  .bm-case-head .sec-head {
+    max-width: 240px;
+  }
+
+  .bm-title {
+    max-width: 9.2ch;
+    font-size: clamp(3.3rem, 7.8vw, 5.45rem);
+  }
+
+  .bm-photo {
+    grid-column: 5 / -1;
+    width: 100%;
+    height: clamp(390px, 54vh, 540px);
+    margin-top: clamp(48px, 6vh, 70px);
+  }
+
+  .bm-editorial-panel {
+    grid-column: 1 / span 5;
+    max-width: 500px;
+  }
+
+  .bm-awards {
+    grid-template-columns: minmax(110px, .32fr) minmax(0, 1fr);
+  }
+
+  .bm-aw-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1032,9 +2384,15 @@
     justify-self: start;
   }
 
-  .visa-grid {
+  /* Route panels stack their aside over the body (mirror reset) so E-2
+     and EB-5 stay readable and comparable on tablet/mobile. */
+  .opps-route-in {
     grid-template-columns: 1fr;
+    gap: clamp(20px, 4vw, 32px);
   }
+  .opps-mirror .opps-route-aside { order: 0; }
+  .opps-mirror .opps-route-body { order: 0; }
+
 }
 
 @media (max-width: 860px) {
@@ -1045,13 +2403,8 @@
     font-size: .64rem;
   }
 
-  .proof-strip-inner {
-    justify-content: flex-start;
-  }
-
-  .proof-strip span {
-    white-space: normal;
-  }
+  /* Quote interlude: comfortable height on tablet/phone, not a huge void */
+  .quote { min-height: clamp(440px, 74vh, 640px); }
 
   .sec {
     padding-block: clamp(62px, 10vh, 104px);
@@ -1062,32 +2415,8 @@
     margin-bottom: 38px;
   }
 
-  .about-cols,
-  .argument-grid,
-  .topics,
   .form-row {
     grid-template-columns: 1fr;
-  }
-
-  .about-cols {
-    gap: 0;
-  }
-
-  .about-cols > div + div .body-p:first-child {
-    margin-top: 1.28em;
-  }
-
-  .cred-list {
-    grid-template-columns: 1fr 1fr;
-    row-gap: 24px;
-  }
-
-  .cred-item:nth-child(2) {
-    border-right: 0;
-  }
-
-  .cred-item:nth-child(3) {
-    padding-left: 0;
   }
 
   .to-detail > div,
@@ -1110,18 +2439,143 @@
     grid-column: 2;
   }
 
+  .bm-feature {
+    padding-block: 0;
+  }
+
+  .bm-cover {
+    min-height: 0;
+    padding-block: clamp(54px, 9vh, 76px) 0;
+  }
+
+  .bm-cover-grid {
+    display: block;
+    min-height: 0;
+  }
+
+  .bm-monument-word {
+    position: absolute;
+    top: 28px;
+    left: 0;
+    width: max-content;
+    margin: 0;
+    transform: translateX(-10vw);
+    font-size: clamp(3.8rem, 17vw, 7rem);
+    color: rgba(237, 232, 219, .04);
+  }
+
+  .bm-case-head {
+    position: relative;
+    z-index: 3;
+    margin-bottom: 26px;
+  }
+
+  .bm-case-head .sec-head {
+    margin-bottom: 18px;
+  }
+
+  .bm-title {
+    max-width: 9ch;
+    font-size: clamp(2.85rem, 11.8vw, 5rem);
+    line-height: .86;
+  }
+
+  .bm-title em {
+    max-width: 10.2ch;
+    font-size: .88em;
+    line-height: .92;
+  }
+
+  .bm-cover {
+    padding-bottom: clamp(40px, 8vw, 64px);
+  }
+
+  .bm-photo {
+    width: 100%;
+    height: clamp(340px, 74vw, 470px);
+    margin: 0;
+    transform: none;
+    box-shadow: 0 26px 58px rgba(0, 0, 0, .24);
+  }
+
+  .bm-photo img {
+    height: 112%;
+    object-position: 50% 12%;
+  }
+
+  /* No card overlap: copy sits below the image, on the green ground */
+  .bm-editorial-panel {
+    width: 100%;
+    max-width: 44ch;
+    margin: clamp(28px, 6vw, 40px) 0 0;
+    padding: 0;
+  }
+
+  .bm-proof {
+    display: block;
+    padding-block: clamp(44px, 8vh, 72px);
+  }
+
   .bm-stats {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: 1fr;
+  }
+
+  .bm-stats > div {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 20px;
+    align-items: end;
+    padding: clamp(20px, 4vw, 28px) 0;
+    border-right: 0;
+    border-bottom: 1px solid rgba(13, 42, 27, .12);
+  }
+
+  .bm-stats > div:last-child {
+    border-bottom: 0;
+  }
+
+  .bm-stats dt {
+    align-self: center;
+    max-width: 16ch;
+  }
+
+  .bm-stats dd {
+    margin: 0;
+    font-size: clamp(4rem, 16vw, 7rem);
+    text-align: right;
+  }
+
+  .bm-awards {
+    grid-template-columns: 1fr;
+    margin-top: clamp(36px, 7vh, 54px);
+    padding-left: 0;
+    border-left: 0;
+    background: transparent;
+  }
+
+  .bm-aw-list {
+    grid-template-columns: 1fr;
+  }
+
+  .bm-aw-list li {
+    padding-left: 16px;
   }
 
   .footer-top {
     grid-template-columns: 1fr;
+    gap: clamp(30px, 7vw, 48px);
   }
 
   .footer-base {
     flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
   }
+
+  /* Smaller signature band on phones/tablets, raised so the "g" reads */
+  .footer { padding-bottom: clamp(96px, 22vw, 170px); }
+  .footer-sign { font-size: clamp(4.2rem, 28vw, 9rem); bottom: clamp(16px, 4vw, 34px); }
 }
 
 @media (max-width: 560px) {
@@ -1129,26 +2583,50 @@
     font-size: clamp(1.7rem, 9vw, 2.35rem);
   }
 
-  .cred-list,
-  .bm-stats {
-    grid-template-columns: 1fr;
+  .bm-title {
+    max-width: 8.8ch;
+    font-size: clamp(2.75rem, 11.4vw, 4.2rem);
+    line-height: .86;
   }
 
-  .cred-item,
-  .cred-item + .cred-item,
-  .bm-stats > div,
-  .bm-stats > div + div {
-    padding-left: 0;
-    border-right: 0;
+  .bm-monument-word {
+    transform: translateX(-12vw);
+    font-size: clamp(3.45rem, 16vw, 5.4rem);
+  }
+
+  .bm-photo {
+    height: clamp(330px, 84vw, 430px);
+  }
+
+  .bm-editorial-panel {
+    width: 100%;
+    margin-top: clamp(24px, 6vw, 34px);
+    padding: 0;
+  }
+
+  .bm-cta {
+    width: 100%;
+  }
+
+  .story-cta {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .bm-stats > div {
-    border-bottom: 1px solid rgba(13, 42, 27, .12);
-    padding-bottom: 18px;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    align-items: start;
   }
 
-  .bm-stats > div:last-child {
-    border-bottom: 0;
+  .bm-stats dd {
+    font-size: clamp(4.8rem, 24vw, 7.2rem);
+    text-align: left;
+  }
+
+  .bm-aw-list span {
+    font-size: clamp(1.15rem, 7vw, 1.8rem);
+    line-height: 1.04;
   }
 
   .link-arrow,

@@ -35,10 +35,26 @@
 </head>
 <body>
 
-<!-- Loader — minimal A—R hold. Hidden without JS; logic in js/hero.js.
-     Deliberately simple this round: brief mark, quick fade, no sequence. -->
-<div class="loader" id="loader" aria-hidden="true" hidden>
-  <span class="loader-mark"><span class="lm-a">A</span><span class="lm-dash"></span><span class="lm-r">R</span></span>
+<!-- Preloader — premium editorial intro (paper → multilingual word-scan →
+     A—R opening → wipe up). First visit of the session only. The inline script
+     runs before paint so repeat visits (and ?static=1) never flash the overlay;
+     ?preload=1 forces it. Animation in js/motion.js (initPreloader); a CSS
+     fallback + JS killswitch guarantee it never traps the page. -->
+<script>
+  (function () {
+    try {
+      var s = location.search;
+      if (/[?&]preload=1/.test(s)) return;                       // force show
+      if (/[?&]static=1/.test(s) || sessionStorage.getItem('arPreloaderSeen'))
+        document.documentElement.classList.add('preloader-skip');
+    } catch (e) { /* storage blocked → show once, harmless */ }
+  })();
+</script>
+<div class="site-preloader" id="site-preloader" role="presentation" aria-hidden="true">
+  <div class="preloader-inner">
+    <span class="preloader-word">Hospitality</span>
+    <span class="preloader-mark"><span class="pm-l">A</span><i class="pm-dash"></i><span class="pm-l">R</span></span>
+  </div>
 </div>
 
 <a class="skip-link" href="#pain">Skip to content</a>
@@ -124,141 +140,246 @@
           <span class="cta-label" aria-hidden="true">Start a conversation&ensp;&#8599;</span>
         </span>
       </a>
-      <!-- CTA secundário oficial — restaurado por fidelidade (aringleb.com) -->
-      <a class="cta-ghost" href="#burgermeister">Explore my work&ensp;&rarr;</a>
     </div>
 
   </section>
 
   <div class="proof-strip" aria-label="Career highlights">
-    <div class="wrap proof-strip-inner">
-      <span>Burgermeister Brickell</span>
-      <span>The Office Delray</span>
-      <span>Balthazar, New York</span>
-      <span>Wolfgang&rsquo;s, Beverly Hills</span>
-      <span>Casa Tua, Miami Beach</span>
-      <span>SOBEWFF</span>
-      <span>Haute Living</span>
-      <span>Miami New Times</span>
+    <div class="proof-marquee">
+      <ul class="proof-track">
+        <li>Burgermeister Brickell</li>
+        <li>The Office Delray</li>
+        <li>Balthazar, New York</li>
+        <li>Wolfgang&rsquo;s, Beverly Hills</li>
+        <li>Casa Tua, Miami Beach</li>
+        <li>SOBEWFF</li>
+        <li>Haute Living</li>
+        <li>Miami New Times</li>
+      </ul>
+      <ul class="proof-track proof-track--dup" aria-hidden="true">
+        <li>Burgermeister Brickell</li>
+        <li>The Office Delray</li>
+        <li>Balthazar, New York</li>
+        <li>Wolfgang&rsquo;s, Beverly Hills</li>
+        <li>Casa Tua, Miami Beach</li>
+        <li>SOBEWFF</li>
+        <li>Haute Living</li>
+        <li>Miami New Times</li>
+      </ul>
     </div>
   </div>
 
-  <section class="sec" id="pain" aria-labelledby="pain-title">
-    <div class="wrap">
-      <div class="section-lede">
+  <!-- ========================================================
+       The argument — "Most investors get Miami wrong".
+       A progressive diagnosis: the thesis holds the left column
+       (sticky), and the three steps take turns in focus on the right
+       as the reader scrolls. Focus states are driven by js/motion.js;
+       reduced motion / no-JS render every step visible and static.
+       ======================================================== -->
+  <section class="sec pain-prog" id="pain" aria-labelledby="pain-title">
+    <div class="wrap pain-wrap">
+
+      <div class="pain-lede">
         <h2 class="sec-display" id="pain-title">Most investors get Miami wrong. <em>Here&rsquo;s why it costs them.</em></h2>
-        <p class="sec-support">The wrong neighborhood, the wrong concept, the wrong partner, and your capital is gone before the doors ever open. Miami rewards those who know it. Alexander has spent 35 years learning what you can&rsquo;t Google.</p>
+        <p class="pain-dek">From the outside, Miami looks like an easy market to enter. From the inside, it punishes the details a spreadsheet never shows: the block, the concept, the operator, the timing. Get one wrong and the capital is gone before the doors open. <strong>This is the part you can&rsquo;t Google.</strong></p>
       </div>
 
-      <div class="argument-grid">
-        <article class="argument-item">
-          <span class="pain-n">01 &middot; The Problem</span>
-          <h3 class="pain-h">No Local Knowledge</h3>
-          <p class="pain-p">Miami&rsquo;s hospitality market moves fast and punishes outsiders. Neighborhoods that look good on paper fail in practice. Corridors that seem saturated are quietly rising. This market requires someone already inside it.</p>
-        </article>
-        <article class="argument-item">
-          <span class="pain-n">02 &middot; The Risk</span>
-          <h3 class="pain-h">Wrong Operator, Wrong Outcome</h3>
-          <p class="pain-p">A concept without operational discipline fails. A location without the right permits, vendors, and staff pipeline fails faster. What looks like a restaurant opportunity is really an operations problem in disguise.</p>
-        </article>
-        <article class="argument-item">
-          <span class="pain-n">03 &middot; The Solution</span>
-          <h3 class="pain-h">A Partner Who&rsquo;s Already Built It</h3>
-          <p class="pain-p">Alexander brings 35 years of Miami relationships, two operating concepts, and a track record across the city&rsquo;s most demanding venues. Not theory. Proof.</p>
-        </article>
-      </div>
+      <ol class="pain-steps">
+        <li class="pain-step">
+          <span class="pain-step-n">01</span>
+          <span class="pain-step-k">The problem</span>
+          <h3 class="pain-step-h">No local knowledge</h3>
+          <p class="pain-step-p">Miami&rsquo;s market moves fast and punishes outsiders. Blocks that look right on paper fail in practice; corridors that look saturated are quietly rising. Reading that gap takes someone already inside the market.</p>
+        </li>
+
+        <li class="pain-step">
+          <span class="pain-step-n">02</span>
+          <span class="pain-step-k">The risk</span>
+          <h3 class="pain-step-h">Wrong operator, wrong outcome</h3>
+          <p class="pain-step-p">A concept without operational discipline fails. A location without the right permits, vendors, and staff pipeline fails faster. What looks like a restaurant opportunity is usually an operations problem in disguise.</p>
+        </li>
+
+        <li class="pain-step">
+          <span class="pain-step-n">03</span>
+          <span class="pain-step-k">The solution</span>
+          <h3 class="pain-step-h">A partner who&rsquo;s already built it</h3>
+          <p class="pain-step-p">Alexander brings 35 years of Miami relationships, two operating concepts, and a record across the city&rsquo;s most demanding rooms. Not theory. Proof.</p>
+        </li>
+      </ol>
+
     </div>
   </section>
 
-  <section class="sec sec-tint" id="about" aria-labelledby="about-title">
-    <div class="wrap">
-      <div class="sec-head">
-        <p class="sec-kicker">01 &middot; Story</p>
-      </div>
-      <div class="section-grid about-grid">
-        <div class="about-main">
-          <h2 class="sec-display" id="about-title">The operator investors <em>trust in Miami.</em></h2>
-          <div class="about-cols">
-            <div>
-              <p class="body-p lede">Born in <strong>Bochum, Germany</strong>, Alexander grew up watching his great-aunt run her restaurant in Austria with grace and intention. The rhythm of a full room imprinted on him before he had words for it. Hospitality wasn&rsquo;t a career choice. It was already in the room.</p>
-              <p class="body-p">He formalized his craft at <strong>culinary school in Germany</strong>, trained at the Holiday Inn, then took his talent to <strong>Aruba</strong> and the United States, rising from server to <strong>General Manager</strong> at <strong>Balthazar</strong> in New York, <strong>Wolfgang&rsquo;s Steakhouse</strong> in Beverly Hills, <strong>Casa Tua</strong> in Miami Beach, and the <strong>Versace Mansion</strong>, where he served as <strong>Director of Operations</strong>.</p>
-            </div>
-            <div>
-              <p class="body-p">Few people understand Miami the way Alexander does. He has lived through its boom cycles and slow seasons, watched neighborhoods transform, and learned to read the city&rsquo;s rhythms before the market catches on. He knows which corridors are rising, and which ones aren&rsquo;t.</p>
-              <p class="body-p">His network of <strong>general contractors, vendors, city officials, and expediters</strong> gives every project a decisive edge, from the first permit to opening night. He is genuinely embedded in the <strong>Miami community</strong>, known for charitable involvement and showing up for the people of this city.</p>
+  <!-- ========================================================
+       Story / About — an editorial reel in the hospitality register.
+       Balena logic: a large image holds one side and a paper editorial
+       panel the other, read as a single piece. On scroll the section
+       pins and advances through FOUR chapters — image and copy wipe
+       from one to the next — so the story reads as a sequence, never a
+       stack of paragraphs. No slide numbers: the only progress cue is a
+       hairline that fills at the foot of the stage. The career track
+       record appears once, as a closing credential block inside the
+       final chapter, above the partnership CTA.
+
+       Copy is unchanged; only its distribution/markup are new. The pin,
+       the wipes and the progress hairline are gated on html.motion-on
+       (set by motion.js after it commits) and, for the pin, on a desktop
+       width. Without JS, under reduced motion, or on narrow screens, the
+       reel degrades to a vertical run of four image+text chapters, the
+       track record shown at the close and the CTA present — nothing hidden.
+       ======================================================== -->
+  <section class="story sec-tint" id="about" aria-labelledby="about-title">
+    <div class="story-stage">
+
+      <div class="story-reel">
+        <article class="story-slide" data-slide="0">
+          <figure class="story-shot story-shot--operator">
+            <img src="assets/img/alex-operator-1000.webp" alt="Alexander Ringleb in Miami" loading="lazy" width="1000" height="1500">
+          </figure>
+          <div class="story-copy">
+            <div class="story-say">
+              <h2 class="story-headline" id="about-title">The operator investors <em>trust in Miami.</em></h2>
+              <p class="story-body">Born in <strong>Bochum, Germany</strong>, Alexander grew up watching his great-aunt run her restaurant in Austria with grace and intention. The rhythm of a full room imprinted on him before he had words for it. Hospitality wasn&rsquo;t a career choice. It was already in the room.</p>
             </div>
           </div>
-        </div>
-        <figure class="about-photo">
-          <img src="assets/img/alex-portrait-760.webp" alt="Alexander Ringleb" loading="lazy" width="760" height="1140">
-          <figcaption>Alexander Ringleb &middot; Miami</figcaption>
-        </figure>
-      </div>
+        </article>
 
-      <div class="cred-list" aria-label="Career credentials">
-        <div class="cred-item"><span class="cred-name">Germany &middot; Austria &middot; Aruba</span><span class="cred-city">The foundation</span></div>
-        <div class="cred-item"><span class="cred-name">Balthazar &middot; Wolfgang&rsquo;s</span><span class="cred-city">New York &middot; Beverly Hills</span></div>
-        <div class="cred-item"><span class="cred-name">Versace Mansion</span><span class="cred-city">Director of Operations</span></div>
-        <div class="cred-item"><span class="cred-name">Burgermeister &middot; The Office</span><span class="cred-city">Founder &middot; Partner</span></div>
-      </div>
-
-      <p class="sec-cta"><a class="link-arrow" href="#opportunities">See my partnership opportunities<span class="arr">&ensp;&rarr;</span></a></p>
-    </div>
-  </section>
-
-  <section class="sec" id="burgermeister" aria-labelledby="bm-title">
-    <div class="wrap">
-      <div class="sec-head">
-        <p class="sec-kicker">02 &middot; Burgermeister Miami</p>
-      </div>
-      <div class="section-grid bm-grid">
-        <div class="bm-main">
-          <h2 class="sec-display" id="bm-title">Built from nothing. <em>Now one of Miami&rsquo;s most recognized brands.</em></h2>
-          <p class="body-p">Burgermeister started with one conviction: that a burger could be genuinely great. <strong>Built from scratch with limited funds</strong>, it became one of Miami&rsquo;s highest-rated restaurant concepts, earning national attention for its quality, consistency, and character.</p>
-          <p class="body-p">With locations in <strong>Brickell and South Beach</strong>, Burgermeister is the clearest proof of what Alexander delivers: a concept taken from nothing to remarkable, in one of the world&rsquo;s most competitive markets.</p>
-          <p class="body-p">From menu to interior design, staff culture to neighborhood positioning. Every element was his. <strong>Not a franchise. An original.</strong></p>
-          <p class="sec-cta-left"><a class="link-arrow" href="#contact">Start my conversation<span class="arr">&ensp;&rarr;</span></a></p>
-        </div>
-        <div class="bm-side">
-          <figure class="bm-photo">
-            <img src="assets/img/alex-operator-1000.webp" alt="Alexander Ringleb &mdash; Burgermeister" loading="lazy" width="1000" height="1500">
+        <article class="story-slide" data-slide="1">
+          <figure class="story-shot story-shot--portrait">
+            <img src="assets/img/alex-portrait-760.webp" alt="" loading="lazy" width="760" height="1140">
           </figure>
-          <dl class="bm-stats">
-            <div><dt>Miami Locations</dt><dd>2</dd></div>
-            <div><dt>Years Operating</dt><dd>10+</dd></div>
-            <div><dt>Google Rating</dt><dd>4.7&#9733;</dd></div>
-          </dl>
+          <div class="story-copy">
+            <div class="story-say">
+              <p class="story-body">He formalized his craft at <strong>culinary school in Germany</strong>, trained at the Holiday Inn, then took his talent to <strong>Aruba</strong> and the United States, rising from server to <strong>General Manager</strong> at <strong>Balthazar</strong> in New York, <strong>Wolfgang&rsquo;s Steakhouse</strong> in Beverly Hills, <strong>Casa Tua</strong> in Miami Beach, and the <strong>Versace Mansion</strong>, where he served as <strong>Director of Operations</strong>.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="story-slide" data-slide="2">
+          <figure class="story-shot story-shot--operator story-shot--tight">
+            <img src="assets/img/alex-operator-1000.webp" alt="" loading="lazy" width="1000" height="1500">
+          </figure>
+          <div class="story-copy">
+            <div class="story-say">
+              <p class="story-body">Few people understand Miami the way Alexander does. He has lived through its boom cycles and slow seasons, watched neighborhoods transform, and learned to read the city&rsquo;s rhythms before the market catches on. He knows which corridors are rising, and which ones aren&rsquo;t.</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="story-slide" data-slide="3">
+          <figure class="story-shot story-shot--portrait story-shot--tight">
+            <img src="assets/img/alex-portrait-760.webp" alt="" loading="lazy" width="760" height="1140">
+          </figure>
+          <div class="story-copy">
+            <div class="story-say">
+              <p class="story-body">His network of <strong>general contractors, vendors, city officials, and expediters</strong> gives every project a decisive edge, from the first permit to opening night. He is genuinely embedded in the <strong>Miami community</strong>, known for charitable involvement and showing up for the people of this city.</p>
+
+              <ul class="story-proof">
+                <li><span class="pf-era">The foundation</span><span class="pf-place">Germany &middot; Austria &middot; Aruba</span></li>
+                <li><span class="pf-era">New York &middot; Beverly Hills</span><span class="pf-place">Balthazar &middot; Wolfgang&rsquo;s</span></li>
+                <li><span class="pf-era">Director of Operations</span><span class="pf-place">Versace Mansion</span></li>
+                <li><span class="pf-era">Founder &middot; Partner</span><span class="pf-place">Burgermeister &middot; The Office</span></li>
+              </ul>
+
+              <p class="story-act">
+                <a class="story-cta" href="#opportunities"><span>See my partnership opportunities</span></a>
+              </p>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <span class="story-progress" aria-hidden="true"><i></i></span>
+
+    </div>
+  </section>
+
+  <section class="sec bm-feature" id="burgermeister" aria-labelledby="bm-title">
+    <div class="bm-cover">
+      <div class="wrap bm-cover-grid">
+        <p class="bm-monument-word" aria-hidden="true">BURGERMEISTER</p>
+
+        <div class="bm-case-head">
+          <div class="sec-head">
+            <p class="sec-kicker">02 &middot; Burgermeister Miami</p>
+          </div>
+          <h2 class="sec-display bm-title" id="bm-title"><span class="bm-title-main">Built from nothing.</span> <em>Now one of Miami&rsquo;s most recognized brands.</em></h2>
+        </div>
+
+        <figure class="bm-photo">
+          <img src="assets/img/alex-operator-1000.webp" alt="Alexander Ringleb &mdash; Burgermeister" loading="lazy" width="1000" height="1500">
+        </figure>
+
+        <div class="bm-editorial-panel">
+          <div class="bm-copy">
+            <p class="body-p">Burgermeister started with one conviction: that a burger could be genuinely great. <strong>Built from scratch with limited funds</strong>, it became one of Miami&rsquo;s highest-rated restaurant concepts, earning national attention for its quality, consistency, and character.</p>
+            <p class="body-p">With locations in <strong>Brickell and South Beach</strong>, Burgermeister is the clearest proof of what Alexander delivers: a concept taken from nothing to remarkable, in one of the world&rsquo;s most competitive markets.</p>
+            <p class="body-p">From menu to interior design, staff culture to neighborhood positioning. Every element was his. <strong>Not a franchise. An original.</strong></p>
+            <p class="sec-cta-left bm-action"><a class="bm-cta" href="#contact"><span>Start my conversation</span></a></p>
+          </div>
         </div>
       </div>
-      <div class="bm-awards">
+    </div>
+
+    <div class="wrap bm-proof">
+      <dl class="bm-stats" aria-label="Burgermeister operating proof">
+        <div><dt>Miami Locations</dt><dd>2</dd></div>
+        <div><dt>Years Operating</dt><dd>10+</dd></div>
+        <div><dt>Google Rating</dt><dd>4.7&#9733;</dd></div>
+      </dl>
+
+      <div class="bm-awards" aria-label="Burgermeister recognition">
         <p class="bm-aw-title">Recognition</p>
-        <p class="bm-aw-list"><span>Haute Living Feature</span><span>VoyageMIA Cover Story</span><span>SOBEWFF Official Personality</span><span>Miami New Times</span><span>Biscayne Times</span><span>Burger Beast Podcast</span><span>South Florida&rsquo;s Best Burger</span></p>
+        <ul class="bm-aw-list">
+          <li><span>Haute Living Feature</span></li>
+          <li><span>VoyageMIA Cover Story</span></li>
+          <li><span>SOBEWFF Official Personality</span></li>
+          <li><span>Miami New Times</span></li>
+          <li><span>Biscayne Times</span></li>
+          <li><span>Burger Beast Podcast</span></li>
+          <li><span>South Florida&rsquo;s Best Burger</span></li>
+        </ul>
       </div>
     </div>
   </section>
 
-  <section class="sec sec-tint" id="the-office" aria-labelledby="to-title">
+  <section class="sec sec-tint to-dossier" id="the-office" aria-labelledby="to-title">
     <div class="wrap">
       <div class="sec-head">
         <p class="sec-kicker">03 &middot; The Office Delray</p>
       </div>
-      <div class="section-grid to-grid">
-        <div>
-          <h2 class="sec-display" id="to-title">17 years. <em>Still the one people come back to.</em></h2>
+
+      <div class="to-masthead">
+        <h2 class="sec-display to-title" id="to-title">17 years. <em>Still the one people come back to.</em></h2>
+        <div class="to-note">
           <p class="body-p">The Office Delray is a cornerstone of Atlantic Avenue, one of South Florida&rsquo;s most vibrant dining corridors. For <strong>17 years</strong>, it has outlasted trends, survived cycles, and earned the kind of loyalty you can&rsquo;t manufacture.</p>
           <p class="body-p">Most restaurants don&rsquo;t survive their third year. The Office has thrived for nearly two decades. That is not luck. It is the result of the right concept, the right market, and the right operator. <strong>It compounds in value over time.</strong></p>
         </div>
-        <dl class="to-detail">
-          <div><dt>Location</dt><dd>Atlantic Avenue, Delray Beach, FL</dd></div>
-          <div><dt>Operating</dt><dd>17+ years continuously</dd></div>
-          <div><dt>Role</dt><dd>Equity Partner</dd></div>
-          <div><dt>Category</dt><dd>Bar, Restaurant &amp; Entertainment</dd></div>
-          <div><dt>Market</dt><dd>South Florida &middot; Delray Beach</dd></div>
-        </dl>
+      </div>
+
+      <dl class="to-detail">
+        <div data-preview="assets/img/press-voyagemia-420.webp"><dt>Location</dt><dd>Atlantic Avenue, Delray Beach, FL</dd></div>
+        <div data-preview="assets/img/alex-operator-1000.webp"><dt>Operating</dt><dd>17+ years continuously</dd></div>
+        <div data-preview="assets/img/alex-portrait-760.webp"><dt>Role</dt><dd>Equity Partner</dd></div>
+        <div data-preview="assets/img/press-sobewff-420.webp"><dt>Category</dt><dd>Bar, Restaurant &amp; Entertainment</dd></div>
+        <div data-preview="assets/img/press-mnt-420.webp"><dt>Market</dt><dd>South Florida &middot; Delray Beach</dd></div>
+      </dl>
+
+      <!-- Cursor image preview for the dossier rows. Desktop pointer only;
+           built and driven by js/motion.js, hidden under reduced motion /
+           touch / no-JS. Placeholder imagery (see PHOTO note) — swap per
+           row later. aria-hidden: purely decorative augmentation. -->
+      <div class="to-preview" aria-hidden="true">
+        <img src="assets/img/alex-operator-1000.webp" alt="" width="420" height="525" loading="lazy">
       </div>
     </div>
   </section>
 
+  <!-- ========================================================
+       Quote — an editorial interlude on plain deep-pine. The quote holds
+       the centre and its words rise in with a refined GSAP stagger on scroll
+       (js/motion.js → initQuoteText). Under reduced motion / no-JS the quote
+       renders fully at rest and legible. Copy is unchanged. ============ -->
   <section class="sec sec-pine quote" id="quote" aria-label="Quote">
     <div class="wrap">
       <blockquote class="quote-in">
@@ -341,87 +462,192 @@
     </div>
   </section>
 
-  <section class="sec sec-tint" id="social" aria-labelledby="social-title">
-    <div class="wrap">
-      <div class="social-top">
-        <div>
-          <div class="sec-head">
-            <p class="sec-kicker">Social Media</p>
-          </div>
-          <h2 class="sec-display" id="social-title">Miami through an <em>operator&rsquo;s eyes.</em></h2>
+  <!-- ========================================================
+       Social Media — a living showcase of Alexander's content.
+       A deep-green stage carries a compact masthead (headline + Follow)
+       and the SIX most-recent reels as post cards that travel through an
+       ARC on scroll (Hadi-inspired): on desktop the stage pins and scroll
+       progress moves the cards along a curve — rotation, depth, scale —
+       the centre card largest and sharp. The header sits on its own row
+       above a lowered card stage, so cards never cover the headline,
+       support text or Follow CTA.
+
+       Covers + links are the REAL reels: recovered from the site's Behold
+       feed (id OU9mJ57gvatxpa2pS3gu, @iamalexander.r) and the cover images
+       DOWNLOADED LOCALLY (assets/img/social-1..6.jpg) so the section is
+       fully self-contained — no runtime embed, nothing can render empty.
+       Each card links to its own Instagram reel and opens in a new tab.
+
+       Pin/arc are gated on html.motion-on AND a desktop width. On narrow
+       screens, under reduced motion, or with no JS, the cards fall back to
+       a horizontal scroll-snap rail — every card visible, links live.
+       Section headline/support/Follow copy is unchanged; card titles are
+       concise summaries of each real reel. ======================== -->
+  <section class="social" id="social" aria-labelledby="social-title">
+    <div class="social-stage">
+      <div class="wrap social-head">
+        <div class="social-intro">
+          <div class="sec-head"><p class="sec-kicker">Social Media</p></div>
+          <h2 class="sec-display social-title" id="social-title">Miami through an <em>operator&rsquo;s eyes.</em></h2>
         </div>
         <div class="social-side">
           <p class="social-desc">@iamalexander.r is where two decades of market knowledge meets civic accountability. Real stories, real stakes. Covering the deals and forces shaping South Florida.</p>
-          <a class="link-arrow" href="https://instagram.com/iamalexander.r" target="_blank" rel="noopener">Follow @iamalexander.r<span class="arr">&ensp;&rarr;</span></a>
+          <a class="social-follow" href="https://instagram.com/iamalexander.r" target="_blank" rel="noopener"><span>Follow @iamalexander.r</span></a>
         </div>
       </div>
 
-      <div class="social-feed">
-        <behold-widget feed-id="OU9mJ57gvatxpa2pS3gu"></behold-widget>
-      </div>
-      <script>
-        (() => {
-          const d = document, s = d.createElement("script");
-          s.type = "module";
-          s.src = "https://w.behold.so/widget.js";
-          d.head.append(s);
-        })();
-      </script>
-
-      <div class="topics">
-        <div class="topic"><span class="topic-n">01</span><h3 class="topic-t">Watson Island Land&nbsp;Sale</h3><p class="topic-s">Miami&rsquo;s public land and who profits</p></div>
-        <div class="topic"><span class="topic-n">02</span><h3 class="topic-t">Royal Caribbean and Miami&nbsp;2027</h3><p class="topic-s">What the exit signals for the port</p></div>
-        <div class="topic"><span class="topic-n">03</span><h3 class="topic-t">Ken Griffin and Affordability</h3><p class="topic-s">Capital, influence, and cost of living</p></div>
-        <div class="topic"><span class="topic-n">04</span><h3 class="topic-t">Hospitality Forecast</h3><p class="topic-s">What operators see that analysts miss</p></div>
+      <div class="social-arc" aria-label="Recent reels">
+        <a class="social-card" href="https://www.instagram.com/reel/Dal4KnxRo1k/" target="_blank" rel="noopener" style="--i:0">
+          <span class="social-card-media">
+            <img src="assets/img/social-1.jpg" alt="" loading="lazy" width="640" height="1136">
+            <span class="social-card-play" aria-hidden="true"></span>
+          </span>
+          <span class="social-card-n">01</span>
+          <h3 class="social-card-t">Miami Marine Stadium</h3>
+          <p class="social-card-s">The vote over a 34-year landmark</p>
+        </a>
+        <a class="social-card" href="https://www.instagram.com/reel/DajUT4pRB-d/" target="_blank" rel="noopener" style="--i:1">
+          <span class="social-card-media">
+            <img src="assets/img/social-2.jpg" alt="" loading="lazy" width="640" height="1136">
+            <span class="social-card-play" aria-hidden="true"></span>
+          </span>
+          <span class="social-card-n">02</span>
+          <h3 class="social-card-t">The &lsquo;luxury&rsquo; condo problem</h3>
+          <p class="social-card-s">When luxury stops meaning built to last</p>
+        </a>
+        <a class="social-card" href="https://www.instagram.com/reel/DagnzthxHqQ/" target="_blank" rel="noopener" style="--i:2">
+          <span class="social-card-media">
+            <img src="assets/img/social-3.jpg" alt="" loading="lazy" width="640" height="1136">
+            <span class="social-card-play" aria-hidden="true"></span>
+          </span>
+          <span class="social-card-n">03</span>
+          <h3 class="social-card-t">Miami&rsquo;s dining squeeze</h3>
+          <p class="social-card-s">Why mid-tier restaurants are closing</p>
+        </a>
+        <a class="social-card" href="https://www.instagram.com/reel/DaeF8ldxWSR/" target="_blank" rel="noopener" style="--i:3">
+          <span class="social-card-media">
+            <img src="assets/img/social-4.jpg" alt="" loading="lazy" width="640" height="1136">
+            <span class="social-card-play" aria-hidden="true"></span>
+          </span>
+          <span class="social-card-n">04</span>
+          <h3 class="social-card-t">Ken Griffin&rsquo;s Brickell</h3>
+          <p class="social-card-s">One billionaire, one city block</p>
+        </a>
+        <a class="social-card" href="https://www.instagram.com/reel/DaTvgcmx7Fz/" target="_blank" rel="noopener" style="--i:4">
+          <span class="social-card-media">
+            <img src="assets/img/social-5.jpg" alt="" loading="lazy" width="640" height="1136">
+            <span class="social-card-play" aria-hidden="true"></span>
+          </span>
+          <span class="social-card-n">05</span>
+          <h3 class="social-card-t">The PortMiami fuel fight</h3>
+          <p class="social-card-s">Eminent domain on Fisher Island</p>
+        </a>
+        <a class="social-card" href="https://www.instagram.com/reel/DaRKzbex9pe/" target="_blank" rel="noopener" style="--i:5">
+          <span class="social-card-media">
+            <img src="assets/img/social-6.jpg" alt="" loading="lazy" width="640" height="1136">
+            <span class="social-card-play" aria-hidden="true"></span>
+          </span>
+          <span class="social-card-n">06</span>
+          <h3 class="social-card-t">What city do we want to be?</h3>
+          <p class="social-card-s">Who Miami is built for</p>
+        </a>
       </div>
     </div>
   </section>
 
-  <section class="sec sec-gold-top" id="opportunities" aria-labelledby="opp-title">
-    <div class="wrap">
-      <div class="sec-head">
-        <p class="sec-kicker">Investment Opportunities</p>
+  <!-- ========================================================
+       Investment Opportunities — a two-moment decision.
+       Moment 1: the thesis ("Don't navigate Miami alone.") opens with
+       room to breathe. Moment 2: a decision BOARD rises from below on
+       scroll, presenting BOTH routes together — E-2 and EB-5 as two real,
+       comparable paths (monumental code + scannable criteria + a clear
+       CTA each), split by a centre rule. Hovering one route focuses it and
+       dims the other without hiding it, so the two can still be compared.
+       Copy and CTAs are unchanged; only structure/markup are new. Reveal
+       is gated on html.motion-on (added by motion.js after it commits), so
+       no-JS / reduced motion render the finished board, fully visible.
+       ======================================================== -->
+  <!-- ========================================================
+       Investment Opportunities — four pinned panels (GSAP ScrollTrigger,
+       "pinned panels with overscroll"). Panel 1 the thesis, 2 the E-2
+       route, 3 the EB-5 route, 4 the closing note. On desktop each panel
+       pins and the next slides up over it; a panel taller than the
+       viewport scrolls its own content before releasing the next. Palette
+       alternates paper / deep pine so the routes read as siblings, not
+       clones. Copy and both CTAs are unchanged; only structure is new.
+
+       js/motion.js builds the pin (via GSAP) only on a desktop width when
+       motion is allowed, adding .is-pinned. Without JS, under reduced
+       motion, or on narrow screens, the panels are a normal vertical run
+       of full editorial moments — everything readable, CTAs live. ==== -->
+  <section class="opps" id="opportunities" aria-labelledby="opp-title">
+    <div class="opps-panels">
+
+      <!-- Panel 1 — Thesis -->
+      <div class="opps-panel opps-p1" data-panel="1">
+        <div class="wrap opps-thesis-in">
+          <div class="sec-head"><p class="sec-kicker">Investment Opportunities</p></div>
+          <h2 class="opps-thesis-h" id="opp-title">Don&rsquo;t navigate <em>Miami alone.</em></h2>
+          <p class="opps-thesis-p">Miami&rsquo;s hospitality market is one of the strongest in the United States, and one of the most complex to navigate from the outside. Alexander has spent 35 years building the relationships, operational knowledge, and local credibility that international investors need to move with confidence. He is not a consultant. He is a co-builder.</p>
+        </div>
       </div>
-      <h2 class="sec-display" id="opp-title">Don&rsquo;t navigate <em>Miami alone.</em></h2>
-      <p class="sec-support opp-intro">Miami&rsquo;s hospitality market is one of the strongest in the United States, and one of the most complex to navigate from the outside. Alexander has spent 35 years building the relationships, operational knowledge, and local credibility that international investors need to move with confidence. He is not a consultant. He is a co-builder.</p>
 
-      <div class="visa-grid">
-        <article class="visa-plate">
-          <p class="visa-badge">E-2 Investor Visa</p>
-          <h3 class="visa-title">Treaty Investor Venture</h3>
-          <p class="visa-sub">The E-2 visa allows nationals from treaty countries to enter and operate a business in the United States in which they have made a substantial investment. A restaurant or hospitality concept is one of the most commonly approved categories, and one Alexander knows from the inside out.</p>
-          <ul class="visa-list">
-            <li>Minimum investment typically starting between $100,000 and $150,000 USD</li>
-            <li>Active role in the business required. Alexander handles day-to-day operations alongside you</li>
-            <li>Renewable indefinitely as long as the business is active</li>
-            <li>Faster timeline than EB-5 (often 3 to 6 months from application)</li>
-            <li>Concept selection, site identification, buildout, and operations all structured around visa requirements</li>
-          </ul>
-          <a class="link-arrow" href="#contact">Start my E-2 conversation<span class="arr">&ensp;&rarr;</span></a>
-        </article>
-
-        <article class="visa-plate">
-          <p class="visa-badge">EB-5 Investor Visa</p>
-          <h3 class="visa-title">Permanent Residency Through Investment</h3>
-          <p class="visa-sub">The EB-5 program offers a direct path to a U.S. green card through a qualifying investment that creates American jobs. For investors seeking permanent residency, a well-structured hospitality venture in Miami can serve as both a sound business and a credible immigration vehicle.</p>
-          <ul class="visa-list">
-            <li>Standard investment of $1,050,000 USD (or $800,000 in targeted employment areas)</li>
-            <li>Must create or preserve at least 10 full-time U.S. jobs</li>
-            <li>Restaurant and hospitality concepts qualify. Job creation is natural to the model</li>
-            <li>Alexander&rsquo;s existing operations and track record strengthen the business case</li>
-            <li>Can be structured as a direct investment or through a USCIS-designated regional center</li>
-          </ul>
-          <a class="link-arrow" href="#contact">Start my EB-5 conversation<span class="arr">&ensp;&rarr;</span></a>
-        </article>
+      <!-- Panel 2 — E-2 (pine) -->
+      <div class="opps-panel opps-p2 opps-pine" data-panel="2">
+        <div class="wrap opps-route-in">
+          <div class="opps-route-aside">
+            <span class="opps-code">E-2</span>
+            <span class="opps-kind">Investor Visa</span>
+            <h3 class="opps-route-title">Treaty Investor Venture</h3>
+          </div>
+          <div class="opps-route-body">
+            <p class="opps-route-sub">The E-2 visa allows nationals from treaty countries to enter and operate a business in the United States in which they have made a substantial investment. A restaurant or hospitality concept is one of the most commonly approved categories, and one Alexander knows from the inside out.</p>
+            <ul class="opps-facts">
+              <li>Minimum investment typically starting between $100,000 and $150,000 USD</li>
+              <li>Active role in the business required. Alexander handles day-to-day operations alongside you</li>
+              <li>Renewable indefinitely as long as the business is active</li>
+              <li>Faster timeline than EB-5 (often 3 to 6 months from application)</li>
+              <li>Concept selection, site identification, buildout, and operations all structured around visa requirements</li>
+            </ul>
+            <a class="opps-cta" href="#contact"><span>Start my E-2 conversation</span></a>
+          </div>
+        </div>
       </div>
 
-      <aside class="visa-note">
-        <p><strong>Important:</strong> Alexander is a hospitality operator and business partner, not an immigration attorney. All visa applications require qualified legal counsel. What he brings is the operational foundation that makes the investment credible: a real business, real experience, and a real presence in Miami.</p>
-      </aside>
+      <!-- Panel 3 — EB-5 (paper, mirrored) -->
+      <div class="opps-panel opps-p3 opps-mirror" data-panel="3">
+        <div class="wrap opps-route-in">
+          <div class="opps-route-aside">
+            <span class="opps-code">EB-5</span>
+            <span class="opps-kind">Investor Visa</span>
+            <h3 class="opps-route-title">Permanent Residency Through Investment</h3>
+          </div>
+          <div class="opps-route-body">
+            <p class="opps-route-sub">The EB-5 program offers a direct path to a U.S. green card through a qualifying investment that creates American jobs. For investors seeking permanent residency, a well-structured hospitality venture in Miami can serve as both a sound business and a credible immigration vehicle.</p>
+            <ul class="opps-facts">
+              <li>Standard investment of $1,050,000 USD (or $800,000 in targeted employment areas)</li>
+              <li>Must create or preserve at least 10 full-time U.S. jobs</li>
+              <li>Restaurant and hospitality concepts qualify. Job creation is natural to the model</li>
+              <li>Alexander&rsquo;s existing operations and track record strengthen the business case</li>
+              <li>Can be structured as a direct investment or through a USCIS-designated regional center</li>
+            </ul>
+            <a class="opps-cta" href="#contact"><span>Start my EB-5 conversation</span></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 4 — Closing note (pine) -->
+      <div class="opps-panel opps-p4 opps-pine opps-close" data-panel="4">
+        <div class="wrap opps-close-in">
+          <p class="opps-close-lead">Important</p>
+          <p class="opps-close-text">Alexander is a hospitality operator and business partner, not an immigration attorney. All visa applications require qualified legal counsel. What he brings is the operational foundation that makes the investment credible: a real business, real experience, and a real presence in Miami.</p>
+        </div>
+      </div>
+
     </div>
   </section>
 
-  <section class="sec sec-pine" id="contact" aria-labelledby="contact-title">
+  <section class="sec contact-sec" id="contact" aria-labelledby="contact-title">
     <div class="wrap contact-grid">
       <div>
         <div class="sec-head">
@@ -463,7 +689,8 @@
 </main>
 
 <footer class="footer">
-  <div class="wrap">
+  <p class="footer-sign" aria-hidden="true">Ringleb</p>
+  <div class="wrap footer-in">
     <div class="footer-top">
       <div class="footer-id">
         <a class="monogram footer-mono" href="#top" aria-label="Back to top">A&#8202;&mdash;&#8202;R</a>
@@ -498,5 +725,6 @@
 <div class="grain" aria-hidden="true"></div>
 
 <script type="module" src="js/hero.js"></script>
+<script type="module" src="js/motion.js"></script>
 </body>
 </html>

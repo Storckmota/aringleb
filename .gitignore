@@ -3,3 +3,4 @@ dist/
 audit-screenshots/
 *.log
 npm-debug.log*
+.claude/
