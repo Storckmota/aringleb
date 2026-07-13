@@ -46,12 +46,12 @@ Ordem idêntica ao site oficial:
 | Hero | `#top` | **Hero aprovada** (Editorial default) | — |
 | Marquee | — | Os 8 itens oficiais, mesma ordem | Faixa de créditos entre hairlines, separação por espaço |
 | Pain strip | `#pain` | Headline, sub e as 3 colunas (Problem/Risk/Solution) verbatim | Argumento editorial: display + 3 colunas hairline, sem caixas |
-| About | `#about` | 4 parágrafos verbatim (com os strong), foto alex-portrait, 4 credenciais, CTA p/ opportunities | Spread com foto sticky emoldurada, strip de credenciais em hairline |
-| Burgermeister | `#burgermeister` | 3 parágrafos, CTA, foto alex-operator, stats 2/10+/4.7★, 7 tags de Recognition | Capítulo pinho; stats como ledger de numerais dourados; recognition em linha de caps |
+| About | `#about` | 4 parágrafos verbatim (com os strong), reel de 4 fotos (alex-story-01…04, uma por capítulo), 4 credenciais, CTA p/ opportunities | Spread com foto sticky emoldurada, strip de credenciais em hairline |
+| Burgermeister | `#burgermeister` | 3 parágrafos, CTA, foto alex-burgermeister, stats 2/10+/4.7★, 7 tags de Recognition | Capítulo pinho; stats como ledger de numerais dourados; recognition em linha de caps |
 | The Office | `#the-office` | 2 parágrafos + 5 linhas de detalhe verbatim | Ghost "17" monumental + ledger de detalhes |
 | Quote | `#quote` | Citação e atribuição verbatim | Pull-quote em Narrow Italic sobre pinho |
 | Press | `#press` | 6 veículos, descrições e links reais (VoyageMIA, SOBEWFF, Haute Living, Miami New Times, Burger Beast/Spotify, Biscayne Times) | Índice de clippings: thumb/placa tipográfica + badge + descrição + link |
-| Social Media | `#social` | Copy verbatim, follow real, **widget Behold oficial** (feed-id original) + 4 topic cards verbatim | Capítulo pinho; feed real; topics como colunas hairline |
+| Social Media | `#social` | Copy verbatim, follow real, **6 capas reais dos reels** (`assets/img/social-1.jpg`…`social-6.jpg`) com link p/ Instagram + legendas verbatim | Capítulo pinho; cards verticais (proporção Instagram) com motion em arco/rail no scroll |
 | Opportunities | `#opportunities` | Intro + cards E-2 e EB-5 completos (5 bullets cada) + nota "Important" verbatim | Duas placas hairline com régua dourada; nota com filete lateral |
 | Contact | `#contact` | Copy, canais reais (alex@aringleb.com, Miami, @iamalexander.r) e **formulário oficial** (mesmos campos, name, honeypot) | Ledger de canais + formulário de linhas com botão pill |
 | Footer | — | 3 colunas oficiais (brand / Navigate 7 links / Opportunities 4 links) + copyright e social verbatim | Pinho profundo, grid hairline |

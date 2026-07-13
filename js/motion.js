@@ -32,6 +32,7 @@ function initPreloader() {
   }
 
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const inner = overlay.querySelector('.preloader-inner');
   const wordEl = overlay.querySelector('.preloader-word');
   const mark = overlay.querySelector('.preloader-mark');
   const dash = mark ? mark.querySelector('.pm-dash') : null;
@@ -44,7 +45,7 @@ function initPreloader() {
     try { sessionStorage.setItem('arPreloaderSeen', '1'); } catch (e) { /* blocked */ }
     overlay.remove();
   };
-  const kill = setTimeout(finish, 3500);   // safety: never trap the page
+  const kill = setTimeout(finish, 5600);   // safety: never trap the page
 
   // Reduced motion: no scan, no wipe — hold the mark for a beat, fade out.
   if (reduce) {
@@ -54,27 +55,48 @@ function initPreloader() {
     return;
   }
 
+  // The scan: one word dissolves INTO the next (overlapping crossfade), never
+  // "remove one, inject the next". Each layer is stacked in the same centre,
+  // so at the seam two words share the frame — a continuous morph, not a cut.
   const words = ['Hospitality', 'Gastfreundschaft', 'Miami', 'Investimento', 'Ringleb'];
-  gsap.set(mark, { opacity: 0, letterSpacing: '0.04em' });
+  const layers = words.map((wd, i) => {
+    const el = i === 0 ? wordEl : wordEl.cloneNode(false);
+    el.textContent = wd;
+    if (i !== 0) inner.insertBefore(el, mark);
+    return el;
+  });
+  gsap.set(layers, { opacity: 0, yPercent: 42, filter: 'blur(12px)', scale: 0.94 });
+  gsap.set(mark, { opacity: 0, letterSpacing: '0.04em', yPercent: 16, filter: 'blur(10px)' });
   if (dash) gsap.set(dash, { width: '0.9em' });
 
   const tl = gsap.timeline({ onComplete: finish });
 
-  // 1) Word-scan through the same centre the mark will occupy (~0.8s total).
-  words.forEach((wd) => {
-    tl.call(() => { wordEl.textContent = wd; });
-    tl.fromTo(wordEl, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.08, ease: 'power2.out' });
-    tl.to(wordEl, { opacity: 0, y: -10, duration: 0.06, ease: 'power2.in' }, '+=0.02');
+  // 1) Paced word-scan (~2.9s). Each word rises through the centre into
+  //    focus, holds, then lifts up and blurs away as the next is already
+  //    rising from below — the overlap is blur-dominant, so the seam reads
+  //    as one continuous vertical morph, never two sharp words colliding.
+  const IN = 0.66, HOLD = 0.36, OUT = 0.66, STEP = 0.64;
+  layers.forEach((el, i) => {
+    const at = 0.18 + i * STEP;
+    tl.to(el, { opacity: 1, yPercent: 0, filter: 'blur(0px)', scale: 1, duration: IN, ease: 'power2.out' }, at);
+    // The last word does not lift away — it dissolves into the A—R mark.
+    if (i < layers.length - 1) {
+      tl.to(el, { opacity: 0, yPercent: -34, filter: 'blur(12px)', scale: 1.05, duration: OUT, ease: 'power2.in' }, at + IN + HOLD);
+    }
   });
 
-  // 2) The A—R mark resolves and opens outward (letter-spacing + rule elongating).
-  tl.call(() => { wordEl.style.display = 'none'; });
-  tl.to(mark, { opacity: 1, duration: 0.28, ease: 'power2.out' });
-  tl.to(mark, { letterSpacing: '0.5em', duration: 0.45, ease: 'power3.inOut' }, '+=0.1');
-  if (dash) tl.to(dash, { width: '2.4em', duration: 0.45, ease: 'power3.inOut' }, '<');
+  const last = layers[layers.length - 1];
+  const lastAt = 0.18 + (layers.length - 1) * STEP + IN + HOLD;
 
-  // 3) Paper panel wipes up to reveal the composed hero (~2.3s total).
-  tl.to(overlay, { yPercent: -100, duration: 0.55, ease: 'power4.inOut' }, '+=0.12');
+  // 2) "Ringleb" hands off to the A—R monogram: they crossfade in the same
+  //    centre, then the mark opens outward (letter-spacing + rule elongating).
+  tl.to(last, { opacity: 0, yPercent: -12, filter: 'blur(10px)', duration: 0.55, ease: 'power2.inOut' }, lastAt);
+  tl.to(mark, { opacity: 1, yPercent: 0, filter: 'blur(0px)', duration: 0.6, ease: 'power2.out' }, lastAt + 0.08);
+  tl.to(mark, { letterSpacing: '0.5em', duration: 0.72, ease: 'power3.inOut' }, '>-0.1');
+  if (dash) tl.to(dash, { width: '2.4em', duration: 0.72, ease: 'power3.inOut' }, '<');
+
+  // 3) Paper panel wipes up to reveal the composed hero (~4.3s total).
+  tl.to(overlay, { yPercent: -100, duration: 0.72, ease: 'power4.inOut' }, '+=0.24');
 }
 
 (() => {
@@ -88,6 +110,7 @@ function initPreloader() {
   // Commit: from here the reveal CSS is allowed to hide-then-reveal.
   docEl.classList.add('motion-on');
 
+  initReveals();
   initPainProgression();
   initStory();
   initBurgermeister();
@@ -95,6 +118,25 @@ function initPreloader() {
   initSocial();
   initOpps();
   initQuoteText();
+
+  /* Shared text-entry — every [data-rv] rises into focus as it reaches the
+     reading line (CSS owns the look; [data-rv-i] staggers siblings). One
+     consistent, intentional entrance for the section openers that otherwise
+     popped in complete. Reveal-once; hidden state lives under html.motion-on,
+     so no-JS / reduced motion never hide the text. */
+  function initReveals() {
+    const items = [...document.querySelectorAll('[data-rv]')];
+    if (!items.length) return;
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) {
+          e.target.classList.add('is-in');
+          io.unobserve(e.target);
+        }
+      });
+    }, { rootMargin: '0px 0px -12% 0px', threshold: 0.15 });
+    items.forEach((el) => io.observe(el));
+  }
 
   /* #pain — three steps take turns in focus as the section scrolls.
      A thin band at the viewport centre decides the active step; steps
@@ -279,9 +321,19 @@ function initPreloader() {
     const img = preview && preview.querySelector('img');
     if (!fine || !preview || !img || !rows.length) return;
 
+    // Resolve each data-preview to its built URL. Vite rewrites real src/imports
+    // but leaves data-* strings alone, so in the production build the raw
+    // "assets/img/…" paths 404 (hashed/omitted). This glob makes Vite emit and
+    // hash all five, mapped by basename; we fall back to the raw path in dev or
+    // if a name is ever unmatched, so behaviour is unchanged there.
+    const builtPreviews = import.meta.glob('../assets/img/alex-office-*.webp', { eager: true, query: '?url', import: 'default' });
+    const resolvedByName = {};
+    for (const p in builtPreviews) resolvedByName[p.split('/').pop()] = builtPreviews[p];
+    const resolvePreview = (raw) => (raw ? (resolvedByName[raw.split('/').pop()] || raw) : raw);
+
     // Warm the images so the swap is instant.
     rows.forEach((row) => {
-      const src = row.getAttribute('data-preview');
+      const src = resolvePreview(row.getAttribute('data-preview'));
       if (src) { const pre = new Image(); pre.src = src; }
     });
 
@@ -317,7 +369,7 @@ function initPreloader() {
 
     rows.forEach((row) => {
       row.addEventListener('mouseenter', () => {
-        const src = row.getAttribute('data-preview');
+        const src = resolvePreview(row.getAttribute('data-preview'));
         if (src && img.getAttribute('src') !== src) img.setAttribute('src', src);
         hovering += 1;
         preview.classList.add('is-on');
