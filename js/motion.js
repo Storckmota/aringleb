@@ -55,38 +55,60 @@ function initPreloader() {
     return;
   }
 
-  // The scan: one word dissolves INTO the next (overlapping crossfade), never
-  // "remove one, inject the next". Each layer is stacked in the same centre,
-  // so at the seam two words share the frame — a continuous morph, not a cut.
+  // The scan reuses exactly TWO stacked layers (current + previous), swapped in
+  // alternation. With only two elements on the centre it is structurally
+  // impossible for a third word to be on screen, so the crossfade is always
+  // "one leaving, one arriving" — never an accumulation of blurred ghosts.
+  // Before a layer takes its next word it is hard-reset to the hidden "below"
+  // state (fromTo), wiping any residue from its previous use.
   const words = ['Hospitality', 'Gastfreundschaft', 'Miami', 'Investimento', 'Ringleb'];
-  const layers = words.map((wd, i) => {
-    const el = i === 0 ? wordEl : wordEl.cloneNode(false);
-    el.textContent = wd;
-    if (i !== 0) inner.insertBefore(el, mark);
-    return el;
-  });
-  gsap.set(layers, { opacity: 0, yPercent: 42, filter: 'blur(12px)', scale: 0.94 });
+  const wordEls = [wordEl, wordEl.cloneNode(false)];
+  wordEls[1].textContent = '';
+  inner.insertBefore(wordEls[1], mark);
+  // Two stacked layers, reused in alternation — a third word can never exist.
+  // Opacity is DECOUPLED from the rise/blur: the outgoing word's opacity drops
+  // to 0 early and fast, finishing before the incoming word's opacity even
+  // begins, so at any instant only ONE word is truly visible. The smooth rise
+  // and deblur still play (premium body of the motion) but under an opacity of
+  // ~0 at the seam — never two blurred words stacked, no ghosting.
+  const resetHidden = (el) => gsap.set(el, { opacity: 0, yPercent: 40, filter: 'blur(9px)', scale: 0.96 });
+  wordEls.forEach(resetHidden);
   gsap.set(mark, { opacity: 0, letterSpacing: '0.04em', yPercent: 16, filter: 'blur(10px)' });
   if (dash) gsap.set(dash, { width: '0.9em' });
 
   const tl = gsap.timeline({ onComplete: finish });
 
-  // 1) Paced word-scan (~2.9s). Each word rises through the centre into
-  //    focus, holds, then lifts up and blurs away as the next is already
-  //    rising from below — the overlap is blur-dominant, so the seam reads
-  //    as one continuous vertical morph, never two sharp words colliding.
-  const IN = 0.66, HOLD = 0.36, OUT = 0.66, STEP = 0.64;
-  layers.forEach((el, i) => {
+  // 1) Paced word-scan. Cadence (STEP) unchanged, so the overall speed reads
+  //    identical. Within each slot: the body rises/deblurs over RISE, while the
+  //    opacity fades in a hair later (OP_IN_DELAY) and, crucially, fades OUT
+  //    early and fast — done by ~STEP, before the next word's opacity begins at
+  //    STEP+OP_IN_DELAY. That gap makes each word read as essentially alone: a
+  //    dry dissolve/switch rather than two overlapping blurred words.
+  const STEP = 0.64;
+  const RISE = 0.52;                        // vertical rise + deblur (visual body)
+  const OP_IN = 0.24, OP_IN_DELAY = 0.04;   // opacity in: 0.04 -> 0.28
+  const OP_OUT_AT = 0.44, OP_OUT = 0.24;    // opacity out: 0.44 -> 0.68, abutting the
+                                            // next word's opacity-in at 0.68: the outgoing
+                                            // word reaches 0 exactly as the next begins, so
+                                            // the hand-off is continuous — no two-word
+                                            // overlap and no blank beat between words.
+  words.forEach((wd, i) => {
+    const el = wordEls[i % 2];
     const at = 0.18 + i * STEP;
-    tl.to(el, { opacity: 1, yPercent: 0, filter: 'blur(0px)', scale: 1, duration: IN, ease: 'power2.out' }, at);
-    // The last word does not lift away — it dissolves into the A—R mark.
-    if (i < layers.length - 1) {
-      tl.to(el, { opacity: 0, yPercent: -34, filter: 'blur(12px)', scale: 1.05, duration: OUT, ease: 'power2.in' }, at + IN + HOLD);
+    // Mount the word and re-assert the hidden state while opacity is 0, so no
+    // residue from this layer's previous word can ever show.
+    tl.call(() => { el.textContent = wd; resetHidden(el); }, null, at);
+    tl.to(el, { yPercent: 0, filter: 'blur(0px)', scale: 1, duration: RISE, ease: 'power2.out' }, at);
+    tl.to(el, { opacity: 1, duration: OP_IN, ease: 'power1.out' }, at + OP_IN_DELAY);
+    // The last word does not leave — it hands off to the A—R mark below.
+    if (i < words.length - 1) {
+      tl.to(el, { opacity: 0, duration: OP_OUT, ease: 'power1.in' }, at + OP_OUT_AT);
+      tl.to(el, { yPercent: -18, filter: 'blur(8px)', duration: 0.32, ease: 'power1.in' }, at + OP_OUT_AT);
     }
   });
 
-  const last = layers[layers.length - 1];
-  const lastAt = 0.18 + (layers.length - 1) * STEP + IN + HOLD;
+  const last = wordEls[(words.length - 1) % 2];
+  const lastAt = 0.18 + (words.length - 1) * STEP + 0.5;
 
   // 2) "Ringleb" hands off to the A—R monogram: they crossfade in the same
   //    centre, then the mark opens outward (letter-spacing + rule elongating).
