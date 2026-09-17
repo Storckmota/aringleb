@@ -1,41 +1,68 @@
 /* ============================================================
-   Body motion — central architecture for the site body.
-   Scope: the progressive diagnosis in #pain, the layered narrative
-   in #about (Story), and the Burgermeister case feature. The proof-strip
-   marquee is CSS-only.
+   Body motion — what is left of it.
 
-   Contract: motion is armed ONLY under html.anim (added by hero.js when
-   motion is allowed). When it commits it stamps html.motion-on, and all
-   reveal/sticky CSS keys on that class — so under reduced motion, no-JS,
-   ?static=1, or any JS failure before commit, every section renders
-   fully visible and static. Content is never hidden waiting on JS.
+   PDF p.12 asked for fewer effects, so the machinery that used to drive
+   the home page is gone: the About pin and its four-photograph swap, the
+   Burgermeister scroll variables, The Office cursor preview, the reel arc
+   and the per-word quote reveal. None of those come back.
+
+   What remains:
+     · the preloader (home page, first visit of the session);
+     · the Insights rail: a native horizontal scroller at every width, and
+       on a desktop width a real horizontal run — ScrollTrigger pins the
+       Insights section and scrubs the track's X off the page scroll, over
+       the track's own measured overflow;
+     · one shared text entry for [data-rv] — used only by the lower
+       paragraph of blocks 01/02/03, the one place the client marked;
+     · the quote sign, on every desktop width, filled to the lane;
+     · the three investment panels: E-2 holds the viewport, EB-5 rises over
+       it, Important rises last. This is the panel pattern from the approved
+       baseline (c89d14b initOpps). GSAP comes back only for this — a
+       multi-panel pin with a pin-spacer is exactly what ScrollTrigger
+       manages reliably, and hand-rolling it with sticky is brittle across
+       variable-height panels — and it is loaded with a dynamic import, so
+       only /opportunities/ on a desktop width downloads it.
+
+   Contract: everything except the preloader is armed ONLY under
+   html.anim (added before paint when motion is allowed). When it commits
+   it stamps html.motion-on, and the reveal CSS keys on that class — so
+   under reduced motion, no-JS, ?static=1, or any JS failure before
+   commit, every section renders fully visible and static.
    ============================================================ */
 
-import gsap from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
 /* ---------- Preloader — runs ALWAYS, independent of the motion guard ----------
-   Premium editorial intro: a quick multilingual word-scan (hospitality /
-   operation / Miami / investment) resolves into the A—R monogram, which opens
-   outward (letter-spacing + the central rule elongating), then the paper panel
-   wipes up to reveal the site. First visit of the session only — an inline
-   script in index.html adds .preloader-skip on repeat visits and ?static=1;
-   ?preload=1 forces it. A hard killswitch and a CSS fallback guarantee the
-   overlay is never trapped, even if this module fails to load. */
+   Two words resolve into the A—R monogram, the mark opens outward, and
+   the panel wipes up. Around three seconds: an intro, not a gate. An
+   inline script in index.html only adds .preloader-on when it should
+   run, so repeat visits, ?static=1 and a browser with scripts off never
+   see it; ?preload=1 forces it. A killswitch and a CSS fallback
+   guarantee the overlay is never trapped, even if this module fails.
+
+   The sequence is a real sequence: each stage awaits the previous one's
+   animation.finished before it starts. The first build fired five
+   overlapping animations off a shared clock with fill: 'both', and a
+   persisting fill reaches backwards as well as forwards — the leave
+   animation of a word, queued with a delay, applied its own first
+   keyframe (opaque, unmoved, unblurred) from frame zero and outranked the
+   rise animation under it, because the later animation on an element wins
+   the property. The result was 'Hospitality' and 'Miami' both solid, both
+   centred on the same grid cell, printing through each other for the
+   first 720ms. One element carries every word now, one word at a time, so
+   there is no second layer that could overlap the first. */
 initPreloader();
 function initPreloader() {
   const overlay = document.getElementById('site-preloader');
   if (!overlay) return;
-  if (document.documentElement.classList.contains('preloader-skip')) {
+  if (!document.documentElement.classList.contains('preloader-on')) {
     overlay.remove();
     return;
   }
 
-  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const inner = overlay.querySelector('.preloader-inner');
-  const wordEl = overlay.querySelector('.preloader-word');
+  const word = overlay.querySelector('.preloader-word');
   const mark = overlay.querySelector('.preloader-mark');
   const dash = mark ? mark.querySelector('.pm-dash') : null;
+  if (!inner || !word || !mark) { overlay.remove(); return; }
 
   let done = false;
   const finish = () => {
@@ -45,83 +72,218 @@ function initPreloader() {
     try { sessionStorage.setItem('arPreloaderSeen', '1'); } catch (e) { /* blocked */ }
     overlay.remove();
   };
-  const kill = setTimeout(finish, 6200);   // safety: never trap the page (past the ~6.0s intro)
+  const kill = setTimeout(finish, 4400);   // safety: never trap the page
 
-  // Reduced motion: no scan, no wipe — hold the mark for a beat, fade out.
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reduce) {
-    if (wordEl) wordEl.style.display = 'none';
-    gsap.set(mark, { opacity: 1 });
-    gsap.to(overlay, { opacity: 0, duration: 0.4, delay: 0.5, ease: 'power1.out', onComplete: finish });
+    word.style.display = 'none';
+    mark.style.opacity = '1';
+    setTimeout(finish, 650);
     return;
   }
 
-  // The scan reuses exactly TWO stacked layers (current + previous), swapped in
-  // alternation. With only two elements on the centre it is structurally
-  // impossible for a third word to be on screen, so the crossfade is always
-  // "one leaving, one arriving" — never an accumulation of blurred ghosts.
-  // Before a layer takes its next word it is hard-reset to the hidden "below"
-  // state (fromTo), wiping any residue from its previous use.
-  const words = ['Hospitality', 'Operator', 'Miami', 'Investment', 'Partnership'];
-  const wordEls = [wordEl, wordEl.cloneNode(false)];
-  wordEls[1].textContent = '';
-  inner.insertBefore(wordEls[1], mark);
-  // Two stacked layers, reused in alternation — a third word can never exist.
-  // Opacity is DECOUPLED from the rise/blur: the outgoing word's opacity drops
-  // to 0 early and fast, finishing before the incoming word's opacity even
-  // begins, so at any instant only ONE word is truly visible. The smooth rise
-  // and deblur still play (premium body of the motion) but under an opacity of
-  // ~0 at the seam — never two blurred words stacked, no ghosting.
-  const resetHidden = (el) => gsap.set(el, { opacity: 0, yPercent: 40, filter: 'blur(9px)', scale: 0.96 });
-  wordEls.forEach(resetHidden);
-  gsap.set(mark, { opacity: 0, letterSpacing: '0.04em', yPercent: 16, filter: 'blur(10px)' });
-  if (dash) gsap.set(dash, { width: '0.9em' });
+  const ease = 'cubic-bezier(.16,1,.3,1)';
+  const rise = [
+    { opacity: 0, transform: 'translateY(15px)', filter: 'blur(8px)' },
+    { opacity: 1, transform: 'none', filter: 'blur(0px)' }
+  ];
+  const leave = [
+    { opacity: 1, transform: 'none', filter: 'blur(0px)' },
+    { opacity: 0, transform: 'translateY(-12px)', filter: 'blur(8px)' }
+  ];
 
-  const tl = gsap.timeline({ onComplete: finish });
+  // Awaitable. `done` is checked by the caller between stages, so a
+  // killswitch that removes the overlay mid-run never leaves a promise
+  // waiting on an animation that can no longer tick.
+  const play = (el, frames, duration, easing) =>
+    el.animate(frames, { duration, easing: easing || ease, fill: 'both' }).finished;
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
-  // 1) Paced word-scan. Cadence (STEP) is a touch slower than before (~+15%) so
-  //    the sequence breathes, and every phase is scaled with it. Within each
-  //    slot: the body rises/deblurs over RISE, while the opacity fades in a hair
-  //    later (OP_IN_DELAY) and, crucially, fades OUT early so it reaches 0 right
-  //    as the next word's opacity begins (OP_OUT_AT+OP_OUT == STEP+OP_IN_DELAY).
-  //    The hand-off is continuous: each word reads essentially alone — a dry
-  //    dissolve/switch, never two overlapping blurred words, no blank beat.
-  const STEP = 0.74;
-  const RISE = 0.60;                        // vertical rise + deblur (visual body)
-  const OP_IN = 0.28, OP_IN_DELAY = 0.05;   // opacity in: 0.05 -> 0.33
-  const OP_OUT_AT = 0.51, OP_OUT = 0.28;    // opacity out: 0.51 -> 0.79, abutting the
-                                            // next word's opacity-in at 0.79 (STEP+delay):
-                                            // the outgoing word reaches 0 exactly as the
-                                            // next begins, so there is no two-word overlap
-                                            // and no blank beat between words.
-  words.forEach((wd, i) => {
-    const el = wordEls[i % 2];
-    const at = 0.10 + i * STEP;
-    // Mount the word and re-assert the hidden state while opacity is 0, so no
-    // residue from this layer's previous word can ever show.
-    tl.call(() => { el.textContent = wd; resetHidden(el); }, null, at);
-    tl.to(el, { yPercent: 0, filter: 'blur(0px)', scale: 1, duration: RISE, ease: 'power2.out' }, at);
-    tl.to(el, { opacity: 1, duration: OP_IN, ease: 'power1.out' }, at + OP_IN_DELAY);
-    // The last word does not leave — it hands off to the A—R mark below.
-    if (i < words.length - 1) {
-      tl.to(el, { opacity: 0, duration: OP_OUT, ease: 'power1.in' }, at + OP_OUT_AT);
-      tl.to(el, { yPercent: -18, filter: 'blur(8px)', duration: 0.37, ease: 'power1.in' }, at + OP_OUT_AT);
-    }
-  });
+  /* Enter, hold, leave — and nothing else is on screen for any of it.
+     HOLD is the part the client reads: no blur, no travel, no tracking
+     change, the word simply sitting there long enough to be a word. */
+  const HOLD = 560;
+  async function say(text) {
+    word.textContent = text;
+    word.getAnimations().forEach((a) => a.cancel());
+    word.style.opacity = '0';
+    await play(word, rise, 300);
+    if (done) return;
+    await wait(HOLD);
+    if (done) return;
+    await play(word, leave, 210);
+    // Cancelling drops the persisted fill, so the next word starts from the
+    // stylesheet's own opacity: 0 rather than from this one's end state.
+    word.getAnimations().forEach((a) => a.cancel());
+    word.style.opacity = '0';
+  }
 
-  const last = wordEls[(words.length - 1) % 2];
-  const lastAt = 0.10 + (words.length - 1) * STEP + 0.58;
+  const open = 'cubic-bezier(.65,0,.35,1)';
+  async function monogram() {
+    word.style.display = 'none';        // the cell belongs to the mark now
+    const rising = play(mark, rise, 320);
+    // Tracking and the rule open on their own properties, so they can run
+    // under the rise without either animation fighting the other for one.
+    mark.animate([{ letterSpacing: '.04em' }, { letterSpacing: '.44em' }],
+      { duration: 430, delay: 110, easing: open, fill: 'both' });
+    if (dash) dash.animate([{ width: '.9em' }, { width: '2.2em' }],
+      { duration: 430, delay: 110, easing: open, fill: 'both' });
+    await rising;
+    if (done) return;
+    await wait(300);                    // the mark, formed and still
+  }
 
-  // 2) The final word hands off to the A—R monogram: they crossfade in the same
-  //    centre, then the mark opens outward (letter-spacing + rule elongating).
-  tl.to(last, { opacity: 0, yPercent: -12, filter: 'blur(10px)', duration: 0.55, ease: 'power2.inOut' }, lastAt);
-  tl.to(mark, { opacity: 1, yPercent: 0, filter: 'blur(0px)', duration: 0.6, ease: 'power2.out' }, lastAt + 0.08);
-  tl.to(mark, { letterSpacing: '0.5em', duration: 0.72, ease: 'power3.inOut' }, '>-0.1');
-  if (dash) tl.to(dash, { width: '2.4em', duration: 0.72, ease: 'power3.inOut' }, '<');
-
-  // 3) Paper panel wipes up to reveal the composed hero (~4.3s total).
-  tl.to(overlay, { yPercent: -100, duration: 0.72, ease: 'power4.inOut' }, '+=0.24');
+  (async () => {
+    await say('Hospitality');
+    if (done) return;
+    await say('Miami');
+    if (done) return;
+    await monogram();
+    if (done) return;
+    await play(overlay, [{ transform: 'translateY(0)' }, { transform: 'translateY(-100%)' }],
+      480, 'cubic-bezier(.76,0,.24,1)');
+    finish();
+  })().catch(finish);
 }
 
+
+/* ---------- Insights rail — wired on every page that has one ----------
+   Deliberately outside the motion guard below, because the first thing it
+   does is a job the guard has no opinion about: the four covers that are
+   on screen before anyone scrolls are decoded before the track is measured.
+   Without that the rail is measured while six frames are still empty
+   plates, the travel is computed from the wrong height, and the reader
+   watches the pictures arrive one by one into a run that has already
+   started.
+
+   What the rail does with no script at all is the whole fallback: it is a
+   native overflow-x scroller, so swipe, trackpad, shift-wheel, drag and
+   the Tab key reach all six cards, with scroll snap and no page overflow.
+   That is what no-JS, reduced motion, every touch width and every window
+   outside DESKTOP_RUN get, and nothing below is needed for any of them.
+
+   On a desktop width with motion committed this becomes a real horizontal
+   run: ScrollTrigger pins the section — this section only — and scrubs the
+   track's X off the page's own vertical scroll. The distance is the
+   track's own overflow, so the run starts with the first card flush
+   against the measure, ends with the sixth whole and the right gutter
+   equal to the left, and releases the page there. Nothing is pinned after
+   the last card, and the earlier build's arbitrary window (0.35 of the
+   viewport height, which is what made the six cards flick past) is gone
+   along with the two arrow controls it sat next to. */
+/* The one query that decides whether this page gets the pinned run, kept
+   identical to the stylesheet's own so the two can never disagree about
+   which mode the window is in: wide enough for three cards across, and
+   tall enough to hold a whole card under a fixed header without the frame
+   shrinking back into a thumbnail. */
+const DESKTOP_RUN = '(min-width: 1081px) and (min-height: 880px)';
+
+initReelRail();
+function initReelRail() {
+  const section = document.querySelector('[data-insights]');
+  const view = document.querySelector('[data-reel-view]');
+  const rail = document.querySelector('[data-reel-rail]');
+  if (!section || !view || !rail) return;
+
+  const docEl = document.documentElement;
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!docEl.classList.contains('anim') || reduced) return;
+  if (!window.matchMedia(DESKTOP_RUN).matches) return;
+
+  /* The covers in the first frame, decoded before anything is measured. A
+     cover that never arrives must not hold the section: every decode
+     swallows its own failure and the whole wait is raced against a short
+     timeout, so the worst case is the run being set up against a frame
+     that is still loading — never a section that stays put. */
+  const first = [...rail.querySelectorAll('img')].slice(0, 4);
+  const ready = Promise.race([
+    Promise.all(first.map((img) => (img.decode ? img.decode().catch(() => {}) : Promise.resolve()))),
+    new Promise((r) => setTimeout(r, 2500)),
+  ]);
+
+  ready.then(setup);
+
+  async function setup() {
+    const [{ default: gsap }, { ScrollTrigger }] = await Promise.all([
+      import('gsap'),
+      import('gsap/ScrollTrigger'),
+    ]);
+    gsap.registerPlugin(ScrollTrigger);
+
+    /* The travel, from the track itself: six cards, five gaps and both
+       gutters, less what is on screen. offsetWidth and not a bounding
+       rect — the track carries the transform while the trigger is live and
+       a rect would read the moved box and shrink the distance every
+       frame. Rounded so a sub-pixel width cannot leave a hairline of the
+       last card outside the window at the end. */
+    const distance = () => Math.max(0, Math.round(rail.offsetWidth - view.clientWidth));
+
+    /* The breakpoint lives here as well as in the stylesheet: matchMedia
+       tears the trigger down and clears the transform when the window
+       crosses it, so a resize down to a tablet width leaves the plain
+       native scroller behind with nothing of the run still applied. */
+    const mm = gsap.matchMedia();
+    mm.add(DESKTOP_RUN, () => {
+      section.classList.add('is-hscroll');
+      view.scrollLeft = 0;
+
+      const tween = gsap.to(rail, {
+        x: () => -distance(),
+        ease: 'none',
+        scrollTrigger: {
+          trigger: section,
+          start: 'top top',
+          end: () => '+=' + distance(),
+          scrub: true,
+          pin: true,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,   // the distance is re-read on resize
+        },
+      });
+      const st = tween.scrollTrigger;
+
+      /* Keyboard. The view is clipped, so the browser cannot bring a
+         focused card into view by scrolling it sideways — which is the
+         point, since that offset would stack on top of the transform. The
+         page scroll is moved instead: the card's own offset inside the
+         track is the same fraction of the travel as of the trigger's
+         length, so focusing card four lands the run exactly where card
+         four is flush against the measure. */
+      const onFocus = (e) => {
+        const card = e.target.closest('.reel');
+        if (!card || !st) return;
+        const d = distance();
+        if (!d) return;
+        const gutter = parseFloat(getComputedStyle(rail).paddingLeft) || 0;
+        const p = Math.min(1, Math.max(0, (card.offsetLeft - gutter) / d));
+        window.scrollTo({ top: st.start + p * (st.end - st.start), behavior: 'instant' });
+      };
+      rail.addEventListener('focusin', onFocus);
+
+      // Belt and braces for a browser without `overflow: clip`, where the
+      // clipped box is still a scroll container.
+      const onScroll = () => { if (view.scrollLeft) view.scrollLeft = 0; };
+      view.addEventListener('scroll', onScroll, { passive: true });
+
+      return () => {
+        rail.removeEventListener('focusin', onFocus);
+        view.removeEventListener('scroll', onScroll);
+        if (st) st.kill();
+        tween.kill();
+        gsap.set(rail, { clearProps: 'transform,willChange' });
+        section.classList.remove('is-hscroll');
+      };
+    });
+
+    /* The pin point depends on a track whose covers, fonts and clamps are
+       still settling at first paint, so the measurement is taken again
+       after each of them lands. */
+    const refresh = () => ScrollTrigger.refresh();
+    refresh();
+    window.addEventListener('load', refresh, { once: true });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(refresh);
+  }
+}
 (() => {
   'use strict';
 
@@ -134,392 +296,127 @@ function initPreloader() {
   docEl.classList.add('motion-on');
 
   initReveals();
-  initPainProgression();
-  initStory();
-  initBurgermeister();
-  initOffice();
-  initSocial();
-  initOpps();
-  initQuoteText();
+  initQuoteSign();
+  initRoutes();
 
-  /* Shared text-entry — every [data-rv] rises into focus as it reaches the
-     reading line (CSS owns the look; [data-rv-i] staggers siblings). One
-     consistent, intentional entrance for the section openers that otherwise
-     popped in complete. Reveal-once; hidden state lives under html.motion-on,
-     so no-JS / reduced motion never hide the text. */
+  /* Reveal — the site's one entrance, and the only thing on the page that
+     reacts to scroll position at all. A module marked [data-rv] rises
+     16px into place as it reaches the reading line ([data-rv-i] staggers
+     things that belong together). The hidden state lives under
+     html.motion-on, so no-JS and reduced motion never hide anything.
+     Reveal-once: the class goes on, the element is unobserved, and
+     nothing here ever takes it off again.
+
+     Nothing in this function reads or writes scroll position, measures
+     during a scroll callback beyond one getBoundingClientRect per pending
+     element, or animates anything but opacity and transform. That is
+     deliberate: the entrance must be invisible to the scroll, not a
+     second thing competing for the same frames.
+
+     The observer alone cannot guarantee reveal-once-and-always. A hard
+     flick of the wheel, a drag of the scrollbar or a jump to a #hash can
+     carry an element from below the fold to above it between two frames:
+     the intersection ratio reads 0 before and 0 after, no threshold is
+     crossed, no entry is queued, and the element stays invisible for the
+     rest of the visit. With photographs on [data-rv] that is a blank
+     panel where a case should be.
+
+     So a sweep runs alongside the observer and lets through anything that
+     has already reached the reading line, whether or not the observer
+     ever spoke. It runs on the five occasions that can strand an element:
+
+       · at init, for a page that loads already scrolled — a reload
+         partway down, or a hash landing;
+       · on scroll, debounced, for the flick and the scrollbar drag;
+       · on resize, because the reading line itself moves;
+       · on load, once late images have settled the layout;
+       · on pageshow with persisted set, for a back/forward out of the
+         bfcache, where the document is restored mid-visit and the
+         observer's callbacks are not replayed.
+
+     Both paths drain the same set. When it is empty the listeners come
+     off and html.rv-done retires the hidden state in the stylesheet. */
   function initReveals() {
-    const items = [...document.querySelectorAll('[data-rv]')];
-    if (!items.length) return;
+    const pending = new Set(document.querySelectorAll('[data-rv]'));
+    if (!pending.size) { docEl.classList.add('rv-done'); return; }
+
+    const show = (el) => {
+      el.classList.add('is-in');
+      pending.delete(el);
+      io.unobserve(el);
+    };
+
     const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) {
-          e.target.classList.add('is-in');
-          io.unobserve(e.target);
-        }
-      });
+      entries.forEach((e) => { if (e.isIntersecting) show(e.target); });
+      if (!pending.size) finish();
     }, { rootMargin: '0px 0px -12% 0px', threshold: 0.15 });
-    items.forEach((el) => io.observe(el));
+    pending.forEach((el) => io.observe(el));
+
+    let t = 0;
+    const sweep = () => {
+      const line = window.innerHeight * 0.88;      // the observer's own line
+      [...pending].forEach((el) => {
+        if (el.getBoundingClientRect().top < line) show(el);
+      });
+      if (!pending.size) finish();
+    };
+    const queue = () => { clearTimeout(t); t = setTimeout(sweep, 140); };
+
+    const finish = () => {
+      clearTimeout(t);
+      window.removeEventListener('scroll', queue);
+      window.removeEventListener('resize', queue);
+      window.removeEventListener('pageshow', onShow);
+      io.disconnect();
+      docEl.classList.add('rv-done');
+    };
+
+    // A restore from the bfcache hands back a document that is already
+    // scrolled, with no scroll event to announce it.
+    const onShow = (e) => { if (e.persisted) sweep(); };
+
+    window.addEventListener('scroll', queue, { passive: true });
+    window.addEventListener('resize', queue, { passive: true });
+    window.addEventListener('pageshow', onShow);
+    window.addEventListener('load', sweep, { once: true });
+    sweep();
   }
 
-  /* #pain — three steps take turns in focus as the section scrolls.
-     A thin band at the viewport centre decides the active step; steps
-     above it are marked "past". State only (opacity / gold spine). */
-  function initPainProgression() {
-    const pain = document.getElementById('pain');
-    if (!pain) return;
+  /* #opportunities — E-2 holds, EB-5 rises over it, Important rises last.
+     Three panels now: the note that used to sit under the stack as a short
+     tinted band is the third slide, so the page closes on the thing a
+     reader has to know before taking either route.
 
-    const steps = [...pain.querySelectorAll('.pain-step')];
-    if (!steps.length) return;
+     The loop was already written against however many .route-panel it
+     finds and needs no change for the third; what did need saying is that
+     the last panel is never pinned, which is what lets the footer arrive
+     in the ordinary way instead of over a held viewport.
 
-    let activeIdx = -1;
-    const setActive = (idx) => {
-      if (idx === activeIdx) return;
-      activeIdx = idx;
-      steps.forEach((step, i) => {
-        step.classList.toggle('is-active', i === idx);
-        step.classList.toggle('is-past', i < idx);
-      });
-    };
-
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((e) => {
-        if (e.isIntersecting) setActive(steps.indexOf(e.target));
-      });
-    }, { rootMargin: '-45% 0px -45% 0px', threshold: 0 });
-
-    steps.forEach((step) => io.observe(step));
-    setActive(0);
-  }
-
-  /* #about (Story) — an editorial reel driven by scroll progress.
-     On desktop the section is tall (CSS: 420vh) and its stage pins;
-     this maps how far we have scrolled through that track to a 0..1
-     progress, which:
-       - fills the foot hairline (continuous, scrubbed cue — no numbers);
-       - selects the active chapter (four equal zones) so its image
-         wipes in and its copy masks up (CSS transitions on .is-active).
-     Reversible with the scroll — the reader feels the chapters change.
-     CSS gates the pin/wipe/hide on a desktop width, so on narrow screens
-     this only sets a variable and toggles a class with no hiding effect:
-     every chapter stays visible in the vertical run.
-
-     Perf: the scroll handler reads only one cheap rect and writes at
-     most one transform + one class toggle per frame; the section's
-     scroll length is cached and recomputed on resize/orientation, so no
-     layout is forced during scroll. rAF-throttled and Story-scoped. */
-  function initStory() {
-    const section = document.getElementById('about');
-    if (!section) return;
-
-    const slides = [...section.querySelectorAll('.story-slide')];
-    const fillEl = section.querySelector('.story-progress > i');
-    const n = slides.length;
-    if (!n) return;
-
-    const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
-    let active = -1;
-    let lastP = -1;
-    let total = 0;
-
-    const measure = () => { total = section.offsetHeight - window.innerHeight; };
-
-    const setActive = (i) => {
-      if (i === active) return;
-      active = i;
-      slides.forEach((s, k) => s.classList.toggle('is-active', k === i));
-    };
-
-    let ticking = false;
-    const update = () => {
-      ticking = false;
-      const top = section.getBoundingClientRect().top;
-      const p = total > 0 ? clamp01(-top / total) : (top <= 0 ? 1 : 0);
-      if (p === lastP) return;
-      lastP = p;
-      if (fillEl) fillEl.style.transform = 'scaleX(' + p.toFixed(4) + ')';
-      setActive(Math.min(n - 1, Math.floor(p * n + 1e-4)));
-    };
-
-    const onScroll = () => {
-      if (!ticking) { ticking = true; requestAnimationFrame(update); }
-    };
-    const onResize = () => { measure(); lastP = -1; onScroll(); };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onResize, { passive: true });
-
-    measure();
-    setActive(0);
-    update();
-  }
-
-  /* #burgermeister — opens like a case monument, not a slide deck.
-     The copy reveals progressively: each paragraph (and the CTA) has its
-     own trigger and rises from behind a mask as it reaches the reading
-     line, so the reader feels them arrive one after another. The proof
-     ledger settles in as its zone enters. Scroll writes one local
-     progress variable for the monumental word, title, and image drift.
-     Reduced motion and no-JS keep the static layout fully visible because
-     the CSS is gated by .bm-motion and the per-element .is-in class. */
-  function initBurgermeister() {
-    const section = document.getElementById('burgermeister');
-    if (!section) return;
-
-    section.classList.add('bm-motion');
-
-    // Progressive copy: reveal each paragraph/CTA as it enters, in order.
-    const lines = [...section.querySelectorAll('.bm-copy > *')];
-    if (lines.length) {
-      const lineIo = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('is-in');
-            lineIo.unobserve(entry.target);
-          }
-        });
-      }, { rootMargin: '0px 0px -20% 0px', threshold: 0.25 });
-      lines.forEach((el) => lineIo.observe(el));
-    }
-
-    const proof = section.querySelector('.bm-proof');
-    if (proof) {
-      const proofIo = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) section.classList.add('is-proof-inview');
-        });
-      }, { rootMargin: '0px 0px -24% 0px', threshold: 0.16 });
-      proofIo.observe(proof);
-    }
-
-    const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
-    let ticking = false;
-
-    const update = () => {
-      ticking = false;
-      const r = section.getBoundingClientRect();
-      const total = window.innerHeight + r.height;
-      const p = total > 0 ? clamp01((window.innerHeight - r.top) / total) : 0;
-      section.style.setProperty('--bm-p', p.toFixed(4));
-    };
-
-    const onScroll = () => {
-      if (!ticking) { ticking = true; requestAnimationFrame(update); }
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onScroll, { passive: true });
-    update();
-  }
-
-  /* #the-office — a living operational dossier.
-     1. Scroll entrance: the record lays itself out (masthead + rows draw
-        down in a short cascade), keyed on .is-inview.
-     2. Cursor image preview: on desktop pointers, an editorial plate
-        follows the cursor over the dossier rows and swaps its image per
-        row. Vanilla rAF + lerp for a smooth trailing follow — no GSAP
-        needed for a single lerped element, and it keeps the zero-dep
-        contract that protects the approved hero. Fixed + pointer-events
-        none, so it never shifts layout or creates overflow. Disabled on
-        touch / coarse pointers / reduced motion (CSS hides it too). */
-  function initOffice() {
-    const section = document.getElementById('the-office');
-    if (!section) return;
-
-    section.classList.add('to-motion');
-
-    const revIo = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          section.classList.add('is-inview');
-          revIo.disconnect();
-        }
-      });
-    }, { rootMargin: '0px 0px -16% 0px', threshold: 0.12 });
-    revIo.observe(section);
-
-    // Cursor preview — desktop pointer only.
-    const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-    const rows = [...section.querySelectorAll('.to-detail > div[data-preview]')];
-    const preview = section.querySelector('.to-preview');
-    const img = preview && preview.querySelector('img');
-    if (!fine || !preview || !img || !rows.length) return;
-
-    // Resolve each data-preview to its built URL. Vite rewrites real src/imports
-    // but leaves data-* strings alone, so in the production build the raw
-    // "assets/img/…" paths 404 (hashed/omitted). This glob makes Vite emit and
-    // hash all five, mapped by basename; we fall back to the raw path in dev or
-    // if a name is ever unmatched, so behaviour is unchanged there.
-    const builtPreviews = import.meta.glob('../assets/img/alex-office-*.webp', { eager: true, query: '?url', import: 'default' });
-    const resolvedByName = {};
-    for (const p in builtPreviews) resolvedByName[p.split('/').pop()] = builtPreviews[p];
-    const resolvePreview = (raw) => (raw ? (resolvedByName[raw.split('/').pop()] || raw) : raw);
-
-    // Warm the images so the swap is instant.
-    rows.forEach((row) => {
-      const src = resolvePreview(row.getAttribute('data-preview'));
-      if (src) { const pre = new Image(); pre.src = src; }
-    });
-
-    const detail = section.querySelector('.to-detail');
-    const lerp = (a, b, t) => a + (b - a) * t;
-    let targetX = -100, targetY = -100;
-    let curX = -100, curY = -100;
-    let hovering = 0;
-    let raf = 0;
-
-    const run = () => {
-      curX = lerp(curX, targetX, 0.16);
-      curY = lerp(curY, targetY, 0.16);
-      preview.style.transform =
-        'translate3d(' + curX.toFixed(1) + 'px,' + curY.toFixed(1) + 'px,0)';
-      const settled = Math.abs(curX - targetX) < 0.4 && Math.abs(curY - targetY) < 0.4;
-      if (hovering || !settled) { raf = requestAnimationFrame(run); }
-      else { raf = 0; }
-    };
-
-    const onMove = (e) => {
-      const w = preview.offsetWidth || 220;
-      const h = preview.offsetHeight || 275;
-      // sit to the right of the cursor, clamped inside the viewport
-      let x = e.clientX + 26;
-      let y = e.clientY - h / 2;
-      if (x + w > window.innerWidth - 14) x = e.clientX - w - 26;
-      x = Math.max(14, Math.min(x, window.innerWidth - w - 14));
-      y = Math.max(12, Math.min(y, window.innerHeight - h - 12));
-      targetX = x; targetY = y;
-      if (!raf) raf = requestAnimationFrame(run);
-    };
-
-    rows.forEach((row) => {
-      row.addEventListener('mouseenter', () => {
-        const src = resolvePreview(row.getAttribute('data-preview'));
-        if (src && img.getAttribute('src') !== src) img.setAttribute('src', src);
-        hovering += 1;
-        preview.classList.add('is-on');
-        if (!raf) raf = requestAnimationFrame(run);
-      });
-      row.addEventListener('mouseleave', () => {
-        hovering = Math.max(0, hovering - 1);
-        if (!hovering) preview.classList.remove('is-on');
-      });
-    });
-
-    (detail || section).addEventListener('mousemove', onMove, { passive: true });
-  }
-
-  /* #social — a living content showcase. On desktop the stage pins over
-     a tall track and scroll progress moves the post cards through an arc:
-     each card gets translateX (spread), a parabolic translateY (the arc),
-     rotation, scale, depth (z-index), fade and blur by its distance from
-     centre — the centre card largest, upright, sharp, in front. Vanilla
-     rAF: the arc is one formula over a handful of cards, so GSAP would
-     only add a dependency and a pin-spacer that risks the approved hero's
-     scroll. Gated on desktop width + motion; otherwise the CSS scroll-snap
-     rail stands in, so cards stay visible and links live everywhere. */
-  function initSocial() {
-    const section = document.getElementById('social');
-    if (!section) return;
-
-    section.classList.add('social-motion');
-
-    const arc = section.querySelector('.social-arc');
-    const cards = [...section.querySelectorAll('.social-card')];
-    const n = cards.length;
-    if (!arc || !n) return;
-
-    const wide = window.matchMedia('(min-width: 861px)');
-    const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
-    let total = 0;
-    let ticking = false;
-    let cleared = false;
-
-    const measure = () => { total = section.offsetHeight - window.innerHeight; };
-
-    const clearInline = () => {
-      if (cleared) return;
-      cleared = true;
-      cards.forEach((c) => {
-        c.style.transform = '';
-        c.style.opacity = '';
-        c.style.filter = '';
-        c.style.zIndex = '';
-        c.classList.remove('is-active');
-      });
-    };
-
-    const apply = (p) => {
-      cleared = false;
-      const active = p * (n - 1);
-      const cw = cards[0].getBoundingClientRect().width || 220;
-      // Constant step + constant card size => the horizontal gap between
-      // every pair of cards is identical, whatever their position. The arc
-      // is drawn purely by a gentle vertical curve and a tangent rotation,
-      // so the even spacing is never deformed by the motion.
-      const step = cw * 1.16;
-      cards.forEach((card, i) => {
-        const off = i - active;
-        const a = Math.abs(off);
-        const x = off * step;
-        const y = 82 * (1 - Math.cos(off * 0.5));     // symmetric arc, centre peak
-        const rot = off * 6;                          // tangent tilt
-        const op = Math.max(0, 1 - a * 0.32);
-        const blur = Math.min(a * 1.0, 2.6);
-        card.style.transform =
-          'translate3d(calc(-50% + ' + x.toFixed(1) + 'px), calc(-50% + ' + y.toFixed(1) + 'px), 0)' +
-          ' rotate(' + rot.toFixed(2) + 'deg)';
-        card.style.opacity = op.toFixed(3);
-        card.style.filter = blur > 0.05 ? 'blur(' + blur.toFixed(2) + 'px)' : 'none';
-        card.style.zIndex = String(100 - Math.round(a * 10));
-        card.classList.toggle('is-active', a < 0.5);
-      });
-    };
-
-    const update = () => {
-      ticking = false;
-      if (!wide.matches) { clearInline(); return; }
-      const top = section.getBoundingClientRect().top;
-      const p = total > 0 ? clamp01(-top / total) : 0;
-      apply(p);
-    };
-
-    const onScroll = () => {
-      if (!ticking) { ticking = true; requestAnimationFrame(update); }
-    };
-    const onResize = () => { measure(); onScroll(); };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    window.addEventListener('resize', onResize, { passive: true });
-
-    measure();
-    update();
-  }
-
-  /* #opportunities — four pinned panels (GSAP ScrollTrigger, the
-     "pinned panels with overscroll" pattern). Each panel except the last
-     is pinned; the next panel slides up over it, and a panel taller than
-     the viewport scrolls its own content before releasing (start at
-     bottom-bottom rather than top-top). GSAP is used here because a
-     multi-panel pin with per-panel overscroll and a pin-spacer is exactly
-     what ScrollTrigger manages robustly; hand-rolling it with sticky is
-     brittle across variable-height panels.
-
-     Desktop width + motion only. This function is never reached under
-     reduced motion / no-JS (the IIFE returns early), and it bails on
-     narrow screens — so the panels stay a normal vertical run there. */
-  function initOpps() {
-    const section = document.getElementById('opportunities');
-    if (!section) return;
+     Desktop width only, and only when motion is committed: this function is
+     never reached under reduced motion or no-JS (the IIFE returns before the
+     commit), and it bails below 861px, so those readers get a plain vertical
+     run of three full sections with every line and both CTAs present.
+     ScrollTrigger recomputes after fonts and after load, because the pin
+     points depend on panel heights that are still settling at first paint. */
+  async function initRoutes() {
+    const stack = document.querySelector('.route-stack');
+    if (!stack) return;
     if (!window.matchMedia('(min-width: 861px)').matches) return;
 
-    const panels = [...section.querySelectorAll('.opps-panel')];
+    const panels = [...stack.querySelectorAll('.route-panel')];
     if (panels.length < 2) return;
 
+    // Only this page, at this width, pays for the library.
+    const [{ default: gsap }, { ScrollTrigger }] = await Promise.all([
+      import('gsap'),
+      import('gsap/ScrollTrigger'),
+    ]);
     gsap.registerPlugin(ScrollTrigger);
-    section.classList.add('is-pinned');   // gives panels min-height:100vh
+    stack.classList.add('is-pinned');       // gives the panels min-height: 100vh
 
-    // Pin every panel but the last; the closing panel flows out into
-    // Contact. Short panels pin at top-top; tall panels pin at
-    // bottom-bottom so their content scrolls past first (overscroll).
+    // Pin every panel but the last; the last one carries on into the note.
+    // A panel shorter than the viewport pins at top-top; a taller one pins at
+    // bottom-bottom so its own content scrolls past before it releases.
     panels.forEach((panel, i) => {
       if (i === panels.length - 1) return;
       ScrollTrigger.create({
@@ -530,71 +427,99 @@ function initPreloader() {
       });
     });
 
-    // Recompute once fonts/images settle so pin points are accurate.
-    ScrollTrigger.refresh();
-    window.addEventListener('load', () => ScrollTrigger.refresh(), { once: true });
+    const refresh = () => ScrollTrigger.refresh();
+    refresh();
+    window.addEventListener('load', refresh, { once: true });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(refresh);
   }
 
-  /* #quote — an editorial interlude on plain deep-pine. The sophistication is
-     in the TYPOGRAPHY, not the background: the quote is split into words and
-     revealed on scroll with a short, refined stagger (rise + fade, a touch of
-     blur on desktop); the signature follows. GSAP + ScrollTrigger, no extra
-     library. Reduced motion / no-JS never reach here (the IIFE returns before
-     stamping html.motion-on) so the quote renders fully at rest and legible. */
-  function initQuoteText() {
-    const section = document.getElementById('quote');
-    if (!section) return;
-    const tx = section.querySelector('.quote-tx');
-    const quoteIn = section.querySelector('.quote-in');
-    if (!tx || !quoteIn) return;
-    const by = section.querySelector('.quote-by');
-    gsap.registerPlugin(ScrollTrigger);   // idempotent — independent of initOpps
+  /* #quote — the one authorised effect (PDF p.6): the line travels left
+     to right like a sign. On every desktop width it is a sign.
 
-    // Manual word split (SplitText isn't bundled). Keep real spaces as text
-    // nodes so wrapping — and the non-breaking "a city" — stay intact.
-    const words = tx.textContent.split(' ');
-    tx.textContent = '';
-    const spans = words.map((wd, i) => {
-      const s = document.createElement('span');
-      s.className = 'quote-word';
-      s.textContent = wd;
-      tx.appendChild(s);
-      if (i < words.length - 1) tx.appendChild(document.createTextNode(' '));
-      return s;
-    });
+     The first build only switched the travel on when one copy of the line
+     was wider than its lane. That held on a 1440 screen and failed on a
+     wide one: past ~1690px the type stops growing (the clamp caps at
+     3.8rem) while the lane keeps widening, so one copy fits, the function
+     returned before adding the class, and the client saw a frozen
+     quotation. Overflow is gone as a condition. The lane is filled
+     instead: enough copies to cover it, that group doubled, and the pair
+     travelling one group per cycle at a fixed 62 px a second, which also
+     gives a 1280 and a 2560 screen the same pace.
 
-    // Container was hidden by html.motion-on .quote-in{opacity:0}; reveal it now
-    // and let the words carry the hidden state, so there is no flash of full
-    // text before the animation.
-    gsap.set(quoteIn, { opacity: 1 });
+     Below 700px it stays a wrapped, static quotation: a scrolling line is
+     not something you read on a phone. Only the first copy carries the
+     text for screen readers; every duplicate is aria-hidden. */
+  function initQuoteSign() {
+    const lane = document.querySelector("[data-quote-lane]");
+    if (!lane) return;
+    const track = lane.querySelector(".quote-track");
+    const line = lane.querySelector("[data-quote-line]");
+    if (!track || !line) return;
 
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduce) {                       // belt-and-braces: never leave it hidden
-      gsap.set(spans, { opacity: 1, yPercent: 0 });
-      if (by) gsap.set(by, { opacity: 1, y: 0 });
-      return;
-    }
+    const narrow = window.matchMedia("(max-width: 700px)");
+    const SPEED = 62;             // px a second: a sign, not a news ticker
+    let copies = 0;               // copies currently in the track
+    let secs = 0;                 // seconds for one cycle, as applied
 
-    const mobile = window.matchMedia('(max-width: 700px)').matches;
-    const from = { yPercent: 42, opacity: 0 };
-    const to = {
-      yPercent: 0, opacity: 1, ease: 'expo.out',
-      duration: mobile ? 0.9 : 1.15,
-      stagger: mobile ? 0.03 : 0.055
+    const dropDups = () => track.querySelectorAll("[data-quote-dup]").forEach((el) => el.remove());
+
+    const setup = () => {
+      if (narrow.matches) {
+        if (!copies) return;
+        dropDups();
+        lane.classList.remove("is-marquee");
+        lane.style.removeProperty("--q-dur");
+        copies = 0; secs = 0;
+        return;
+      }
+
+      // The copy has to be measured in the layout it will run in: as a flex
+      // item, set on one line, with the seam padding already on it. So the
+      // class goes first and the reading is taken after — measuring the bare
+      // block gave the lane width instead, and a sign three times too fast.
+      const fresh = !lane.classList.contains("is-marquee");
+      if (fresh) lane.classList.add("is-marquee");
+      const one = line.getBoundingClientRect().width;
+      if (!one) { if (fresh) lane.classList.remove("is-marquee"); return; }
+
+      // A group has to be at least as wide as the lane, or the seam between
+      // the two groups would drag a band of empty pine across the screen.
+      const perGroup = Math.max(1, Math.ceil(lane.clientWidth / one));
+      const want = perGroup * 2;
+      const next = Math.max(6, Math.round(perGroup * one / SPEED));
+
+      // A resize that changes neither the copy count nor the pace leaves the
+      // running animation exactly where it is: no restart, no jump. The same
+      // guard absorbs the sub-pixel drift a font swap leaves behind.
+      const paceHeld = secs && Math.abs(next - secs) / secs < 0.05;
+      if (want === copies && (paceHeld || next === secs)) return;
+
+      if (want !== copies) {
+        dropDups();
+        const frag = document.createDocumentFragment();
+        for (let i = 1; i < want; i++) {
+          const dup = line.cloneNode(true);
+          dup.setAttribute("aria-hidden", "true");
+          dup.removeAttribute("data-quote-line");
+          dup.setAttribute("data-quote-dup", "");
+          frag.appendChild(dup);
+        }
+        track.appendChild(frag);
+        copies = want;
+      }
+      if (!paceHeld) {
+        lane.style.setProperty("--q-dur", next + "s");
+        secs = next;
+      }
     };
-    if (!mobile) { from.filter = 'blur(7px)'; to.filter = 'blur(0px)'; }
-    gsap.set(spans, from);
-    if (by) gsap.set(by, { opacity: 0, y: 14 });
 
-    const tl = gsap.timeline({ paused: true });
-    tl.to(spans, to);
-    if (by) tl.to(by, { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out' }, '-=0.4');
+    setup();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(setup);
 
-    ScrollTrigger.create({
-      trigger: section,
-      start: 'top 70%',
-      once: true,
-      onEnter: () => tl.play()
-    });
+    let t = 0;
+    window.addEventListener("resize", () => {
+      clearTimeout(t);
+      t = setTimeout(setup, 220);
+    }, { passive: true });
   }
 })();

@@ -1,0 +1,56 @@
+/* Blog and article reading layer, sharing the site's type and semantic tokens. */
+.insight-articles { background: var(--surface-muted); padding-block: clamp(72px,9vw,120px); }
+.insight-articles .sec-display { margin-bottom: clamp(34px,5vw,58px); }
+.article-index { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(34px,5vw,72px); list-style:none; }
+.article-entry-link { display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); gap:clamp(20px,2.4vw,36px); min-height:100%; color:inherit; text-decoration:none; }
+.article-entry-cover { aspect-ratio:4/3; overflow:hidden; background:var(--paper-deep); }
+.article-entry-cover img { display:block; width:100%; height:100%; object-fit:cover; }
+.article-entry-copy { align-self:center; display:grid; gap:14px; min-width:0; }
+.article-entry h3 { font-family:'Gamay Editorial',serif; font-weight:900; font-size:clamp(1.5rem,2.3vw,2.3rem); line-height:1.12; overflow-wrap:anywhere; }
+.article-meta { font-size:.875rem; line-height:1.55; color:var(--text-muted); }
+.article-excerpt { font-size:1.0625rem; line-height:1.6; color:var(--text-muted); }
+.article-read { display:inline-flex; align-items:center; min-height:40px; width:max-content; color:var(--pine); font-size:.9375rem; text-decoration:underline; text-underline-offset:5px; }
+.article-entry-link:hover .article-read { text-decoration-thickness:2px; }
+.article-entry-link:focus-visible,.editorial-article a:focus-visible { outline:3px solid var(--pine); outline-offset:6px; border-radius:2px; }
+.article-empty { max-width:48ch; padding:24px 0; color:var(--text-muted); font-size:1.0625rem; line-height:1.65; }
+.blog-after { padding-bottom:clamp(70px,9vw,120px); }
+
+.editorial-article { padding-top:clamp(132px,13vw,190px); padding-bottom:clamp(70px,9vw,110px); overflow-wrap:anywhere; }
+.article-open { max-width:960px; margin:0 auto 44px; }
+.article-open .page-kicker { margin-top:40px; }
+.article-open h1 { font-family:'Gamay Editorial',serif; font-weight:900; font-size:clamp(2.35rem,5.5vw,4.5rem); line-height:1.06; margin:20px 0 26px; }
+.article-lede { max-width:64ch; font-size:clamp(1.25rem,2.1vw,1.65rem); line-height:1.5; margin-bottom:24px; color:var(--text-muted); }
+.article-cover { max-width:1100px; aspect-ratio:16/9; overflow:hidden; margin:0 auto 56px; background:var(--paper-deep); }
+.article-cover img { display:block; width:100%; height:100%; object-fit:cover; }
+.article-body,.article-end { max-width:740px; margin-inline:auto; }
+.article-body { font-size:clamp(1.125rem,1.45vw,1.3rem); line-height:1.76; }
+.article-body > * + * { margin-top:1.3em; }
+.article-body h2,.article-body h3 { font-family:'Gamay Editorial',serif; font-weight:900; line-height:1.18; }
+.article-body h2 { font-size:1.62em; margin-top:2em; }
+.article-body h3 { font-size:1.25em; margin-top:1.6em; }
+.article-body blockquote { border-left:2px solid var(--pine); padding-left:24px; font-style:italic; font-size:1.1em; }
+.article-body ul,.article-body ol { padding-left:1.4em; }
+.article-body li + li { margin-top:.45em; }
+.article-body a,.article-end a { color:var(--pine); text-decoration:underline; text-underline-offset:4px; }
+.article-body strong { font-weight:bold; }
+.article-body img { max-width:100%; height:auto; display:block; }
+.article-body figcaption { font-size:.9375rem; color:var(--text-muted); margin-top:12px; }
+.article-end { border-top:1px solid var(--rule); padding-top:28px; margin-top:56px; display:flex; flex-wrap:wrap; gap:18px 28px; font-size:1rem; }
+
+.related-articles { padding-bottom:clamp(84px,10vw,140px); }
+.related-articles > h2 { margin:12px 0 38px; font-family:'Gamay Editorial',serif; font-size:clamp(2rem,4vw,3.6rem); line-height:1.08; }
+.related-list { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(24px,3vw,42px); list-style:none; }
+.related-list .article-entry-link { grid-template-columns:1fr; }
+.related-list .article-entry-cover { aspect-ratio:16/10; }
+.related-list .article-excerpt { display:none; }
+
+@media (max-width:900px) {
+  .article-index { grid-template-columns:1fr; }
+  .related-list { grid-template-columns:1fr 1fr; }
+}
+@media (max-width:640px) {
+  .article-entry-link { grid-template-columns:1fr; gap:20px; }
+  .article-entry-copy { gap:12px; }
+  .article-cover { aspect-ratio:4/3; margin-bottom:36px; }
+  .related-list { grid-template-columns:1fr; }
+}

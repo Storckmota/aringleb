@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cases &middot; Alexander Ringleb</title>
+<meta name="robots" content="noindex, follow">
+<!-- Absolute, and without the fragment: a crawler drops the #part of a
+     canonical anyway, and a root-relative href here is read by the build
+     as an asset path. -->
+<link rel="canonical" href="https://aringleb.com/">
+<!-- ============================================================
+     /cases/ — compatibility route.
+
+     The cases are a section of the home page now (Burgermeister and The
+     Office Delray, between the quote and the footer), so this URL no
+     longer has content of its own. The route is kept so links already in
+     the wild do not break, and it forwards to /#cases instead of holding
+     a second copy of the same cases that would drift out of step with
+     the home page.
+
+     There is no host-level redirect available in this deployment (the
+     build is a plain static Vite MPA with no server config), so the
+     forward is done here: a canonical for crawlers, a meta refresh, a
+     script for the instant case, and a real link for a reader who
+     arrives with neither. Nothing here is a duplicate of the section.
+     ============================================================ -->
+<meta http-equiv="refresh" content="0; url=/#cases">
+<script>location.replace('/#cases');</script>
+<link rel="stylesheet" href="/css/hero.css">
+<link rel="stylesheet" href="/css/site.css">
+</head>
+<body>
+<main class="route-fwd">
+  <p class="route-fwd-k">Cases</p>
+  <p class="route-fwd-p">The cases are on the home page.</p>
+  <p><a class="link-arrow" href="/#cases">Burgermeister and The Office Delray<span class="arr">&ensp;&rarr;</span></a></p>
+</main>
+</body>
+</html>

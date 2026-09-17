@@ -1,51 +1,75 @@
 /* ============================================================
-   Alexander Ringleb - site body baseline
-   A quiet editorial system that continues the approved hero.
-   Tokens and hero-specific rules live in css/hero.css.
+   Alexander Ringleb — site body
+   A quiet editorial system on a light ground. Tokens, header and hero
+   live in css/hero.css.
+
+   PDF p.12 set the direction for this file: bigger type, fewer effects,
+   a lighter ground, and less on the home page. Pine and gold stay; the
+   ground moves from bone to a warm off-white; the sections that used to
+   pin, wipe, arc or swap photographs are gone, and what remains is
+   spacing, hairlines and one accent.
    ============================================================ */
 
-/* ---------- Body motion tokens ----------
-   Softer, longer easings for the BODY only. --ease-out (the hero's
-   cubic-bezier(.16,1,.3,1)) settles very fast, which reads snappy at the
-   short durations used for scroll reveals. These curves start gentler and
-   decelerate for longer, so entrances feel intentional, not brute. Defined
-   here (not in hero.css) so the approved hero motion is left untouched. */
 :root {
-  --ease-soft: cubic-bezier(.22, .68, .32, 1);   /* editorial easeOut — smooth settle */
-  --ease-glide: cubic-bezier(.4, 0, .18, 1);      /* in-out for state morphs / wipes  */
+  --ease-soft: cubic-bezier(.22, .68, .32, 1);   /* editorial easeOut */
+  --ease-glide: cubic-bezier(.4, 0, .18, 1);
 }
 
-/* Shared text-entry primitive — one consistent way important text arrives.
-   It does not merely slide up already-formed: it rises from below AND
-   resolves into focus (opacity + translateY + a light desktop blur, so the
-   text reads as coming into being, not popping in complete). Gated on
-   motion-on so no-JS / reduced motion render finished text. Elements opt in
-   with [data-rv]; js/motion.js adds .is-in as each reaches the reading line;
-   [data-rv-i] gives a gentle in-order cascade. */
+/* ---------- Reveal — the site's one entrance ----------
+   Every module on every page arrives the same way: 16px up, into view,
+   once. There is no second entrance vocabulary, no per-section variant
+   and no effect that runs off scroll position, because the page has one
+   job while you are scrolling it and that is to scroll.
+
+   The shape:
+     travel    16px. Far enough to read as arriving, short enough that
+               nothing appears to fall into place. It is a transform, so
+               it never touches layout and cannot shift the page.
+     duration  520ms opacity / 600ms transform. The transform lands last
+               and slightly later, which is what stops the pair reading
+               as a single mechanical slide.
+     easing    --ease-out, the exponential the rest of the site uses:
+               most of the distance in the first third, then settling.
+     once      js/motion.js unobserves on the way in and never removes
+               .is-in, so nothing re-animates on the way back up.
+
+   What opts in: whole modules, figures, headings and cards. Not
+   sentences, not words. A paragraph that arrives a line at a time is an
+   effect happening to the reader rather than for them.
+
+   Gated on html.motion-on, which js/motion.js only sets once it has
+   committed. No-JS, reduced motion, ?static=1 and any failure before
+   that line all render the page finished and static — the hidden state
+   does not exist for them. */
 html.motion-on [data-rv] {
   opacity: 0;
-  transform: translateY(30px);
-  transition: opacity .95s var(--ease-soft),
-              transform 1.1s var(--ease-soft);
-  will-change: transform, opacity;
+  transform: translateY(16px);
+  transition: opacity .52s var(--ease-out), transform .6s var(--ease-out);
 }
 html.motion-on [data-rv].is-in {
   opacity: 1;
   transform: none;
 }
-@media (min-width: 861px) {
-  html.motion-on [data-rv] {
-    filter: blur(7px);
-    transition: opacity .95s var(--ease-soft),
-                transform 1.1s var(--ease-soft),
-                filter .9s var(--ease-soft);
-  }
-  html.motion-on [data-rv].is-in { filter: blur(0); }
+
+/* Stagger, for elements that belong to each other and nothing else — a
+   heading and the figure under it, four cards in one row. 70ms apart:
+   enough to read as in-order, not enough to make the fourth item wait. */
+html.motion-on [data-rv][data-rv-i="1"] { transition-delay: .07s; }
+html.motion-on [data-rv][data-rv-i="2"] { transition-delay: .14s; }
+html.motion-on [data-rv][data-rv-i="3"] { transition-delay: .21s; }
+html.motion-on [data-rv][data-rv-i="4"] { transition-delay: .28s; }
+
+/* js/motion.js stamps html.rv-done the moment nothing is left waiting.
+   Every [data-rv] already carries .is-in by then, so this changes no
+   pixel; what it does is take the hidden state off the table for good,
+   so no later recalculation — a print stylesheet, a class toggled on
+   html, a re-inserted node — can put an element that has already been
+   read back to opacity 0. */
+html.motion-on.rv-done [data-rv] {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0s;
 }
-html.motion-on [data-rv][data-rv-i="1"] { transition-delay: .09s; }
-html.motion-on [data-rv][data-rv-i="2"] { transition-delay: .18s; }
-html.motion-on [data-rv][data-rv-i="3"] { transition-delay: .27s; }
-html.motion-on [data-rv][data-rv-i="4"] { transition-delay: .36s; }
 
 /* ---------- Utilities ---------- */
 .sr-only {
@@ -68,9 +92,9 @@ html.motion-on [data-rv][data-rv-i="4"] { transition-delay: .36s; }
   transform: translateY(-200%);
   background: var(--pine);
   color: var(--paper);
-  padding: .8em 1.4em;
+  padding: .85em 1.5em;
   border-radius: 999px;
-  font-size: .72rem;
+  font-size: .8rem;
   letter-spacing: .16em;
   text-transform: uppercase;
   transition: transform .3s var(--ease-out);
@@ -83,111 +107,71 @@ html.motion-on [data-rv][data-rv-i="4"] { transition-delay: .36s; }
   padding-inline: var(--mx-page);
 }
 
-/* ---------- Navigation ---------- */
+/* ---------- Header states ----------
+   The bar is transparent while it sits over a dark cover (the hero, or an
+   inner page's masthead) and becomes the paper bar the body needs once
+   that cover is behind you. js/hero.js owns the threshold. */
 .site-head {
   position: fixed;
   background: transparent;
-  transition: background-color .35s var(--ease-out), box-shadow .35s var(--ease-out);
+  transition: background-color .35s var(--ease-out), box-shadow .35s var(--ease-out),
+              color .35s var(--ease-out);
 }
 
+html.page-light .site-head,
 .site-head.scrolled {
-  background: rgba(237, 232, 219, .93);
+  background: rgba(236, 238, 235, .95);
   backdrop-filter: blur(8px);
-  box-shadow: 0 1px 0 rgba(13, 42, 27, .14);
+  box-shadow: 0 1px 0 var(--rule);
+  color: var(--pine);
 }
+html.page-light .nav-pill,
+.site-head.scrolled .nav-pill { border-color: rgba(13, 42, 27, .42); }
+html.page-light .nav-pill:hover,
+.site-head.scrolled .nav-pill:hover { background: var(--pine); color: var(--paper); }
+html.page-light .social-pending,
+.site-head.scrolled .social-pending { opacity: .38; }
 
-/* Fix: align the About wrapper on the same visual line as its sibling
-   links. Override lives here (site.css loads after hero.css); hero.css
-   is not touched. */
-.site-nav { align-items: center; }
+/* The home hero is a dark room again, so the bar opens paper-on-ink over
+   it and only turns into the paper bar once the hero is behind you —
+   which is the .scrolled state above, and still js/hero.js's call. The
+   html.hero-paper override the light hero needed is gone with it: there
+   is no longer a light cover for the bar to read on.
 
-.nav-drop-wrap {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-
-.nav-drop {
+   With no script there is nothing to toggle, so a fixed bar would carry
+   its paper-on-ink colouring over the whole paper body and vanish. It
+   travels with the hero instead: absolute, so it scrolls away with the
+   dark it was drawn for and the rest of the page is never under it.
+   .page-hero is on <html> in the markup, not added by script, so this is
+   true on the first frame and only on the page that has a dark cover. */
+html:not(.js).page-hero .site-head {
   position: absolute;
-  top: 100%;
-  left: -20px;
-  min-width: 220px;
-  padding-top: 14px;
-  visibility: hidden;
-  opacity: 0;
-  transform: translateY(-6px);
-  transition: opacity .25s var(--ease-out), transform .3s var(--ease-out),
-              visibility 0s .25s;
+  background: transparent;
+  box-shadow: none;
 }
 
-.nav-drop-wrap:hover .nav-drop,
-.nav-drop-wrap:focus-within .nav-drop {
-  visibility: visible;
-  opacity: 1;
-  transform: none;
-  transition: opacity .25s var(--ease-out), transform .3s var(--ease-out);
-}
-
-.nav-drop a {
-  display: block;
-  background: var(--paper);
-  border: 1px solid rgba(13, 42, 27, .14);
-  border-bottom: 0;
-  padding: 13px 20px;
-  font-size: .66rem;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  color: var(--pine-70);
-  transition: color .25s, background-color .25s;
-}
-
-.nav-drop a:first-child { border-top: 2px solid var(--gold-soft); }
-.nav-drop a:last-child { border-bottom: 1px solid rgba(13, 42, 27, .14); }
-.nav-drop a:hover {
-  color: var(--pine);
-  background: var(--paper-deep);
-}
-
-.nav-pill {
-  font-size: .7rem;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  color: var(--pine);
-  border: 1px solid rgba(13, 42, 27, .35);
-  border-radius: 999px;
-  padding: .7em 1.5em;
-  transition: background-color .35s var(--ease-out), color .35s var(--ease-out),
-              border-color .35s var(--ease-out);
-}
-
-.nav-pill:hover {
-  background: var(--pine);
-  border-color: var(--pine);
-  color: var(--paper);
-}
-
-/* ---------- Proof strip — moving credential rule ----------
-   A slow, continuous horizontal track of credentials. Two identical
-   tracks slide as one; translateX(-50%) lands the second exactly where
-   the first began, so the loop is seamless. Overflow is clipped by the
-   strip (full-bleed), never the page. Edges fade with a mask. Pauses on
-   hover; static and wrapped under reduced motion. */
+/* ---------- Proof strip — the career rule ----------
+   A slow, continuous horizontal track of the nine rooms, in the order the
+   PDF lists them. Two identical tracks slide as one; translateX(-50%)
+   lands the second exactly where the first began, so the loop is
+   seamless. It never stops: the rule is a moving record of the career,
+   and halting it under the cursor made the page read as broken every
+   time a visitor crossed the strip on the way down. Static and wrapped
+   under reduced motion. */
 .proof-strip {
-  border-block: 1px solid rgba(13, 42, 27, .14);
-  background: rgba(227, 221, 203, .46);
+  border-block: 1px solid var(--rule);
+  background: var(--paper-deep);
   overflow: hidden;
 }
 
 .proof-marquee {
   display: flex;
   width: max-content;
-  padding-block: 17px;
-  animation: proof-slide 48s linear infinite;
+  padding-block: 18px;
+  animation: proof-slide 52s linear infinite;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
           mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
 }
-
-.proof-strip:hover .proof-marquee { animation-play-state: paused; }
 
 .proof-track {
   display: flex;
@@ -200,8 +184,8 @@ html.motion-on [data-rv][data-rv-i="4"] { transition-delay: .36s; }
 }
 
 .proof-track li {
-  font-size: .64rem;
-  letter-spacing: .22em;
+  font-size: .875rem;
+  letter-spacing: .2em;
   text-transform: uppercase;
   color: var(--pine-70);
   white-space: nowrap;
@@ -212,13 +196,8 @@ html.motion-on [data-rv][data-rv-i="4"] { transition-delay: .36s; }
   to   { transform: translateX(-50%); }
 }
 
-/* Tablet & mobile: the strip sits right under the hero, so soften it —
-   lighter ink and a slower drift make it recede behind the hero
-   transition instead of competing with it. Desktop keeps its presence;
-   reduced motion (below) still wins and holds it static. */
 @media (max-width: 920px) {
-  .proof-marquee { animation-duration: 66s; }
-  .proof-track li { color: var(--pine-45); }
+  .proof-marquee { animation-duration: 70s; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -240,10 +219,12 @@ html.motion-on [data-rv][data-rv-i="4"] { transition-delay: .36s; }
   .proof-track li { white-space: normal; }
 }
 
-/* ---------- Section system ---------- */
+/* ============================================================
+   Section system
+   ============================================================ */
 .sec {
   position: relative;
-  padding-block: clamp(82px, 12vh, 150px);
+  padding-block: clamp(78px, 11vh, 138px);
 }
 
 .sec-tint { background: var(--paper-deep); }
@@ -253,55 +234,58 @@ html.motion-on [data-rv][data-rv-i="4"] { transition-delay: .36s; }
   color: var(--paper);
 }
 
-.sec-gold-top { border-top: 1px solid rgba(160, 133, 73, .45); }
-
-.section-lede,
-.press-head {
-  max-width: 860px;
-  margin-bottom: clamp(42px, 6vh, 74px);
-}
-
-.sec-head {
-  margin-bottom: clamp(22px, 3vh, 34px);
-}
+.sec-head { margin-bottom: clamp(20px, 2.6vh, 30px); }
 
 .sec-head::before {
   content: '';
   display: block;
-  width: 28px;
+  width: 30px;
   height: 1px;
   margin-bottom: 14px;
-  background: var(--gold-soft);
+  background: var(--gold);
 }
+.sec-pine .sec-head::before,
+.page-head .sec-head::before { background: var(--gold-soft); }
 
+/* About and the three Cases heads drop the rule: on the home page it was
+   drawn five times before the footer, and the label under it reads on its
+   own. The inner pages keep it — there the rule is the only thing
+   separating a masthead label from the photograph above it. */
+.sec-head--plain::before { display: none; }
+
+/* Labels. The PDF called the old ones too small; they are 13px now and
+   still read as labels, not as a second voice. */
 .sec-kicker,
 .press-badge,
-.bm-aw-title,
-.visa-badge {
+.case-aw-title,
+.diag-k,
+.route-kind,
+.page-kicker {
   display: block;
-  font-size: .62rem;
-  letter-spacing: .28em;
+  font-size: .8125rem;
+  letter-spacing: .24em;
   text-transform: uppercase;
   color: var(--gold);
 }
 
 .sec-pine .sec-kicker,
-.sec-pine .press-badge,
-.sec-pine .bm-aw-title,
-.sec-pine .visa-badge {
-  color: var(--gold-soft);
-}
+.sec-pine .case-aw-title,
+.sec-pine .route-kind,
+.page-head .page-kicker { color: var(--gold-soft); }
 
 .sec-display {
   max-width: 22ch;
   font-family: 'Gamay Editorial', Georgia, serif;
   font-weight: 900;
-  font-size: clamp(1.85rem, 3.1vw, 3.25rem);
+  font-size: clamp(1.95rem, 3.2vw, 3.4rem);
   line-height: 1.08;
   letter-spacing: .002em;
 }
 
-.sec-display em {
+.sec-display em,
+.page-title em,
+.case-title em,
+.route-title em {
   font-family: 'Gamay Narrow', Georgia, serif;
   font-style: italic;
   color: inherit;
@@ -309,56 +293,49 @@ html.motion-on [data-rv][data-rv-i="4"] { transition-delay: .36s; }
 }
 
 .sec-support {
-  max-width: 62ch;
+  max-width: 60ch;
   margin-top: clamp(20px, 3vh, 32px);
-  font-size: clamp(1rem, 1.12vw, 1.08rem);
-  line-height: 1.78;
+  font-size: clamp(1.125rem, 1.2vw, 1.25rem);
+  line-height: 1.7;
   color: var(--pine-70);
 }
+.sec-support strong { color: var(--text); font-weight: 700; }
 
-.sec-pine .sec-support { color: rgba(237, 232, 219, .72); }
-
-.section-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(280px, 5fr);
-  gap: clamp(42px, 7vw, 112px);
-  align-items: start;
-}
+.sec-pine .sec-support { color: rgba(247, 245, 240, .8); }
+.sec-pine .sec-support strong { color: var(--paper); }
 
 .body-p {
-  max-width: 68ch;
-  font-size: clamp(1rem, 1.08vw, 1.08rem);
-  line-height: 1.82;
+  max-width: 66ch;
+  font-size: clamp(1.0625rem, 1.05vw, 1.15rem);
+  line-height: 1.75;
   color: var(--pine-70);
 }
 
-.body-p + .body-p { margin-top: 1.28em; }
+.body-p + .body-p { margin-top: 1.25em; }
 
-.body-p strong {
-  color: var(--pine);
-  font-weight: 700;
-}
+.body-p strong { color: var(--text); font-weight: 700; }
 
 .body-p.lede {
-  font-size: clamp(1.12rem, 1.36vw, 1.28rem);
-  line-height: 1.72;
-  color: var(--pine);
+  font-size: clamp(1.1875rem, 1.4vw, 1.35rem);
+  line-height: 1.66;
+  color: var(--text);
 }
 
-.sec-pine .body-p { color: rgba(237, 232, 219, .7); }
+.sec-pine .body-p { color: rgba(247, 245, 240, .78); }
 .sec-pine .body-p strong { color: var(--paper); }
 
+/* ---------- Links and actions ---------- */
 .link-arrow {
   display: inline-flex;
   align-items: baseline;
   width: max-content;
   max-width: 100%;
-  font-size: .72rem;
-  letter-spacing: .22em;
+  padding-block: 8px;
+  font-size: .8125rem;
+  letter-spacing: .2em;
   text-transform: uppercase;
   color: var(--gold);
-  border-bottom: 1px solid rgba(160, 133, 73, .65);
-  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(122, 97, 53, .6);
   transition: color .25s, border-color .25s;
 }
 
@@ -367,1785 +344,1476 @@ html.motion-on [data-rv][data-rv-i="4"] { transition-delay: .36s; }
   transition: transform .25s var(--ease-out);
 }
 
-.link-arrow:hover {
-  color: var(--pine);
-  border-color: var(--pine);
-}
-
+.link-arrow:hover,
+.link-arrow:focus-visible { color: var(--pine); border-color: var(--pine); }
 .link-arrow:hover .arr { transform: translateX(5px); }
 
-.sec-pine .link-arrow {
+.sec-pine .link-arrow,
+.page-head .link-arrow {
   color: var(--gold-soft);
   border-color: rgba(160, 133, 73, .7);
 }
+.sec-pine .link-arrow:hover,
+.page-head .link-arrow:hover { color: var(--paper); border-color: var(--paper); }
 
-.sec-pine .link-arrow:hover {
-  color: var(--paper);
-  border-color: var(--paper);
-}
+/* Two buttons for the whole site: filled and outlined. Both clear 48px.
 
-.sec-cta,
-.sec-cta-left {
-  margin-top: clamp(30px, 5vh, 52px);
-}
-
-.sec-cta { text-align: center; }
-.sec-cta .link-arrow { margin-inline: auto; }
-
-/* ---------- Pain — "Most investors get Miami wrong" ----------
-   A progressive diagnosis. The thesis holds the left column (sticky
-   while the argument runs); the three steps take turns in focus on the
-   right. The active step is fully inked with a gold spine; steps not in
-   focus recede. Motion is state, not decoration, and is armed only
-   under html.anim — reduced motion / no-JS render every step visible
-   and static (js/motion.js only adds the focus classes). */
-.pain-wrap {
-  display: grid;
-  grid-template-columns: minmax(0, 4.4fr) minmax(0, 5.6fr);
-  gap: clamp(40px, 6vw, 96px);
-  align-items: start;
-}
-
-.pain-lede .sec-display { max-width: 16ch; }
-
-html.anim .pain-lede {
-  position: sticky;
-  top: clamp(100px, 20vh, 190px);
-}
-
-.pain-dek {
-  max-width: 42ch;
-  margin-top: clamp(20px, 3vh, 30px);
-  font-size: clamp(1rem, 1.12vw, 1.1rem);
-  line-height: 1.78;
-  color: var(--pine-70);
-}
-
-.pain-dek strong {
-  color: var(--pine);
-  font-weight: 700;
-}
-
-.pain-steps {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.pain-step {
-  padding-left: clamp(22px, 2.6vw, 44px);
-  border-left: 2px solid rgba(13, 42, 27, .12);
-  padding-block: clamp(30px, 5vh, 56px);
-}
-
-.pain-step:first-child { padding-top: 0; }
-
-.pain-step-n {
-  display: block;
-  font-family: 'Gamay Editorial', Georgia, serif;
-  font-weight: 900;
-  font-size: clamp(2.1rem, 3.8vw, 3.3rem);
-  line-height: 1;
-  color: var(--pine-45);
-}
-
-.pain-step-k {
-  display: block;
-  margin-top: 12px;
-  font-size: .62rem;
-  letter-spacing: .28em;
-  text-transform: uppercase;
-  color: var(--gold);
-}
-
-.pain-step-h {
-  max-width: 20ch;
-  margin-top: 14px;
-  font-family: 'Gamay Editorial', Georgia, serif;
-  font-weight: 900;
-  font-size: clamp(1.5rem, 2.3vw, 2.25rem);
-  line-height: 1.1;
-  color: var(--pine);
-}
-
-.pain-step-p {
-  max-width: 46ch;
-  margin-top: 14px;
-  font-size: clamp(1rem, 1.05vw, 1.06rem);
-  line-height: 1.75;
-  color: var(--pine-70);
-}
-
-/* Progressive focus — only under html.anim. JS sets .is-active on the
-   step in the viewport band and .is-past on the ones already read. */
-html.anim .pain-step {
-  min-height: 56vh;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  opacity: .3;
-  transition: opacity .5s var(--ease-out), border-color .5s var(--ease-out);
-}
-
-html.anim .pain-step.is-past { opacity: .5; }
-
-html.anim .pain-step.is-active {
-  opacity: 1;
-  border-left-color: var(--gold);
-}
-
-html.anim .pain-step.is-active .pain-step-n { color: var(--gold); }
-
-@media (max-width: 920px) {
-  .pain-wrap {
-    grid-template-columns: 1fr;
-    gap: clamp(30px, 5vh, 48px);
-  }
-
-  html.anim .pain-lede { position: static; }
-  .pain-lede .sec-display { max-width: 20ch; }
-  .pain-dek { max-width: 60ch; }
-
-  html.anim .pain-step { min-height: 46vh; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html.anim .pain-lede { position: static; }
-  html.anim .pain-step {
-    min-height: 0;
-    display: block;
-    opacity: 1;
-    transition: none;
-  }
-}
-
-/* ---------- Story / About — an editorial reel ----------
-   Balena logic: a large image on one side, a paper editorial panel on
-   the other, read as one piece. On desktop with motion committed the
-   stage pins and the four chapters cross-wipe on scroll (image scales,
-   copy masks up). No slide numbers; the only progress cue is a hairline
-   at the foot of the stage. The career track record appears once, as a
-   closing credential block inside the final chapter. Base state (no-JS /
-   reduced motion / mobile) is a vertical run of the four image+text
-   chapters, the track record at the close and the CTA present. Pin,
-   wipe and the hairline are gated on html.motion-on AND a desktop
-   width, so nothing is ever hidden waiting on JS, and narrow screens
-   never carry a heavy pin. */
-.story {
-  position: relative;
-  background: var(--paper-deep);
-  padding-block: 0;
-}
-
-.story-stage { position: relative; }
-.story-reel { position: relative; }
-
-/* One chapter — image + editorial panel. Base: image over copy. */
-.story-slide {
-  display: grid;
-  grid-template-columns: 1fr;
-  align-items: stretch;
-  background: var(--paper);
-}
-
-.story-slide + .story-slide { border-top: 1px solid rgba(13, 42, 27, .12); }
-
-/* Image side */
-.story-shot {
-  position: relative;
-  margin: 0;
-  overflow: hidden;
-  background: var(--pine-deep);
-}
-
-.story-shot img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  min-height: clamp(300px, 52vh, 460px);
-  object-fit: cover;
-  transform: scale(var(--crop, 1));
-  transform-origin: center;
-  filter: sepia(.06) saturate(.96) contrast(1.02);
-}
-
-/* Four distinct photographs, one per chapter — each framed to hold the
-   face/torso in the tall reel window (object-position tuned per image). */
-.story-shot--s1 img { object-position: 50% 20%; }
-.story-shot--s2 img { object-position: 50% 30%; }
-.story-shot--s3 img { object-position: 48% 18%; }
-.story-shot--s4 img { object-position: 50% 24%; }
-
-/* Editorial panel */
-.story-copy {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: clamp(20px, 3vh, 30px);
-  padding: clamp(36px, 7vw, 60px) var(--mx-page) clamp(40px, 7vw, 60px);
-  min-width: 0;
-}
-
-.story-say > * + * { margin-top: clamp(18px, 2.8vh, 28px); }
-
-.story-headline {
-  max-width: 15ch;
-  font-family: 'Gamay Editorial', Georgia, serif;
-  font-weight: 900;
-  font-size: clamp(2.1rem, 3.5vw, 3.5rem);
-  line-height: 1.03;
-  letter-spacing: .002em;
-  color: var(--pine);              /* "The operator investors" — pine */
-}
-
-.story-headline em {
-  font-family: 'Gamay Narrow', Georgia, serif;
-  font-style: italic;
-  color: var(--gold);              /* "trust in Miami." — bronze */
-}
-
-/* One consistent body setting across all four chapters. Nudged up a
-   step to hold its own against the large image, still clearly below the
-   headline and above the track record. ~17.6px on phones → ~19.4px on
-   desktop. max-width keeps the measure comfortable, not blocky. */
-.story-body {
-  max-width: 46ch;
-  font-size: clamp(1.1rem, 1.35vw, 1.25rem);
-  line-height: 1.68;
-  color: var(--pine-70);
-}
-
-.story-body strong { color: var(--pine); font-weight: 700; }
-
-/* CTA — an editorial button: bordered box, fill-on-hover, moving
-   arrow. Unmistakably an action, resolving the final chapter. It sits
-   below the track record with a clear breath (not a gap), so the button
-   reads as the slide's natural close. */
-.story-act { margin-top: clamp(28px, 4.4vh, 46px); }
-
-.story-cta {
-  position: relative;
+   line-height is declared here rather than inherited from body. The normal
+   line box is exactly the font's own ascent plus descent, which is the one
+   value Chrome centres inside the pill with no half-leading left over:
+   measured on the rendered button the label has 16.5px above it and 16.5px
+   below. Inheriting 1.6, or setting 1, both leave about a pixel of the
+   remainder on one side. It is also what keeps every pill on the site
+   resolving to the same height. */
+.btn-solid,
+.btn-ghost,
+.btn-outline {
   display: inline-flex;
   align-items: center;
-  gap: 14px;
-  padding: 1.08em 1.9em;
-  border: 1px solid rgba(13, 42, 27, .4);
-  overflow: hidden;
-  isolation: isolate;
-  font-size: .7rem;
-  letter-spacing: .22em;
+  justify-content: center;
+  min-height: 50px;
+  border-radius: 999px;
+  padding: .9em 2.1em;
+  font-size: .875rem;
+  line-height: normal;
+  letter-spacing: .18em;
   text-transform: uppercase;
-  color: var(--pine);
-  transition: color .5s var(--ease-out), border-color .5s var(--ease-out);
+  border: 1px solid var(--pine);
+  transition: background-color .3s var(--ease-out), color .3s var(--ease-out), border-color .3s;
 }
 
-.story-cta > span { position: relative; z-index: 1; }
+.btn-solid { background: var(--pine); color: var(--paper); }
+.btn-solid:hover, .btn-solid:focus-visible { background: transparent; color: var(--pine); }
 
-.story-cta::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
+.btn-ghost,
+.btn-outline { background: transparent; color: var(--pine); }
+.btn-ghost:hover, .btn-ghost:focus-visible,
+.btn-outline:hover, .btn-outline:focus-visible { background: var(--pine); color: var(--paper); }
+
+/* The small size: the same pill, one step down, for the CTA that sits
+   inside a card rather than closing a section. */
+.btn-outline--sm {
+  min-height: 42px;
+  padding: .9em 1.5em;
+  font-size: .8125rem;
+  letter-spacing: .14em;
+}
+
+/* The arrow the links used to carry stays, and keeps the same nudge. */
+.btn-outline .arr {
+  display: inline-block;
+  transition: transform .25s var(--ease-out);
+}
+.btn-outline:hover .arr,
+.btn-outline:focus-visible .arr { transform: translateX(4px); }
+
+/* Over a pine ground the pill inverts the other way, as .btn-ghost does. */
+.sec-pine .btn-outline,
+.page-head .btn-outline {
+  color: var(--paper);
+  border-color: rgba(247, 245, 240, .5);
+}
+.sec-pine .btn-outline:hover,
+.page-head .btn-outline:hover { background: var(--paper); color: var(--pine); border-color: var(--paper); }
+
+/* 12. The green headline. Applied by hand to the few display lines the
+   client named — never to h1/h2 as a rule, so every other heading on
+   Opportunities and Contact keeps the ink it has. */
+.title-pine { color: var(--pine); }
+
+/* 12b. The green label. One kicker takes the pine instead of the gold —
+   Press, where the client asked for the whole masthead to carry the
+   signature. Like .title-pine it is applied by hand, never as a rule. */
+.kicker-pine { color: var(--pine); }
+
+.sec-pine .btn-solid {
+  background: var(--paper);
+  color: var(--pine);
+  border-color: var(--paper);
+}
+.sec-pine .btn-solid:hover { background: transparent; color: var(--paper); }
+
+.sec-pine .btn-ghost {
+  color: var(--paper);
+  border-color: rgba(247, 245, 240, .5);
+}
+.sec-pine .btn-ghost:hover { background: var(--paper); color: var(--pine); border-color: var(--paper); }
+
+/* ============================================================
+   Page masthead — the inner pages open on pine, so the header keeps the
+   paper-on-ink treatment it has over the hero and the identity carries
+   across the site.
+   ============================================================ */
+/* Paper opening — the page starts on the ground its content lives on, so
+   the first entries are already in the fold. A hairline closes it; there is
+   no slab, no gradient and no invented copy. */
+.page-open {
+  padding-block: clamp(104px, 13.5vh, 150px) 0;
+}
+
+.page-open-in {
+  padding-bottom: clamp(30px, 4.4vh, 48px);
+  border-bottom: 1px solid var(--rule);
+}
+
+/* A masthead with no rule under it. All four inner pages take this modifier
+   now: the hairline was the first of several running down each page and the
+   title read as the top row of a table. Insights was the last one holding
+   it, and the client asked for whitespace to do that work instead. It stays
+   a class on the pages rather than a global edit to .page-open-in, and the
+   space the rule held is kept, so the title still has its floor. */
+.page-open--bare .page-open-in { border-bottom: 0; }
+
+.page-open--two .page-open-in {
+  display: grid;
+  grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+  gap: clamp(28px, 4.5vw, 84px);
+  align-items: end;
+}
+
+.page-open .page-kicker { margin-bottom: 16px; }
+
+.page-open + .sec { padding-top: clamp(48px, 6.5vh, 84px); }
+
+.page-open-dek {
+  max-width: 58ch;
+  font-size: clamp(1.0625rem, 1.15vw, 1.18rem);
+  line-height: 1.72;
+  color: var(--pine-70);
+}
+
+/* Cases keeps the pine masthead: it opens straight into a pine case. */
+.page-head {
   background: var(--pine);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform .5s var(--ease-out);
-}
-
-.story-cta::after {
-  content: '\2192';
-  position: relative;
-  z-index: 1;
-  font-size: 1.05rem;
-  line-height: 1;
-  transition: transform .5s var(--ease-out);
-}
-
-.story-cta:hover,
-.story-cta:focus-visible {
   color: var(--paper);
-  border-color: var(--pine);
+  padding-block: clamp(132px, 19vh, 208px) clamp(54px, 8vh, 92px);
 }
 
-.story-cta:hover::before,
-.story-cta:focus-visible::before { transform: scaleX(1); }
+.page-kicker { margin-bottom: 18px; }
 
-.story-cta:hover::after,
-.story-cta:focus-visible::after { transform: translateX(6px); }
-
-/* Track record — the career appears once, as a closing credential
-   block inside the final chapter (not a fixed index, not a table): a
-   fine single-column list with hairlines, era over place per row. */
-.story-proof {
-  list-style: none;
-  margin: clamp(24px, 3.4vh, 34px) 0 0;
-  padding: 0;
-  border-top: 1px solid rgba(13, 42, 27, .24);
-  max-width: 34ch;
-}
-
-.story-proof li {
-  padding: clamp(9px, 1.4vh, 12px) 0;
-  border-bottom: 1px solid rgba(13, 42, 27, .12);
-}
-
-.pf-era {
-  display: block;
-  margin-bottom: 4px;
-  font-size: .56rem;
-  letter-spacing: .22em;
-  text-transform: uppercase;
-  color: var(--pine-45);
-}
-
-.pf-place {
-  display: block;
+.page-title {
+  max-width: 20ch;
   font-family: 'Gamay Editorial', Georgia, serif;
   font-weight: 900;
-  font-size: clamp(.86rem, .98vw, .98rem);
-  line-height: 1.25;
-  color: var(--pine);
-}
-
-/* Progress — a single hairline at the foot of the stage, filling with
-   the reel (no numbers). Desktop/pinned only; hidden in the vertical
-   run where the scrollbar itself is the cue. */
-.story-progress {
-  display: none;
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 3;
-  height: 2px;
-  background: rgba(13, 42, 27, .12);
-  overflow: hidden;
-}
-
-.story-progress i {
-  position: absolute;
-  inset: 0;
-  background: var(--gold);
-  transform: scaleX(var(--line-p, 0));
-  transform-origin: left;
-  will-change: transform;
-}
-
-/* Preserved shared image rules (Burgermeister / Press thumbnails) */
-.bm-photo img,
-.press-thumb img {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.bm-photo img {
-  border: 1px solid rgba(13, 42, 27, .16);
-  filter: sepia(.06) saturate(.96) contrast(1.02);
-}
-
-/* ===== Desktop reel: two-column chapters; pinned + cross-wiped when
-   motion is committed. Below this width the reel is a vertical run. === */
-@media (min-width: 861px) {
-  .story-slide {
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-    min-height: clamp(460px, 66vh, 640px);
-  }
-
-  .story-copy {
-    padding: clamp(48px, 5vw, 88px) clamp(40px, 5vw, 80px);
-  }
-
-  /* --- Pinned reel (motion committed) --- */
-  html.motion-on #about { height: 420vh; }
-
-  html.motion-on .story-stage {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    overflow: hidden;
-  }
-
-  html.motion-on .story-reel {
-    position: absolute;
-    inset: 0;
-  }
-
-  /* Progress hairline visible only on the pinned reel */
-  html.motion-on .story-progress { display: block; }
-
-  html.motion-on .story-slide {
-    position: absolute;
-    inset: 0;
-    min-height: 0;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .95s var(--ease-glide);
-  }
-
-  html.motion-on .story-slide.is-active {
-    opacity: 1;
-    pointer-events: auto;
-    z-index: 1;
-  }
-
-  html.motion-on .story-slide + .story-slide { border-top: 0; }
-
-  /* Copy panel clears the fixed nav while pinned */
-  html.motion-on .story-copy {
-    padding-top: clamp(104px, 13vh, 150px);
-  }
-
-  /* Chapter change follows the scroll: image and copy both RISE from below
-     into place (mask opens bottom->top), so advancing the reel reads with
-     the downward scroll instead of a panel dropping in or a sideways wipe.
-     Longer, softer easing keeps the change calm and editorial. */
-  html.motion-on .story-shot { transition: clip-path 1s var(--ease-soft); }
-  html.motion-on .story-slide:not(.is-active) .story-shot { clip-path: inset(100% 0 0 0); }
-  html.motion-on .story-slide.is-active .story-shot { clip-path: inset(0 0 0 0); }
-
-  html.motion-on .story-shot img { transition: transform 1.3s var(--ease-soft); }
-  html.motion-on .story-slide:not(.is-active) .story-shot img {
-    transform: scale(calc(var(--crop, 1) * 1.05)) translateY(2.5%);
-  }
-
-  /* Copy masks up on enter, a beat after the image — same upward sense */
-  html.motion-on .story-say {
-    transition: opacity .9s var(--ease-soft) .14s,
-                transform 1s var(--ease-soft) .14s,
-                clip-path 1s var(--ease-soft) .14s;
-  }
-  html.motion-on .story-slide:not(.is-active) .story-say {
-    opacity: 0;
-    transform: translateY(30px);
-    clip-path: inset(100% 0 0 0);
-  }
-  html.motion-on .story-slide.is-active .story-say {
-    opacity: 1;
-    transform: none;
-    clip-path: inset(0 0 0 0);
-  }
-
-  /* The credential block belongs to the final chapter only, so it
-     rides that slide's reveal; nothing extra needed here. */
-}
-
-/* ---------- Burgermeister — flagship case feature ----------
-   Breaks the common split: a dominant cover headline runs full
-   width, a large lead image carries the composition, and the
-   metrics read as a big-numeral ledger. Reads as the site's main
-   feature, not another portfolio split. */
-.bm-feature {
-  --bm-p: 0;
-  overflow: clip;
-  padding-block: 0;
-  background: var(--paper);
-  color: var(--pine);
-}
-
-.bm-cover {
-  position: relative;
-  overflow: clip;
-  min-height: clamp(700px, 92vh, 840px);
-  padding-block: clamp(58px, 8vh, 88px) clamp(60px, 8vh, 94px);
-  background:
-    radial-gradient(circle at 82% 14%, rgba(160, 133, 73, .22), transparent 30%),
-    linear-gradient(135deg, #061d14 0%, #0b281a 54%, #14341f 100%);
-  color: var(--paper);
-}
-
-.bm-cover::after {
-  content: '';
-  position: absolute;
-  inset-inline: 0;
-  bottom: 0;
-  height: 1px;
-  background: rgba(237, 232, 219, .24);
-}
-
-.bm-cover-grid {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  grid-template-rows: auto 1fr;
-  min-height: clamp(590px, 72vh, 690px);
-  align-items: start;
-}
-
-.bm-monument-word {
-  position: absolute;
-  z-index: 0;
-  top: 50%;
-  left: 50%;
-  width: max-content;
-  margin: 0;
-  transform: translate3d(calc(-50% - var(--bm-p, 0) * 24px),
-                         calc(-50% + var(--bm-p, 0) * 10px), 0);
-  font-family: 'Gamay Editorial', Georgia, serif;
-  font-weight: 900;
-  font-size: clamp(5rem, 12.4vw, 13.5rem);
-  line-height: .72;
-  letter-spacing: 0;
-  white-space: nowrap;
-  color: rgba(237, 232, 219, .018);   /* atmosphere only, never a title */
-  pointer-events: none;
-}
-
-.bm-case-head {
-  position: relative;
-  z-index: 3;
-  grid-column: 1 / span 6;
-  grid-row: 1;
-  margin-top: clamp(10px, 3.4vh, 40px);   /* let the opening breathe */
-}
-
-.bm-case-head .sec-head {
-  max-width: 260px;
-  margin-bottom: clamp(20px, 4vh, 42px);
-}
-
-.bm-title {
-  max-width: 11ch;
-  font-size: clamp(3.2rem, 5.5vw, 5.7rem);
-  line-height: .9;
-  letter-spacing: -.006em;
-  color: var(--paper);
-}
-
-.bm-title-main {
-  display: block;
-}
-
-/* Secondary line: a clearly subordinate gold standfirst, not a second
-   monument — smaller, wider measure, its own comfortable leading. */
-.bm-title em {
-  display: block;
-  max-width: 17ch;
-  margin-top: .32em;
-  font-size: .56em;
+  font-size: clamp(2.2rem, 4.2vw, 4rem);
   line-height: 1.06;
-  font-style: normal;
-  letter-spacing: 0;
-  color: #cbb06a;
 }
 
-.bm-photo {
-  position: relative;
-  z-index: 2;
-  grid-column: 7 / -1;
-  grid-row: 1 / 3;
-  align-self: start;
-  justify-self: end;
-  width: min(42vw, 560px);
-  height: clamp(410px, 57vh, 600px);
-  margin: clamp(52px, 7vh, 82px) 0 0;
-  overflow: hidden;
-  background: rgba(237, 232, 219, .16);
-  clip-path: inset(0);
-  box-shadow: -26px 32px 62px rgba(0, 0, 0, .24);
-  transform: scale(var(--bm-hover, 1));   /* parallax drift lives on the img */
-  transition: transform .6s var(--ease-out), box-shadow .6s var(--ease-out);
-  will-change: transform;
+.page-dek {
+  max-width: 62ch;
+  margin-top: clamp(22px, 3vh, 34px);
+  font-size: clamp(1.125rem, 1.2vw, 1.25rem);
+  line-height: 1.7;
+  color: rgba(247, 245, 240, .8);
 }
 
-/* Hover: the frame gains presence — a touch larger, a touch more light.
-   Scoped to pointer devices; the growth respects reduced motion, the
-   luminance lift is harmless either way. */
-@media (hover: hover) {
-  .bm-photo:hover img {
-    filter: contrast(1.06) saturate(1.03) brightness(1.07);
-  }
-}
+.page-back { margin-top: clamp(48px, 7vh, 84px); }
 
-@media (hover: hover) and (prefers-reduced-motion: no-preference) {
-  .bm-photo:hover {
-    --bm-hover: 1.026;
-    box-shadow: -30px 40px 80px rgba(0, 0, 0, .3);
-  }
-}
-
-.bm-photo::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(6, 29, 20, 0) 54%, rgba(6, 29, 20, .28) 100%);
-  pointer-events: none;
-}
-
-.bm-photo img {
-  display: block;
-  width: 100%;
-  height: 112%;
-  object-fit: cover;
-  object-position: 50% 16%;
-  filter: contrast(1.06) saturate(.96);
-  transform: translate3d(0, calc(var(--bm-p, 0) * -24px), 0) scale(1.025);
-  transform-origin: center 18%;
-  transition: filter .6s var(--ease-out);
-  will-change: transform;
-}
-
-/* No card: the copy lives directly on the green ground as an editorial
-   block, aligned to the headline's left edge, opened by a gold hairline. */
-.bm-editorial-panel {
-  position: relative;
-  z-index: 4;
-  grid-column: 1 / span 5;
-  grid-row: 2;
-  align-self: end;
-  max-width: 40ch;
-  color: var(--paper);
-}
-
-.bm-copy {
-  position: relative;
-  z-index: 1;
-  max-width: 42ch;
-  margin-top: clamp(6px, 1.6vh, 16px);
-}
-
-/* Body reads light on the deep green; slightly larger than the paper
-   sections so it holds its own against the image. */
-.bm-copy .body-p {
-  max-width: 40ch;
-  font-size: clamp(1.04rem, 1.14vw, 1.16rem);
-  line-height: 1.68;
-  color: rgba(237, 232, 219, .76);
-}
-
-.bm-copy .body-p strong { color: var(--paper); font-weight: 700; }
-
-.bm-copy .body-p:first-of-type {
-  margin-top: 0;
-}
-
-.bm-action {
-  margin-top: clamp(28px, 4.5vh, 44px);
-}
-
-/* CTA on the green ground: paper outline that fills paper on hover
-   (pine label), so it reads as a clear action against the dark field. */
-.bm-cta {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 52px;
-  padding: 1.05em 1.7em;
-  border: 1px solid rgba(237, 232, 219, .5);
-  overflow: hidden;
-  isolation: isolate;
-  font-size: .7rem;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--paper);
-  transition: color .45s var(--ease-out), border-color .45s var(--ease-out);
-}
-
-.bm-cta span {
-  position: relative;
-  z-index: 1;
-}
-
-.bm-cta::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: var(--paper);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform .45s var(--ease-out);
-}
-
-.bm-cta:hover,
-.bm-cta:focus-visible {
-  color: var(--pine);
-  border-color: var(--paper);
-}
-
-.bm-cta:hover::before,
-.bm-cta:focus-visible::before {
-  transform: scaleX(1);
-}
-
-.bm-proof {
+/* ============================================================
+   About — one composition (PDF p.3). One dominant photograph, the four
+   biography blocks as one column of copy, a quieter second frame beside
+   the two destinations. No pin, no photo swap, no per-word reveal.
+   ============================================================ */
+.about-grid {
   display: grid;
-  grid-template-columns: minmax(0, 6.2fr) minmax(300px, 4.1fr);
-  gap: clamp(34px, 5.4vw, 82px);
-  align-items: stretch;
-  padding-block: clamp(58px, 10vh, 118px);
-}
-
-.bm-stats {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin: 0;
-  border-top: 1px solid rgba(13, 42, 27, .32);
-  border-bottom: 1px solid rgba(13, 42, 27, .22);
-}
-
-.bm-stats > div {
-  min-width: 0;
-  min-height: clamp(160px, 21vh, 230px);
-  padding: clamp(20px, 3vw, 32px) clamp(18px, 2.6vw, 34px) clamp(22px, 3vw, 34px);
-  border-right: 1px solid rgba(13, 42, 27, .15);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.bm-stats > div:last-child { border-right: 0; }
-
-.bm-stats dt {
-  max-width: 13ch;
-  font-size: .56rem;
-  letter-spacing: .24em;
-  text-transform: uppercase;
-  color: var(--pine-45);
-}
-
-/* Numbers seated at the foot of each equal column, on their own
-   baseline, clear of the column rules. */
-.bm-stats dd {
-  margin-top: clamp(24px, 4vh, 48px);
-  font-family: 'Gamay Editorial', Georgia, serif;
-  font-weight: 900;
-  font-size: clamp(3.5rem, 5.6vw, 5.6rem);
-  line-height: .9;
-  letter-spacing: -.01em;
-  color: var(--pine);
-}
-
-.bm-awards {
-  display: grid;
-  grid-template-columns: minmax(92px, .8fr) minmax(0, 2.8fr);
-  gap: clamp(18px, 2.8vw, 38px);
-  align-items: start;
-  min-width: 0;
-  padding: clamp(22px, 3vw, 34px) 0 clamp(18px, 2.8vw, 30px);
-  border-top: 1px solid rgba(13, 42, 27, .22);
-  border-bottom: 1px solid rgba(13, 42, 27, .18);
-}
-
-.bm-aw-title {
-  margin-top: 2px;
-}
-
-.bm-aw-list {
-  list-style: none;
-  display: grid;
-  gap: 0;
-  margin: 0;
-  padding: 0;
-  min-width: 0;
-}
-
-.bm-aw-list li {
-  position: relative;
-  min-width: 0;
-  padding: clamp(10px, 1.5vw, 16px) 0 clamp(10px, 1.5vw, 16px) clamp(14px, 1.8vw, 22px);
-  border-top: 1px solid rgba(13, 42, 27, .12);
-  overflow: hidden;
-}
-
-.bm-aw-list li:first-child {
-  border-top: 0;
-  padding-top: 0;
-}
-
-.bm-aw-list li::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: clamp(14px, 1.6vw, 18px);
-  width: 5px;
-  height: 5px;
-  background: var(--gold);
-}
-
-.bm-aw-list li::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 1px;
-  background: var(--gold);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform .3s var(--ease-out);
-}
-
-.bm-aw-list span {
-  display: block;
-  font-family: 'Gamay Editorial', Georgia, serif;
-  font-weight: 900;
-  font-size: clamp(1rem, 1.52vw, 1.62rem);
-  line-height: 1.04;
-  color: var(--pine);
-  transition: color .25s var(--ease-out), transform .25s var(--ease-out);
-}
-
-.bm-aw-list li:hover::after {
-  transform: scaleX(1);
-}
-
-.bm-aw-list li:hover span {
-  color: var(--gold);
-  transform: translateX(6px);
-}
-
-html.motion-on .bm-feature.bm-motion .bm-title {
-  transform: translate3d(calc(var(--bm-p, 0) * -12px), 0, 0);
-  transition: transform .2s linear;
-}
-
-html.motion-on .bm-feature.bm-motion .bm-photo {
-  clip-path: inset(0 0 0 0);
-  transition: transform .6s var(--ease-out), box-shadow .6s var(--ease-out);
-}
-
-/* Copy enters progressively: each paragraph (then the CTA) rises out of
-   the green and settles as it reaches the reading line — its own trigger,
-   driven by scroll (motion.js adds .is-in per element). A verb of its own
-   (rise-and-settle), distinct from Story's horizontal wipe and Pain's
-   focus steps. The hidden state keeps full geometry (opacity + shift, no
-   zero-area clip) so the per-element observer can actually see it enter.
-   Reduced motion / no-JS (no .is-in, no motion-on) show the finished
-   block. */
-html.motion-on .bm-feature.bm-motion .bm-copy > * {
-  opacity: 0;
-  transform: translateY(28px);
-  transition: opacity .95s var(--ease-soft), transform 1.1s var(--ease-soft);
-}
-
-html.motion-on .bm-feature.bm-motion .bm-copy > *.is-in {
-  opacity: 1;
-  transform: none;
-}
-@media (min-width: 861px) {
-  html.motion-on .bm-feature.bm-motion .bm-copy > * {
-    filter: blur(6px);
-    transition: opacity .95s var(--ease-soft), transform 1.1s var(--ease-soft),
-                filter .9s var(--ease-soft);
-  }
-  html.motion-on .bm-feature.bm-motion .bm-copy > *.is-in { filter: blur(0); }
-}
-
-html.motion-on .bm-feature.bm-motion .bm-stats > div,
-html.motion-on .bm-feature.bm-motion .bm-aw-list li {
-  opacity: .22;
-  transform: translateY(18px);
-  transition: opacity .85s var(--ease-soft), transform .85s var(--ease-soft);
-}
-
-html.motion-on .bm-feature.bm-motion.is-proof-inview .bm-stats > div,
-html.motion-on .bm-feature.bm-motion.is-proof-inview .bm-aw-list li {
-  opacity: 1;
-  transform: none;
-}
-
-html.motion-on .bm-feature.bm-motion.is-proof-inview .bm-stats > div:nth-child(2),
-html.motion-on .bm-feature.bm-motion.is-proof-inview .bm-aw-list li:nth-child(2) {
-  transition-delay: .12s;
-}
-
-html.motion-on .bm-feature.bm-motion.is-proof-inview .bm-stats > div:nth-child(3),
-html.motion-on .bm-feature.bm-motion.is-proof-inview .bm-aw-list li:nth-child(3) {
-  transition-delay: .24s;
-}
-
-/* ---------- The Office — operational dossier / fact sheet ----------
-   A dry, horizontal record of longevity. A compact masthead states
-   the case; a wide operational ledger, bracketed by document rules,
-   carries the facts in scanned rows. Reads as a registry, not
-   another case split. */
-.to-masthead {
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 5fr);
-  gap: clamp(28px, 5vw, 80px);
+  grid-template-columns: minmax(0, 5.4fr) minmax(0, 6.6fr);
+  column-gap: clamp(40px, 6vw, 96px);
+  row-gap: clamp(36px, 6vh, 72px);
   align-items: start;
 }
 
-.to-title { max-width: 14ch; }
+.about-lede { grid-column: 1 / -1; }
+.about-title { max-width: 26ch; }
 
-.to-note {
-  max-width: 54ch;
-}
-
-.to-note .body-p:first-of-type {
-  margin-top: 0;
-}
-
-.to-detail {
-  margin-top: clamp(42px, 6.5vh, 78px);
-  border-top: 2px solid rgba(13, 42, 27, .48);
-  border-bottom: 1px solid rgba(13, 42, 27, .24);
-}
-
-.to-detail > div {
-  display: grid;
-  grid-template-columns: minmax(150px, 250px) minmax(0, 1fr);
-  gap: clamp(20px, 4vw, 56px);
-  align-items: baseline;
-  padding-block: clamp(16px, 2.4vh, 24px);
-  border-bottom: 1px solid rgba(13, 42, 27, .12);
-}
-
-.to-detail > div:last-child { border-bottom: 0; }
-
-.to-detail dt {
-  font-size: .62rem;
-  letter-spacing: .28em;
-  text-transform: uppercase;
-  color: var(--gold);
-}
-
-.to-detail dd {
-  min-width: 0;
-  font-size: clamp(1rem, 1.25vw, 1.14rem);
-  line-height: 1.5;
-  color: var(--pine);
-}
-
-/* Row affordance (pointer devices): a whisper of tint marks the row the
-   cursor is reading, and the label warms — signalling the preview
-   without a tooltip, bracket or icon. */
-@media (hover: hover) and (pointer: fine) {
-  .to-detail > div {
-    transition: background-color .3s var(--ease-out);
-  }
-  .to-detail > div:hover {
-    background: rgba(13, 42, 27, .04);
-  }
-  .to-detail > div:hover dt {
-    color: var(--gold-soft);
-  }
-}
-
-/* Cursor image preview — an editorial plate that follows the cursor over
-   the dossier rows and swaps per row. Fixed + pointer-events:none, so it
-   never affects layout or creates overflow. js/motion.js drives the
-   follow and the src swap; CSS owns the look and the show/settle. */
-.to-preview {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 60;
-  width: clamp(188px, 17vw, 248px);
-  aspect-ratio: 4 / 5;
+.about-shot {
   overflow: hidden;
-  border: 1px solid rgba(13, 42, 27, .3);
-  border-top: 2px solid var(--gold-soft);
-  background: var(--pine-deep);
-  box-shadow: 0 26px 60px rgba(0, 0, 0, .3);
-  opacity: 0;
-  transform: translate3d(-100px, -100px, 0);
-  transition: opacity .34s var(--ease-out);
-  pointer-events: none;
-  will-change: transform;
+  background: var(--paper-deep);
 }
-
-.to-preview.is-on { opacity: 1; }
-
-.to-preview img {
+.about-shot img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block;
-  filter: sepia(.05) saturate(.98) contrast(1.02);
-  transform: scale(1.08);
-  transition: transform .6s var(--ease-out);
 }
-
-.to-preview.is-on img { transform: scale(1); }
-
-/* The preview is a desktop-pointer flourish only — never on touch,
-   coarse pointers, narrow screens, or under reduced motion. */
-@media (hover: none), (pointer: coarse), (max-width: 860px) {
-  .to-preview { display: none; }
+.about-shot--main {
+  grid-column: 1;
+  aspect-ratio: 3 / 4;
 }
+.about-shot--main img { object-position: 50% 22%; }
 
-@media (prefers-reduced-motion: reduce) {
-  .to-preview { display: none; }
-}
-
-/* Scroll entrance — the dossier assembles like a document: the masthead
-   settles, then the rows draw down in a short cascade. Opacity + shift
-   only (full geometry), gated on motion-on + is-inview, so no-JS /
-   reduced motion render it complete. Distinct from Pain (focus) and
-   Story (wipe): a record being laid out. */
-html.motion-on .to-dossier.to-motion .to-title,
-html.motion-on .to-dossier.to-motion .to-note,
-html.motion-on .to-dossier.to-motion .to-detail > div {
-  opacity: 0;
-  transform: translateY(22px);
-  transition: opacity .9s var(--ease-soft), transform 1s var(--ease-soft);
-}
-
-html.motion-on .to-dossier.to-motion.is-inview .to-title,
-html.motion-on .to-dossier.to-motion.is-inview .to-note,
-html.motion-on .to-dossier.to-motion.is-inview .to-detail > div {
-  opacity: 1;
-  transform: none;
-}
-@media (min-width: 861px) {
-  html.motion-on .to-dossier.to-motion .to-title,
-  html.motion-on .to-dossier.to-motion .to-note,
-  html.motion-on .to-dossier.to-motion .to-detail > div {
-    filter: blur(6px);
-    transition: opacity .9s var(--ease-soft), transform 1s var(--ease-soft),
-                filter .85s var(--ease-soft);
+/* Side by side, the frame runs the full height of the copy beside it, so the
+   two columns finish on the same line and there is no pocket of white under
+   the photograph. The resulting crop lands around 0.58-0.64, close to the
+   2:3 the frame was shot at, so it is a trim rather than a re-crop. */
+@media (min-width: 1081px) {
+  .about-shot--main {
+    grid-row: 2 / span 2;
+    align-self: stretch;
+    aspect-ratio: auto;
+    min-height: 480px;
   }
-  html.motion-on .to-dossier.to-motion.is-inview .to-title,
-  html.motion-on .to-dossier.to-motion.is-inview .to-note,
-  html.motion-on .to-dossier.to-motion.is-inview .to-detail > div { filter: blur(0); }
 }
 
-html.motion-on .to-dossier.to-motion.is-inview .to-note { transition-delay: .1s; }
-html.motion-on .to-dossier.to-motion.is-inview .to-detail > div:nth-child(1) { transition-delay: .2s; }
-html.motion-on .to-dossier.to-motion.is-inview .to-detail > div:nth-child(2) { transition-delay: .29s; }
-html.motion-on .to-dossier.to-motion.is-inview .to-detail > div:nth-child(3) { transition-delay: .38s; }
-html.motion-on .to-dossier.to-motion.is-inview .to-detail > div:nth-child(4) { transition-delay: .47s; }
-html.motion-on .to-dossier.to-motion.is-inview .to-detail > div:nth-child(5) { transition-delay: .56s; }
+.about-body {
+  grid-column: 2;
+  grid-row: 2;
+}
+.about-body .body-p { max-width: 60ch; }
 
-/* ---------- Quote — cinematic interlude ----------
-   A tall, deep-pine stage. A slow particle field (canvas, motion.js) sits
-   behind the quote; the CSS gradient is the calm static atmosphere that
-   stands alone under reduced motion / no-JS. The quote holds the centre. */
-.quote {
-  position: relative;
-  overflow: hidden;
-  min-height: clamp(560px, 92vh, 980px);
+/* The button closes the column of copy. It used to sit under a hairline,
+   with the padding that rule needed to breathe; with the rule gone the
+   space alone separates them, and it is pulled back to read as the end of
+   the text rather than as a new block. */
+.about-close {
+  grid-column: 2;
+  grid-row: 3;
   display: flex;
-  align-items: center;
-  padding-block: clamp(84px, 12vh, 150px);
-  /* Plain deep-pine (var(--pine) via .sec-pine) — the sophistication is in the
-     typographic entrance, not the background. */
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(20px, 3vh, 30px);
+  margin-top: clamp(-30px, -2.4vh, -12px);
 }
 
-.quote .wrap {
-  position: relative;
-  z-index: 1;
+/* ============================================================
+   Quote — the one authorised effect (PDF p.6). A single line on a quiet
+   secondary surface travelling left to right like a sign. On any desktop width
+   it is a sign, full stop: js/motion.js lays down as many copies of the
+   line as the lane needs and runs them at one fixed speed, so a wide
+   screen where one copy would fit still moves. Nothing pauses it.
+   Reduced motion and phones keep the static, wrapped quotation.
+   ============================================================ */
+.quote {
+  background: var(--surface-muted);
+  padding-block: clamp(86px, 12.5vh, 152px);
+  overflow: hidden;
 }
 
-.quote-in {
-  max-width: min(940px, 88vw);
-  margin-inline: auto;
-  text-align: center;
-}
+.quote-in { text-align: center; }
+
+.quote-lane { overflow: hidden; }
 
 .quote-tx {
   font-family: 'Gamay Narrow', Georgia, serif;
   font-style: italic;
   font-weight: 900;
-  font-size: clamp(1.65rem, 2.8vw, 2.7rem);
-  line-height: 1.34;
-  color: var(--paper);
+  font-size: clamp(1.7rem, 3.6vw, 3.8rem);
+  line-height: 1.22;
+  /* The one colour change the sign gets: the same institutional green the
+     buttons are drawn in, not a second green. Text, travel, speed,
+     direction and structure are untouched. */
+  color: var(--pine);
   text-wrap: balance;
 }
 
+/* Everything the sign needs (the single line, the seam padding, the edge
+   fade and the travel) is scoped to this class, so no-JS and reduced
+   motion get a plain, wrapped, centred quotation. */
+.quote-lane.is-marquee {
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+
+.quote-lane.is-marquee .quote-track {
+  display: flex;
+  width: max-content;
+  animation: quote-slide var(--q-dur, 42s) linear infinite;
+}
+
+.quote-lane.is-marquee .quote-tx {
+  flex: 0 0 auto;
+  padding-inline: clamp(24px, 4vw, 72px);
+  white-space: nowrap;
+  text-wrap: wrap;
+}
+@keyframes quote-slide {
+  from { transform: translateX(-50%); }
+  to   { transform: translateX(0); }
+}
+
 .quote-by {
-  display: inline-block;
-  margin-top: clamp(30px, 4.4vh, 52px);
+  display: block;
+  margin-top: clamp(30px, 4vh, 48px);
+  font-size: .8125rem;
   font-style: normal;
-  font-size: .62rem;
-  letter-spacing: .38em;
+  letter-spacing: .3em;
   text-transform: uppercase;
-  color: var(--gold-soft);
-}
-
-/* Word-split entrance (GSAP). Each word is inline-block so it can rise + fade
-   in with a short stagger. Anti-FOUC: once motion commits the quote is held
-   hidden until the script reveals it; reduced motion / no-JS show it at rest. */
-.quote-word {
-  display: inline-block;
-  will-change: transform, opacity, filter;
-}
-html.motion-on .quote-in { opacity: 0; }
-
-/* ==================== Preloader ====================
-   Paper overlay: a multilingual word-scan resolves into the A—R monogram,
-   which opens outward, then the panel wipes up (JS: initPreloader). Repeat
-   visits / ?static=1 add .preloader-skip (inline script) → never shown. */
-.preloader-skip .site-preloader { display: none; }
-
-.site-preloader {
-  position: fixed;
-  inset: 0;
-  z-index: 100000;
-  display: grid;
-  place-items: center;
-  background: var(--paper);
-  /* Belt-and-braces: if the module never loads, the overlay fades out on its
-     own so the page is never trapped. JS removes it well before this fires.
-     (Sits past the refined ~4.3s intro + the JS killswitch at 5.6s.) */
-  animation: preloaderFail .5s ease 6.2s forwards;
-}
-
-.preloader-inner { display: grid; place-items: center; }
-
-.preloader-word,
-.preloader-mark { grid-area: 1 / 1; text-align: center; }
-
-.preloader-word {
-  font-family: 'Gamay Narrow', Georgia, serif;
-  font-style: italic;
-  font-weight: 900;
-  font-size: clamp(1.35rem, 3.4vw, 2.35rem);
   color: var(--pine);
-  white-space: nowrap;
-  opacity: 0;                /* word layers are stacked; JS crossfades them */
-  will-change: opacity, transform, filter;
 }
 
-.preloader-mark {
-  display: inline-flex;
-  align-items: center;
-  gap: .28em;
-  font-family: 'Gamay Editorial', Georgia, serif;
-  font-weight: 900;
-  font-size: clamp(1.7rem, 3.6vw, 2.6rem);
-  color: var(--pine);
-  opacity: 0;               /* revealed by JS after the word-scan */
-}
-.preloader-mark .pm-dash {
-  width: .9em;
-  height: 2px;
-  background: var(--gold-soft);
-  display: inline-block;
+/* Reduced motion: the sign never starts (js/motion.js returns before the
+   commit), and if a class ever survives a preference change, it holds. */
+@media (prefers-reduced-motion: reduce) {
+  .quote-lane.is-marquee { -webkit-mask-image: none; mask-image: none; }
+  .quote-lane.is-marquee .quote-track { display: block; width: auto; animation: none; }
+  .quote-lane.is-marquee .quote-tx { white-space: normal; padding-inline: 0; }
 }
 
-@keyframes preloaderFail {
-  to { opacity: 0; visibility: hidden; pointer-events: none; }
-}
+/* ============================================================
+   Insights — the reels, read straight (PDF p.8). No arc, no perspective,
+   no card chrome: the frames carry the section and the index numbers are
+   there because these are a run of recent posts.
+   ============================================================ */
 
-/* ---------- Press ---------- */
-.press-index {
-  border-top: 1px solid rgba(13, 42, 27, .24);
-}
+/* ---------- The rail ----------
+   Two elements, and the split is the whole trick. .reel-view is the
+   scroller; .reel-rail is the track inside it, as wide as its six cards
+   and carrying the gutter as its own padding. So the first card lines up
+   with the editorial measure, the last runs off the right edge, and on a
+   desktop width the track can take a transform without the gutter moving
+   with it.
 
-.press-row {
-  display: grid;
-  grid-template-columns: 104px minmax(0, 1fr) auto;
-  gap: clamp(22px, 3.5vw, 54px);
-  align-items: center;
-  padding-block: clamp(24px, 3.8vh, 38px);
-  border-bottom: 1px solid rgba(13, 42, 27, .12);
-}
+   The gutter is computed from 100% of the section, never from 100vw: on a
+   desktop with a classic scrollbar, 100vw counts the scrollbar and the
+   extra padding pushes the document sideways. The percentage resolves
+   against .reel-view either way — the view is the rail's containing block
+   and it spans the section — so the same expression serves the track's
+   padding and the scroller's snap inset.
 
-.press-thumb {
-  width: 104px;
-  height: 104px;
-  overflow: hidden;
-  margin: 0;
-  background: var(--paper-deep);
-}
+   Cards are big now. At 264px they read as a strip of thumbnails with
+   nearly six of them on screen at once; the sizes below put three whole
+   cards and about two fifths of the fourth in a 1440 window, two and a
+   bit on a tablet, one and a bit on a phone. */
+.reel-view {
+  --rail-gutter: max(var(--mx-page), calc((100% - 1320px) / 2 + var(--mx-page)));
 
-.press-thumb img {
-  height: 100%;
-  object-fit: cover;
-  border: 1px solid rgba(13, 42, 27, .14);
-  filter: sepia(.08) saturate(.94) contrast(1.03);
-}
-
-.press-plate {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid rgba(13, 42, 27, .18);
-  text-align: center;
-}
-
-.press-plate span {
-  padding: 8px;
-  font-family: 'Gamay Editorial', Georgia, serif;
-  font-weight: 900;
-  font-size: .72rem;
-  line-height: 1.3;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--gold);
-}
-
-.press-badge {
-  margin-bottom: 9px;
-  font-size: .54rem;
-}
-
-.press-pub {
-  margin-bottom: 10px;
-  font-family: 'Gamay Editorial', Georgia, serif;
-  font-weight: 900;
-  font-size: clamp(1.18rem, 1.65vw, 1.5rem);
-  line-height: 1.12;
-}
-
-.press-desc {
-  max-width: 64ch;
-  font-size: .94rem;
-  line-height: 1.72;
-  color: var(--pine-70);
-}
-
-.press-link {
-  justify-self: end;
-  white-space: nowrap;
-}
-
-.press-static {
-  font-size: .68rem;
-  letter-spacing: .22em;
-  text-transform: uppercase;
-  color: var(--pine-45);
-}
-
-/* ---------- Social — living content showcase (pinned arc) ----------
-   A deep-green stage: a compact masthead sits above a set of post cards
-   that travel through an arc on scroll (desktop). Base state is a
-   horizontal scroll-snap rail, so no-JS / reduced motion / mobile keep
-   every card visible and every link live. */
-.social {
-  position: relative;
-  padding-block: 0;
-  background:
-    radial-gradient(circle at 84% 10%, rgba(160, 133, 73, .16), transparent 34%),
-    linear-gradient(160deg, #061d14 0%, #0b281a 56%, #12321e 100%);
-  color: var(--paper);
-}
-
-.social-stage {
-  position: relative;
-  padding-block: clamp(64px, 10vh, 118px);
-}
-
-.social-head {
-  display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(280px, 5fr);
-  gap: clamp(28px, 5vw, 80px);
-  align-items: end;
-}
-
-.social-title { color: var(--paper); }
-.social-title em { color: var(--gold-soft); }
-.social-head .sec-kicker { color: var(--gold-soft); }
-
-.social-desc {
-  max-width: 46ch;
-  margin-bottom: 22px;
-  font-size: clamp(.98rem, 1.08vw, 1.06rem);
-  line-height: 1.74;
-  color: rgba(237, 232, 219, .74);
-}
-
-/* Follow — a clear action on the green field */
-.social-follow {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  overflow: hidden;
-  isolation: isolate;
-  padding: 1.02em 1.7em;
-  border: 1px solid rgba(237, 232, 219, .5);
-  font-size: .7rem;
-  letter-spacing: .2em;
-  text-transform: uppercase;
-  color: var(--paper);
-  transition: color .45s var(--ease-out), border-color .45s var(--ease-out);
-}
-.social-follow > span { position: relative; z-index: 1; }
-.social-follow::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: var(--paper);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform .45s var(--ease-out);
-}
-.social-follow:hover,
-.social-follow:focus-visible { color: var(--pine); border-color: var(--paper); }
-.social-follow:hover::before,
-.social-follow:focus-visible::before { transform: scaleX(1); }
-
-/* Arc — base: a horizontal scroll-snap rail (the universal fallback).
-   The arc is full-bleed already (outside .wrap), so it scrolls its cards
-   internally with padded insets — never widening the page. */
-.social-arc {
-  display: flex;
-  gap: clamp(22px, 3.2vw, 46px);
-  margin-top: clamp(54px, 8vh, 96px);
-  padding: 6px var(--mx-page) 20px;
-  max-width: 100%;
   overflow-x: auto;
-  overscroll-behavior-x: contain;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;   /* a flick at the end never pages back */
+  scroll-snap-type: x proximity;
+  scroll-padding-inline-start: var(--rail-gutter);
   scrollbar-width: none;
 }
-.social-arc::-webkit-scrollbar { display: none; }
+.reel-view::-webkit-scrollbar { display: none; }
 
-/* Card — an anchor that reads as a phone/Reel post */
-.social-card {
-  flex: 0 0 auto;
-  width: clamp(220px, 64vw, 264px);
-  scroll-snap-align: center;
-  display: block;
-  color: var(--paper);
-  text-decoration: none;
+.reel-rail {
+  --rail-gap: clamp(16px, 2vw, 30px);
+  --rail-card: min(76vw, 318px);
+
+  position: relative;      /* the offsetParent a card's index is read from */
+  display: flex;
+  gap: var(--rail-gap);
+  width: max-content;
+  padding-inline: var(--rail-gutter);
+  list-style: none;
 }
 
-/* Phone / Reels geometry (9:16). The covers are the real 9:16 reel
-   frames, so they fill it natively with no crop. */
-.social-card-media {
+.reel {
+  flex: 0 0 var(--rail-card);
+  scroll-snap-align: start;
+}
+
+/* Tablet and the narrow end of desktop: two cards and part of the third,
+   scrolled natively. Nothing is pinned here — a pinned run needs a window
+   tall enough to hold a whole card, and at these widths it is the swipe
+   that reaches the rail anyway. */
+@media (min-width: 701px) {
+  .reel-rail { --rail-card: clamp(292px, 38vw, 366px); }
+}
+
+/* ---------- The desktop run ----------
+   js/motion.js adds .is-hscroll, pins the section and drives the track's X
+   from the page's own vertical scroll. Two things set the card width here
+   and the smaller wins: the width term puts three whole cards and part of
+   the fourth on screen, and the height term keeps a whole card — frame,
+   index, title and line — inside the pinned window, since a card taller
+   than the viewport would be pinned with its feet cut off.
+
+   --rail-chrome is what the card spends below the frame: the index row,
+   the title at up to two lines, the line under it, and the section's own
+   padding twice. */
+/* Three numbers set the desktop run. --rail-head is the bar the reader
+   scrolls under: the header is fixed, so a section pinned at top top opens
+   underneath it and the first frame would otherwise start seven pixels
+   below the nav. --rail-chrome is what a card spends below the frame — the
+   index row, the title at up to two lines, and the line under it, measured
+   at 73px with room for the second line. --rail-pad is the section's own
+   breathing space. */
+.insights {
+  --rail-head: 84px;
+  --rail-pad: clamp(22px, 3.2vh, 56px);
+  --rail-chrome: 104px;
+}
+
+/* The width term, which is what puts three whole cards and between a
+   third and a half of the fourth on screen from 1081 up to a 2K window. It
+   holds whether or not the section is pinned. */
+@media (min-width: 1081px) {
+  .reel-rail { --rail-card: calc(12.5vw + 185px); }
+}
+
+/* The height term applies only where the run is pinned, and it is a
+   ceiling, not a size: a card taller than the pinned window would be held
+   with its feet cut off. The threshold is set where the two terms meet —
+   under about 880px of viewport the frame would have to shrink far enough
+   to put five cards on screen, which is the strip of thumbnails this
+   section was rebuilt to stop being. Below it the rail is the native
+   scroller at full card size, which composes correctly on its own because
+   nothing is competing for the height. js/motion.js reads the same query,
+   so the stylesheet and the pin can never disagree about which mode the
+   window is in. */
+@media (min-width: 1081px) and (min-height: 880px) {
+  .reel-rail {
+    --rail-card: min(
+      calc(12.5vw + 185px),
+      calc((100svh - var(--rail-head) - 2 * var(--rail-pad) - var(--rail-chrome)) * 0.5625)
+    );
+  }
+}
+
+/* Equal specificity to `.page-open + .sec`, so this has to stay below it
+   in the file to win the padding. */
+.insights.is-hscroll {
+  display: flex;
+  align-items: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding-block: calc(var(--rail-head) + var(--rail-pad)) var(--rail-pad);
+}
+
+/* clip rather than hidden: a clipped box is not a scroll container, so the
+   browser cannot scroll it sideways behind the transform when a card takes
+   keyboard focus and leave the track at two offsets at once. `hidden` is
+   the fallback for anything that does not know `clip`, and js/motion.js
+   pins scrollLeft to zero for that case. */
+.insights.is-hscroll .reel-view {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  overflow: clip;
+  scroll-snap-type: none;
+}
+
+
+.reel-link {
+  display: block;
+}
+
+.reel-media {
   position: relative;
   display: block;
   aspect-ratio: 9 / 16;
   overflow: hidden;
-  border: 1px solid rgba(237, 232, 219, .2);
-  border-radius: 6px;                /* subtle — takes the hard edge off */
-  background: var(--pine-deep);
-  box-shadow: 0 24px 50px rgba(0, 0, 0, .3);
+  background: var(--paper-deep);
 }
 
-.social-card-media img {
+.reel-media img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: saturate(.98) contrast(1.03) brightness(.94);
-  transition: transform .6s var(--ease-out), filter .6s var(--ease-out);
+  transition: transform .6s var(--ease-soft);
 }
+.reel-link:hover .reel-media img,
+.reel-link:focus-visible .reel-media img { transform: scale(1.03); }
 
-/* Play mark — signals video/reel; quiet until hover */
-.social-card-play {
+.reel-play {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: clamp(44px, 4vw, 56px);
-  height: clamp(44px, 4vw, 56px);
-  transform: translate(-50%, -50%) scale(.9);
-  border: 1px solid rgba(237, 232, 219, .8);
-  border-radius: 999px;
-  opacity: .55;
-  transition: opacity .4s var(--ease-out), transform .4s var(--ease-out), background-color .4s var(--ease-out);
+  left: 14px;
+  bottom: 14px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(9, 7, 6, .55);
+  backdrop-filter: blur(2px);
 }
-.social-card-play::before {
+.reel-play::after {
   content: '';
   position: absolute;
-  left: 54%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  border-style: solid;
-  border-width: 7px 0 7px 12px;
-  border-color: transparent transparent transparent var(--paper);
+  left: 13px;
+  top: 11px;
+  width: 11px;
+  height: 12px;
+  background: var(--paper);
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
 }
 
-.social-card-n {
-  display: block;
+.reel-n {
+  display: inline-block;
   margin-top: 16px;
-  font-size: .66rem;
-  letter-spacing: .24em;
-  font-weight: 600;
-  color: var(--gold-soft);
-}
-
-.social-card-t {
-  max-width: 18ch;
-  margin-top: 9px;
+  margin-right: 10px;
   font-family: 'Gamay Editorial', Georgia, serif;
   font-weight: 900;
-  font-size: clamp(1.12rem, 1.4vw, 1.4rem);
-  line-height: 1.12;
-  color: var(--paper);
-}
-
-.social-card-s {
-  margin-top: 8px;
-  max-width: 30ch;
-  font-size: .92rem;
-  line-height: 1.5;
-  color: rgba(237, 232, 219, .6);
-}
-
-/* Hover — the card lifts and lights, the play mark asserts */
-@media (hover: hover) and (pointer: fine) {
-  .social-card:hover .social-card-media img { transform: scale(1.05); filter: saturate(1.02) contrast(1.03) brightness(1.04); }
-  .social-card:hover .social-card-play { opacity: 1; transform: translate(-50%, -50%) scale(1); background: rgba(13, 42, 27, .3); }
-  .social-card:hover .social-card-t { color: var(--gold-soft); }
-}
-
-/* ===== Desktop pinned arc (motion committed) ===== */
-@media (min-width: 861px) {
-  html.motion-on .social.social-motion { height: 400vh; }
-
-  html.motion-on .social.social-motion .social-stage {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    padding-top: clamp(70px, 10vh, 104px);   /* clears the fixed nav */
-    padding-bottom: clamp(28px, 4.5vh, 50px);
-  }
-
-  /* The header keeps its own row above the card stage, always on top */
-  html.motion-on .social.social-motion .social-head {
-    position: relative;
-    z-index: 5;
-  }
-
-  /* The card stage is a separate band that starts well BELOW the header,
-     with a generous gap, so the editorial block reads first and the cards
-     never crowd the headline / support / CTA. */
-  html.motion-on .social.social-motion .social-arc {
-    position: relative;
-    flex: 1;
-    display: block;
-    margin: clamp(60px, 10vh, 132px) 0 0;
-    padding: 0;
-    overflow: visible;
-    scroll-snap-type: none;
-  }
-
-  /* Cards stack at the card-band centre; JS drives the arc transform.
-     Phone geometry (9:16), sized by width AND viewport height so the tall
-     card plus its caption always fits the pinned band. Uniform size across
-     all cards → the arc keeps an even gap between every pair. */
-  html.motion-on .social.social-motion .social-card {
-    position: absolute;
-    left: 50%;
-    top: 45%;
-    width: min(clamp(206px, 15vw, 258px), 25.5vh);
-    transform: translate(-50%, -50%);
-    will-change: transform, opacity, filter;
-  }
-
-  html.motion-on .social.social-motion .social-card-t,
-  html.motion-on .social.social-motion .social-card-s,
-  html.motion-on .social.social-motion .social-card-n {
-    opacity: 0;
-    transition: opacity .6s var(--ease-soft);
-  }
-  /* Only the active (centre) card shows its caption */
-  html.motion-on .social.social-motion .social-card.is-active .social-card-t,
-  html.motion-on .social.social-motion .social-card.is-active .social-card-s,
-  html.motion-on .social.social-motion .social-card.is-active .social-card-n {
-    opacity: 1;
-  }
-}
-
-/* Low-height desktops / laptops (1366x768, 1440x800, 1536x864 …): the
-   pinned 100vh has little room, so the card stage crowded the editorial
-   block. Trim the header padding, hold a firm gap in px (not vh, which
-   collapses when short), push the card band lower, and cap the card a
-   touch smaller — still 9:16 Reels, just enough to breathe. Only applies
-   below this height; taller screens keep the approved composition. */
-@media (min-width: 861px) and (max-height: 880px) {
-  html.motion-on .social.social-motion .social-stage {
-    padding-top: clamp(60px, 8vh, 84px);
-  }
-
-  html.motion-on .social.social-motion .social-arc {
-    margin-top: clamp(78px, 11vh, 104px);
-  }
-
-  html.motion-on .social.social-motion .social-card {
-    top: 50%;
-    width: min(clamp(168px, 12.5vw, 220px), 22vh);
-  }
-}
-
-/* ---------- Opportunities — four pinned panels ----------
-   Thesis → E-2 → EB-5 → closing note. Base state (no-JS / reduced motion
-   / mobile) is a normal vertical run of full editorial moments. On a
-   desktop width with motion committed, motion.js adds .is-pinned and GSAP
-   ScrollTrigger pins each panel so the next slides up over it (with inner
-   overscroll for any panel taller than the viewport). Palette alternates
-   paper / deep pine so the two routes read as siblings, not clones. */
-.opps { position: relative; }
-.opps-panels { position: relative; }
-
-.opps-panel {
-  position: relative;
-  display: flex;
-  align-items: center;
-  padding-block: clamp(88px, 13vh, 148px);
-  overflow: hidden;
-  background: var(--paper-deep);
-  color: var(--pine);
-}
-
-.opps-p1 { border-top: 1px solid rgba(160, 133, 73, .45); }
-.opps-p3 { background: var(--paper); }
-
-/* Pine panels — deep green stage, light type */
-.opps-pine {
-  background:
-    radial-gradient(circle at 84% 12%, rgba(160, 133, 73, .14), transparent 34%),
-    linear-gradient(155deg, #061d14 0%, #0b281a 55%, #12321e 100%);
-  color: var(--paper);
-}
-
-/* When pinned (desktop + motion), each panel holds the viewport so the
-   next can slide up over it. */
-.opps.is-pinned .opps-panel { min-height: 100vh; }
-
-/* --- Panel 1: thesis --- */
-.opps-thesis-in { max-width: 100%; }
-.opps-thesis-h {
-  max-width: 15ch;
-  margin-top: clamp(16px, 2.4vh, 26px);
-  font-family: 'Gamay Editorial', Georgia, serif;
-  font-weight: 900;
-  font-size: clamp(2.6rem, 6vw, 6rem);
-  line-height: .98;
-  letter-spacing: .002em;
-  color: var(--pine);
-}
-.opps-thesis-h em {
-  font-family: 'Gamay Narrow', Georgia, serif;
-  font-style: italic;
+  font-size: .875rem;
+  letter-spacing: .1em;
   color: var(--gold);
-}
-.opps-thesis-p {
-  max-width: 54ch;
-  margin-top: clamp(26px, 4vh, 44px);
-  font-size: clamp(1.05rem, 1.2vw, 1.22rem);
-  line-height: 1.72;
-  color: var(--pine-70);
+  vertical-align: 2px;
 }
 
-/* --- Panels 2 & 3: the routes --- */
-.opps-route-in {
+.reel-t {
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(1.0625rem, 1.15vw, 1.2rem);
+  line-height: 1.28;
+  color: var(--pine);
+}
+
+.reel-link:hover .reel-t,
+.reel-link:focus-visible .reel-t { color: var(--gold); }
+
+.reel-s {
+  margin-top: 8px;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: var(--pine-45);
+}
+
+/* ============================================================
+   Press page (PDF p.7) — an editorial grid. Media, outlet, description,
+   one destination. No boxes, no shadows, no template chrome.
+   ============================================================ */
+.press-index {
   display: grid;
-  grid-template-columns: minmax(0, 4.4fr) minmax(0, 6fr);
-  gap: clamp(32px, 5vw, 92px);
-  align-items: start;
-  width: 100%;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(40px, 5vh, 70px) clamp(26px, 3vw, 52px);
 }
 
-/* EB-5 keeps the SAME structure as E-2 (identity left, content right);
-   the two routes vary only in palette (paper vs pine), not in layout, so
-   they read as comparable siblings within one system. */
+/* The heading that names this block as external coverage, so the blog
+   below it is read as a different kind of thing and not as more of the
+   same run. */
+/* The display line that used to sit under this label is gone: it repeated
+   the page title two rows below it. The label is the whole opening, so it
+   keeps the interval the pair had. */
+.press-open { margin-bottom: clamp(28px, 4vh, 44px); }
+.press-open .page-kicker { margin-bottom: 0; }
 
-.opps-route-aside { position: relative; }
+/* The three outlets with a confirmed public piece lead the page: the same
+   card, one step up in frame and in type. */
+.press-index--lead .press-media { aspect-ratio: 5 / 4; }
+.press-index--lead .press-pub { font-size: clamp(1.6rem, 2.2vw, 2.1rem); }
+.press-index--lead .press-desc { font-size: clamp(1.0625rem, 1.1vw, 1.14rem); }
 
-.opps-code {
-  display: block;
-  font-family: 'Gamay Editorial', Georgia, serif;
-  font-weight: 900;
-  font-size: clamp(3.4rem, 6.4vw, 6.6rem);
-  line-height: .84;
-  letter-spacing: -.016em;
-  color: var(--paper);
+/* The quieter row, and the hairline that separates it from the lead. */
+/* No rule between the two blocks: the labels name them and the interval
+   separates them. The space the hairline used to occupy is kept. */
+.press-sub {
+  margin-top: clamp(64px, 8.6vh, 104px);
+  margin-bottom: clamp(28px, 4vh, 44px);
 }
-.opps-mirror .opps-code { color: var(--pine); }
-
-.opps-kind {
-  display: block;
-  margin-top: 14px;
-  font-size: .62rem;
-  letter-spacing: .26em;
+.press-sub-label {
+  font-size: .8125rem;
+  letter-spacing: .24em;
   text-transform: uppercase;
-  color: var(--gold-soft);
+  color: var(--pine-45);
 }
-.opps-mirror .opps-kind { color: var(--gold); }
+.press-index--more .press-media { aspect-ratio: 4 / 3; }
 
-.opps-route-title {
-  max-width: 16ch;
-  margin-top: clamp(20px, 3vh, 32px);
+/* No rule over the frames. Six hairlines above six photographs turned the
+   page into a ledger, and the photograph is already the strongest edge an
+   item has. The 22px that used to sit between the rule and the image goes
+   with it; the row gap below carries the separation on its own. */
+.press-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.press-media {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  margin-bottom: 22px;
+  background: var(--paper-deep);
+}
+.press-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.press-plate {
+  display: grid;
+  place-items: center;
+  background: var(--pine);
+  color: var(--paper);
+  text-align: center;
+}
+.press-plate span {
   font-family: 'Gamay Editorial', Georgia, serif;
   font-weight: 900;
-  font-size: clamp(1.5rem, 2.1vw, 2.05rem);
-  line-height: 1.1;
-  color: var(--paper);
+  font-size: clamp(1.05rem, 1.5vw, 1.35rem);
+  line-height: 1.3;
+  letter-spacing: .06em;
+  text-transform: uppercase;
 }
-.opps-mirror .opps-route-title { color: var(--pine); }
 
-.opps-route-body { min-width: 0; }
-
-.opps-route-sub {
-  max-width: 52ch;
-  font-size: clamp(1rem, 1.12vw, 1.1rem);
-  line-height: 1.72;
-  color: rgba(237, 232, 219, .76);
+.press-pub {
+  margin-top: 10px;
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(1.35rem, 1.8vw, 1.7rem);
+  line-height: 1.2;      /* two-line outlet names need the descender room */
 }
-.opps-mirror .opps-route-sub { color: var(--pine-70); }
 
-/* Scannable criteria — hairline rows with a gold marker; the lead fact
-   (the investment figure) reads a step stronger. */
-.opps-facts {
-  list-style: none;
-  margin: clamp(24px, 3.4vh, 36px) 0 clamp(28px, 4vh, 42px);
-  padding: 0;
-  border-top: 1px solid rgba(237, 232, 219, .22);
-}
-.opps-mirror .opps-facts { border-top-color: rgba(13, 42, 27, .18); }
-
-.opps-facts li {
-  position: relative;
-  padding: 13px 0 13px 24px;
-  border-bottom: 1px solid rgba(237, 232, 219, .12);
-  font-size: .95rem;
-  line-height: 1.55;
-  color: rgba(237, 232, 219, .72);
-}
-.opps-mirror .opps-facts li {
-  border-bottom-color: rgba(13, 42, 27, .1);
+.press-desc {
+  margin-top: 12px;
+  margin-bottom: 20px;
+  font-size: 1.0625rem;
+  line-height: 1.65;
   color: var(--pine-70);
 }
 
-.opps-facts li::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 20px;
-  width: 10px;
-  height: 1px;
-  background: var(--gold-soft);
+/* The three items that have a URL end on the site's own pill (PDF p.7
+   draws a button under each entry). No third button system: .btn-ghost is
+   the outlined pill the rest of the site uses — paper ground, pine rule,
+   pine text, and pine filled on hover and focus — and .press-cta only says
+   where it sits and lets its arrow answer the hover. Filled was wrong here:
+   three solid pine pills in one grid outweighed the photographs above them
+   and the outline lets the six items read as one index again. */
+.press-cta {
+  margin-top: auto;
+  gap: .1em;
 }
 
-.opps-facts li:first-child { color: var(--paper); font-weight: 600; }
-.opps-mirror .opps-facts li:first-child { color: var(--pine); }
-
-/* CTA — one clear action per route, tuned to its background */
-.opps-cta {
-  position: relative;
+/* SOBEWFF, Haute Living and Biscayne Times have no confirmed URL
+   (PENDING.md), so they end on a label and not on a button: no pill, no
+   underline, no disabled control that looks clickable and is not. The
+   height matches the pill beside it so the six items still close on one
+   line. */
+.press-static {
   display: inline-flex;
   align-items: center;
-  padding: 1.05em 1.9em;
-  border: 1px solid rgba(237, 232, 219, .5);
-  overflow: hidden;
-  isolation: isolate;
-  font-size: .7rem;
+  margin-top: auto;
+  min-height: 50px;
+  font-size: .8125rem;
   letter-spacing: .2em;
   text-transform: uppercase;
-  color: var(--paper);
-  transition: color .45s var(--ease-out), border-color .45s var(--ease-out);
-}
-.opps-mirror .opps-cta { border-color: rgba(13, 42, 27, .42); color: var(--pine); }
-
-.opps-cta > span { position: relative; z-index: 1; }
-
-.opps-cta::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background: var(--paper);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform .45s var(--ease-out);
-}
-.opps-mirror .opps-cta::before { background: var(--pine); }
-
-.opps-cta::after {
-  content: '\2192';
-  position: relative;
-  z-index: 1;
-  margin-left: 14px;
-  font-size: 1.05rem;
-  line-height: 1;
-  transition: transform .45s var(--ease-out);
+  color: var(--pine-45);
 }
 
-.opps-cta:hover,
-.opps-cta:focus-visible { color: var(--pine); border-color: var(--paper); }
-.opps-mirror .opps-cta:hover,
-.opps-mirror .opps-cta:focus-visible { color: var(--paper); border-color: var(--pine); }
-.opps-cta:hover::before,
-.opps-cta:focus-visible::before { transform: scaleX(1); }
-.opps-cta:hover::after,
-.opps-cta:focus-visible::after { transform: translateX(6px); }
+/* ============================================================
+   Opportunities page — the diagnosis (PDF p.2), the turn, and the two
+   routes (PDF p.9).
 
-/* --- Panel 4: closing note --- */
-/* Closing note — a strong institutional close: "Important" leads in
-   gold, the statement follows in bright paper, clean and confident. No
-   rule, no box. */
-.opps-close-in { width: 100%; max-width: 1100px; }
+   The page used to open twice: "Don't navigate Miami alone" as the H1 and
+   "Most investors get Miami wrong" as the first section heading, both on
+   the left, one under the other. The claim that costs an investor money
+   holds the masthead now, the three steps follow as one row of cards, and
+   the invitation closes the argument instead of announcing it.
 
-.opps-close-lead {
+   The only motion is the lower paragraph of each card arriving as it is
+   reached, exactly the one place the client marked. Nothing here depends
+   on it: with no script, under reduced motion or with ?static=1, all
+   three cards are complete and at full strength.
+   ============================================================ */
+
+/* The claim is long for a display line and it sits in half the measure,
+   so it is set one step under the title of a page whose heading is four
+   words. Same face, same weight, same leading — the scale is the only
+   thing that gives five lines somewhere to go. */
+.page-title--diag {
+  max-width: 17ch;
+  font-size: clamp(2.2rem, 3.8vw, 3.7rem);
+}
+
+/* ---------- The three cards ----------
+   Problem, risk, solution, read across rather than down: the sequence is
+   one argument and the reader should be able to hold all of it at once.
+
+   Paper-deep on the paper ground is the whole of the chrome. No rules over
+   the cards (four of them stacked were this page's loudest feature once
+   and they are not coming back by another name), no shadow, no radius
+   worth naming, no icons. What separates the three is the surface, and
+   what makes them readable is the room inside them. */
+/* The cards and the turn are one movement, so the section closes on the
+   cards and the turn's own opening padding carries the whole interval —
+   two full section paddings back to back put most of a screen of nothing
+   between the answer and the invitation it earns. */
+.diag { padding-bottom: 0; }
+
+.diag-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(14px, 1.5vw, 24px);
+  list-style: none;
+}
+
+/* Two rows inside the card: the numeral and its label share the first,
+   on one baseline, and the claim and the explanation each take the full
+   width under them. align-content: start keeps the top of every card
+   identical when the grid stretches them to a common height. */
+.diag-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-content: start;
+  column-gap: clamp(12px, 1.1vw, 18px);
+  padding: clamp(26px, 2.5vw, 42px);
+  background: var(--paper-deep);
+  border-radius: 2px;
+}
+
+.diag-n {
+  grid-column: 1;
+  grid-row: 1;
   font-family: 'Gamay Editorial', Georgia, serif;
   font-weight: 900;
-  font-size: clamp(2.2rem, 3.9vw, 3.9rem);
-  line-height: .96;
-  letter-spacing: -.012em;
-  color: var(--gold-soft);
-  margin-bottom: clamp(22px, 3.4vh, 42px);
+  font-size: clamp(2.3rem, 3.2vw, 3.4rem);
+  line-height: .84;
+  letter-spacing: -.01em;
+  color: var(--gold);
 }
 
-.opps-close-text {
-  max-width: 60ch;
+/* On the numeral's own baseline, not above it and not centred on it. */
+.diag-k {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: baseline;
+}
+
+.diag-h {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  margin-top: clamp(22px, 2.8vh, 34px);
   font-family: 'Gamay Editorial', Georgia, serif;
-  font-weight: 400;
-  font-size: clamp(1.2rem, 1.75vw, 1.78rem);
-  line-height: 1.5;
-  color: rgba(237, 232, 219, .92);
+  font-weight: 900;
+  font-size: clamp(1.35rem, 1.6vw, 1.7rem);
+  line-height: 1.2;
 }
 
-/* ---------- Contact ---------- */
-/* Contact — its own paper atmosphere (a clear break from the pine close
-   before it): a big headline + contact lines on the left, an editorial
-   hairline form on the right, with room to breathe. */
-.contact-sec {
-  background: var(--paper-deep);
+.diag-p {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  margin-top: clamp(14px, 1.9vh, 20px);
+  font-size: clamp(1.0625rem, 1.02vw, 1.125rem);
+  line-height: 1.7;
+  color: var(--pine-70);
+}
+
+/* The solution is the answer the two problems set up, so it is allowed to
+   speak at full strength: the body at the undimmed ink. That is the whole
+   difference — same surface, same scale, same room, so the row still
+   reads as three of one thing. */
+.diag-card--answer .diag-p { color: var(--text); }
+
+/* Two up, then one. Three columns below about 1180 put the explanation at
+   thirty characters a line, which is where a card stops being a card and
+   starts being a column of a table. The third card takes the full width
+   of the row it lands on, which is the right emphasis for the answer. */
+@media (max-width: 1180px) {
+  .diag-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .diag-card--answer { grid-column: 1 / -1; }
+  .diag-card--answer .diag-h,
+  .diag-card--answer .diag-p { max-width: 46ch; }
+}
+
+@media (max-width: 720px) {
+  .diag-cards { grid-template-columns: minmax(0, 1fr); }
+  .diag-card--answer { grid-column: auto; }
+}
+
+/* ---------- The turn ----------
+   The invitation, after the case for it. The heading holds the left of the
+   measure and both paragraphs run as one column beside it, at the size and
+   the undimmed ink the page's closing statement has always used. It opens
+   from the top rather than the foot, so it does not repeat the masthead's
+   composition two screens later. */
+.diag-turn-in {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: clamp(28px, 4.5vw, 84px);
+  align-items: start;
+}
+
+.diag-turn-p {
+  max-width: 58ch;
+  font-size: clamp(1.125rem, 1.3vw, 1.3rem);
+  line-height: 1.68;
+  color: var(--text);
+}
+.diag-turn-p + .diag-turn-p { margin-top: 1.15em; }
+
+@media (max-width: 1080px) {
+  .diag-turn-in { grid-template-columns: 1fr; gap: clamp(22px, 3.4vh, 36px); }
+  .diag-turn-in .sec-display { max-width: 24ch; }
+}
+
+
+.route-in {
+  display: grid;
+  grid-template-columns: minmax(0, 4fr) minmax(0, 7fr);
+  gap: clamp(32px, 5vw, 86px);
+  align-items: start;
+}
+
+/* E-2 and EB-5 are the route's name, not a section label, and the client
+   asked for both plates and the descriptors under them in charcoal. They
+   are display type at 8vw, so they read as content, which is what charcoal
+   carries now. The gold numerals on the diagnosis cards are untouched:
+   those are the label system, and they stay. */
+.route-code {
+  display: block;
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(4rem, 8.6vw, 8.2rem);
+  line-height: .92;
+  letter-spacing: -.01em;
+  color: var(--text);
+}
+.sec-pine .route-code { color: var(--gold-soft); }
+
+/* …and the descriptor under the plate comes off the gold label system with
+   them. On a pine chapter the rule above still wins on specificity, so
+   that case keeps its gold. */
+.route-kind { margin-top: 14px; color: var(--pine-70); }
+
+.route-title {
+  margin-top: 12px;
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  /* The investment figure came out of both routes on the client's note.
+     The space it leaves is taken by the content that stays rather than by
+     padding: the code plate, the title and the body all move up a step. */
+  font-size: clamp(1.9rem, 2.9vw, 2.9rem);
+  line-height: 1.1;
+  max-width: 16ch;
+}
+
+/* .route-figure carried the minimum-investment line on E-2 and EB-5. Both
+   lines were removed from the markup on the client's instruction, so the
+   rule has nothing left to style and is gone with them. */
+
+/* The route body copy holds the panel on its own now. */
+.route--secondary .body-p,
+.route--paper .body-p {
+  max-width: 52ch;
+  font-size: clamp(1.25rem, 1.65vw, 1.6rem);
+  line-height: 1.6;
+  margin-bottom: clamp(32px, 4.8vh, 52px);
+}
+
+/* The CTA closes a full-screen panel, so it carries the panel's scale too. */
+.route--secondary .route-body .btn-ghost,
+.route--secondary .route-body .btn-outline,
+.route--paper .route-body .btn-solid {
+  min-height: 58px;
+  padding: 1em 2.4em;
+  font-size: .9375rem;
+}
+
+/* Below the pinned desktop stack the panels are ordinary sections again and
+   the display scale has to come back down, or E-2 fills a phone screen on
+   its own. */
+@media (max-width: 860px) {
+  .route-code { font-size: clamp(3rem, 15vw, 4.4rem); }
+  .route-title { font-size: clamp(1.55rem, 6.4vw, 2.1rem); max-width: 20ch; }
+  .route--secondary .body-p,
+  .route--paper .body-p { font-size: 1.125rem; line-height: 1.62; }
+  .route--secondary .route-body .btn-ghost,
+  .route--secondary .route-body .btn-outline,
+  .route--paper .route-body .btn-solid { min-height: 50px; padding: .9em 2.1em; font-size: .875rem; }
+}
+
+/* The three routes are one stack: on a desktop width with motion committed,
+   js/motion.js pins each panel but the last, so E-2 holds, EB-5 travels up
+   over it, and Important travels up over EB-5 and stays (the panel pattern
+   from the approved baseline). Without that class this is a plain vertical
+   run of three full sections — which is what no-JS, reduced motion and
+   narrow screens get, with every line present and both CTAs in place.
+
+   Each panel above the first needs an opaque ground and a layer above the
+   one pinned under it, or the slide shows the previous panel through it. */
+/* ---------- The two grounds ----------
+   PDF p.9 sets the routes as a pair, not as a series: E-2 on deep pine,
+   EB-5 on warm bone. The contrast is the information — two different
+   answers, told apart before a word is read — and two greys told them
+   apart by nothing. Sampled from the client's own page: #162f21 and
+   #ece7db, which are --pine-deep and --bone.
+
+   Only the grounds and the ink they force change here. Every measure on
+   these two panels — the copy, the scale, the leading, the widths, the
+   CTA geometry, the stack — is the approved one and is untouched. */
+.route-panel { position: relative; }
+.route--secondary { background: var(--pine-deep); color: var(--paper); z-index: 1; }
+.route--paper { background: var(--bone); z-index: 2; }
+.route--note { background: var(--paper-deep); z-index: 3; }
+
+/* E-2, read on pine. The client moved the plate and its descriptor off
+   gold and onto the reading colour; on a dark ground the reading colour
+   is paper, so they move with it rather than back to gold. The gold stays
+   where she left it — the numerals on the diagnosis cards. */
+.route--secondary .route-code,
+.route--secondary .route-title { color: var(--paper); }
+.route--secondary .route-kind { color: rgba(237, 232, 219, .74); }
+.route--secondary .body-p { color: rgba(237, 232, 219, .84); }
+.route--secondary .body-p strong { color: var(--paper); }
+.route--secondary .route-body .btn-ghost {
+  color: var(--paper);
+  border-color: rgba(247, 245, 240, .55);
+}
+.route--secondary .route-body .btn-ghost:hover {
+  background: var(--paper);
+  color: var(--pine-deep);
+  border-color: var(--paper);
+}
+.route--secondary :focus-visible { outline-color: var(--gold-soft); }
+
+.route-stack.is-pinned .route-panel {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+}
+.route-stack.is-pinned .route-panel > .wrap { width: min(100%, 1320px); }
+
+/* Important carries no code plate over its title, so the title itself
+   holds the left column at the weight E-2 and EB-5 get from theirs. Its
+   one paragraph is the page's closing statement rather than a route's
+   body copy, so it is set at the size and the undimmed ink the closing
+   paragraph of the diagnosis uses. That is what gives a panel with three
+   sentences in it the presence of the two panels before it. */
+/* Scale. The panel is a screen tall and it was holding one short word and
+   three sentences set at body size, so most of it was air and the closing
+   statement of the page read as a footnote to the two panels above it.
+   Both sides go up a full step: the word to display scale, the paragraph
+   to the size the page's own opening dek would be if it had a screen to
+   itself. The measure comes in to 50ch as it grows, so the line keeps a
+   book's rhythm instead of running the width of the panel, and the column
+   gap opens with it — "Important" is one word against a paragraph, and at
+   this scale the old gap read as a collision. Not one word of copy moved. */
+.route-in--note { align-items: center; gap: clamp(32px, 6vw, 104px); }
+.route-title--note {
+  margin-top: 0;
+  font-size: clamp(3rem, 5vw, 5rem);
+  line-height: 1;
+  letter-spacing: -.012em;
   color: var(--pine);
-  padding-block: clamp(98px, 15vh, 176px);
+}
+/* "Important" keeps the pine — it is one of the named exceptions. The
+   paragraph under it does not: it is body copy on paper, so it reads in
+   charcoal, at the undimmed strength the panel's presence needs. */
+.route--note .body-p {
+  /* 35ch, measured rather than guessed. `ch` is the zero's advance and
+     Gamay's zero runs wide against its average letter, so the cap and the
+     line it produces are not the same number: 50ch measured out at 59
+     characters on a 1440 and 66 on a 1024, where the panel goes to one
+     column and the paragraph had the whole width to itself; 40ch still
+     gave 59. 35ch holds it at 52 on every tested width — one line, the
+     same line, whatever the reader opens it on. The audit counts the
+     characters on the longest rendered line and asserts 45-56. */
+  max-width: 35ch;
+  font-size: clamp(1.3rem, 1.7vw, 1.65rem);
+  line-height: 1.58;
+  color: var(--text);
 }
 
-/* Two-tone headline: statement in pine, "in Miami?" in gold italic */
+/* Stacked, the panel is no longer a screen with room to spare: the word
+   comes back to the top of the display range and the paragraph to the
+   reading size the rest of the page uses on a phone. */
+@media (max-width: 860px) {
+  .route-title--note { font-size: clamp(2.4rem, 9.5vw, 3rem); }
+  .route--note .body-p { font-size: 1.1875rem; line-height: 1.62; }
+}
+
+/* ============================================================
+   Cases (PDF p.4 / p.5) — on the home page, between the quote and the
+   footer, in the room Insights and Contact vacated. Two houses: the two
+   with supplied material. Burgermeister keeps the deep-pine feature it
+   was approved in, The Office answers it on paper with the composition
+   mirrored. The two ledgers the PDF bracketed are gone, and so are the
+   hairlines that used to run above every label in this chapter: five
+   identical rules before the footer made one composition out of three
+   different ones. The lines that carry structure stay (the figures, the
+   Recognition list).
+   ============================================================ */
+
+/* ---------- The opening: one head, two marks ---------- */
+/* The pine case starts right under the index, so this chapter does not
+   need the full section floor as well. */
+.cases-open { padding-bottom: clamp(52px, 7.5vh, 88px); }
+
+/* The head takes the measure, the four marks take the row under it. A
+   pair of circles used to sit beside the head, in the right-hand column
+   of a 7/5 grid; four of them in that column would be 120px each on a
+   1440 screen, which is a row of buttons, not the index page 4 drew. */
+.cases-head { display: block; }
+.cases-head .sec-display { max-width: 18ch; }
+.cases-lede { margin-top: clamp(20px, 2.8vh, 30px); max-width: 52ch; }
+
+/* The index page 4 drew as four circles of logo in one row. No logo file
+   exists for any of the four houses, so each disc holds its own name in
+   the display face: a wordmark the site can stand behind, not a stand-in
+   drawn to look like one. The <span> inside swaps for an <img> the day a
+   logo arrives.
+
+   One row of four on a desktop width, two by two between 861 and 1080,
+   and a line each on a phone. The disc is capped so the four keep the
+   proportion the PDF drew instead of inflating to fill a 1320px measure. */
+.case-marks {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(28px, 3.2vw, 56px);
+  margin-top: clamp(44px, 6.5vh, 78px);
+  list-style: none;
+}
+
+.case-marks a,
+.case-marks .cm-still {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(15px, 2vh, 20px);
+  width: 100%;
+  max-width: 232px;
+  margin-inline: auto;
+}
+
+.cm-disc {
+  display: grid;
+  place-items: center;
+  container-type: inline-size;
+  width: 100%;
+  aspect-ratio: 1;
+  /* Not a percentage: a percentage padding resolves against the parent, and
+     on the narrow layout the disc is a fixed-width flex item in a full-width
+     row, which turned 15% into a third of the disc. */
+  padding: clamp(20px, 2vw, 31px);
+  border: 1px solid rgba(13, 42, 27, .26);
+  border-radius: 50%;
+  background: transparent;
+  text-align: center;
+  transition: border-color .35s var(--ease-soft), background-color .35s var(--ease-soft);
+}
+.cm-disc img { width: 100%; height: auto; }
+
+/* The name is sized against the disc, not the viewport: the longest of
+   the two has to clear the ring on both sides at every disc size, and a
+   viewport clamp gets that wrong the moment the disc stops growing.
+   The rem value is the fallback where container units are missing. */
+.cm-word {
+  font-family: "Gamay Editorial", Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(.8rem, 1.15vw, 1.08rem);
+  font-size: 11.6cqi;
+  line-height: 1.24;
+  letter-spacing: -.005em;
+  color: var(--pine);
+  transition: color .35s var(--ease-soft);
+}
+
+.cm-place {
+  font-size: .8125rem;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--pine-45);
+}
+
+/* Hover fills the disc and closes the hairline onto the pine. Nothing
+   moves, nothing glows, nothing scales: the mark is a door into the case
+   below it, and the fill is enough to say so. */
+.case-marks a:hover .cm-disc,
+.case-marks a:focus-visible .cm-disc {
+  border-color: var(--pine);
+  background: var(--paper-deep);
+}
+.sec-tint .case-marks a:hover .cm-disc,
+.sec-tint .case-marks a:focus-visible .cm-disc { background: rgba(13, 42, 27, .06); }
+.case-marks a:hover .cm-place,
+.case-marks a:focus-visible .cm-place { color: var(--pine); }
+
+/* Europa Deli and Vice Lounge have no case to open yet. They keep the
+   disc, the name and the location so the row is the row page 4 drew, and
+   give up every affordance that would promise a destination: no anchor in
+   the markup, no pointer, no hover fill, no focus stop. The hairline is
+   drawn lighter than the two that lead somewhere, which reads as quieter
+   rather than as broken. */
+.cm-still { cursor: default; }
+.cm-still .cm-disc { border-color: rgba(13, 42, 27, .16); }
+
+/* ---------- Cases drawer ----------
+   With scripts off the two cases remain ordinary document sections. The
+   enhanced layer becomes an editorial off-canvas only after html.js exists. */
+.case-backdrop,
+.case-drawer-bar { display: none; }
+
+html.js .case-layer {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  /* Over the header (z-index 40) as well as the page, so nothing of the
+     original composition is left showing beside the case. */
+  z-index: 120;
+  visibility: hidden;
+  pointer-events: none;
+  transition: visibility 0s .48s;
+}
+html.js .case-layer.is-open {
+  visibility: visible;
+  pointer-events: auto;
+  transition: visibility 0s;
+}
+html.js .case-backdrop {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 0;
+  background: rgba(13, 17, 14, .58);
+  opacity: 0;
+  transition: opacity .38s var(--ease-soft);
+  cursor: pointer;
+}
+html.js .case-layer.is-open .case-backdrop { opacity: 1; }
+/* The panel was 86vw and left a strip of the page beside it, which read as
+   a sidebar over a live page. It now takes the whole viewport and the case
+   scrolls inside itself. The entrance is unchanged: it still arrives from
+   the right and leaves the same way. */
+html.js .case-drawer-panel {
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  background: var(--surface);
+  color: var(--text);
+  transform: translateX(102%);
+  transition: transform .48s cubic-bezier(.2,.72,.22,1);
+  padding-top: 0;
+}
+
+html.js .case-layer.is-open .case-drawer-panel { transform: none; }
+html.js .case-drawer-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  justify-content: flex-start;
+  padding: 16px var(--mx-page);
+  background: rgba(245,246,243,.94);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 1px 0 var(--rule);
+}
+.case-close {
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--pine);
+  font: inherit;
+  font-size: .875rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.case-close::before { content: '\2190'; margin-right: .65em; }
+html.js .case-drawer-panel .case-in { padding-top: clamp(52px, 7vh, 86px); }
+html.js .case-drawer-panel .case-word { color: rgba(11,74,50,.055); }
+html.js .case-drawer-panel .body-p { color: var(--text-muted); }
+html.js .case-drawer-panel .body-p strong,
+html.js .case-drawer-panel .case-title { color: var(--text); }
+html.js .case-drawer-panel .case-title em { color: var(--pine); }
+html.js .case-drawer-panel .case-stats,
+html.js .case-drawer-panel .case-stats > div,
+html.js .case-drawer-panel .case-awards,
+html.js .case-drawer-panel .case-aw-list li { border-color: var(--rule); }
+html.js .case-drawer-panel .case-stats dd { color: var(--text); }
+html.js .case-drawer-panel .case-aw-list li { color: var(--text-muted); }
+html.js .case-drawer-panel .case-shot { background: var(--paper-deep); }
+
+/* ---------- Compact social selection on Home ---------- */
+.home-social { background: var(--surface-muted); }
+
+/* The run was capped at 980px inside a 1320px measure, which left three
+   small cards pushed to the left of a wide screen. One centred column
+   holds the heading row and the three cards on the same axis, and the
+   cards take the width that column gives them. */
+.home-social-wrap { --social-measure: min(100%, 1240px); }
+.home-social-head,
+.social-selection {
+  width: var(--social-measure);
+  margin-inline: auto;
+}
+.home-social-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 28px;
+  margin-bottom: clamp(34px, 5vh, 58px);
+}
+/* The label and the display line were sitting on top of each other: the
+   kicker is a <p> with no margin and the heading follows it directly. One
+   step of air, enough to read as two levels and not as a stack. */
+.home-social-head .sec-kicker { margin-bottom: 14px; }
+.home-social-head .sec-display { max-width: 16ch; }
+.social-selection {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(26px, 3.2vw, 54px);
+  list-style: none;
+}
+.social-selection .reel-media { aspect-ratio: 9 / 13; }
+
+/* Everything inside the card grows with the frame: index, title, standfirst
+   and the CTA. The scale is the one the Insights rail uses, one step up. */
+.social-selection .reel-n {
+  margin-top: 22px;
+  font-size: 1rem;
+}
+.social-selection .reel-t {
+  font-size: clamp(1.25rem, 1.65vw, 1.7rem);
+  line-height: 1.22;
+  color: var(--text);
+}
+/* The breathing room between the standfirst and the CTA lives here, under
+   the copy, and not as padding inside the pill — padding there was what
+   pushed the label off centre. Paired with margin-top: auto on the CTA
+   below, this is a floor rather than a fixed gap: the tallest card spends
+   it all and the shorter ones let their auto margin absorb the difference,
+   so the three buttons line up without a hole opening under a one-line
+   title. */
+.social-selection .reel-s {
+  margin-top: 12px;
+  margin-bottom: clamp(22px, 2.4vw, 32px);
+  font-size: clamp(1.0625rem, 1.15vw, 1.18rem);
+  line-height: 1.55;
+  color: var(--pine-70);
+}
+.social-selection .reel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.social-selection .reel-cta { margin-top: auto; }
+/* The index and the title share a line, so they stay one block inside the
+   column rather than two flex items on separate rows. */
+.social-selection .reel-head { display: block; width: 100%; }
+.social-selection .reel-media,
+.social-selection .reel-s { width: 100%; }
+
+.reel-t { display: inline; }
+
+/* 7. The per-card destination is the small outline pill, not an underline. */
+.reel-cta {
+  margin-top: 14px;
+  gap: .45em;
+}
+.reel-media video { display:block; width:100%; height:100%; object-fit:cover; }
+.reel-media.is-broken {
+  display:grid;
+  place-items:center;
+  background:var(--paper-deep);
+}
+.reel-media.is-broken::after {
+  content:'Preview unavailable';
+  max-width:12ch;
+  color:var(--text-muted);
+  font:600 12px/1.35 Arial, sans-serif;
+  letter-spacing:.08em;
+  text-align:center;
+  text-transform:uppercase;
+}
+.video-audio {
+  position:absolute;
+  right:12px;
+  bottom:12px;
+  min-width:44px;
+  min-height:44px;
+  padding:0 13px;
+  border:1px solid rgba(245,246,243,.7);
+  border-radius:999px;
+  background:rgba(15,20,16,.72);
+  color:#fff;
+  font:inherit;
+  font-size:.8125rem;
+  cursor:pointer;
+}
+
+.case { overflow: hidden; }
+
+.case-word {
+  position: absolute;
+  left: 50%;
+  top: clamp(40px, 7vh, 90px);
+  transform: translateX(-50%);
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(4rem, 15vw, 14rem);
+  line-height: 1;
+  letter-spacing: -.02em;
+  color: rgba(247, 245, 240, .045);
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+
+.case-in {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: clamp(20px, 2.6vw, 44px);
+  row-gap: clamp(38px, 6vh, 74px);
+  align-items: start;
+}
+
+.case-head { grid-column: 1 / 8; }
+
+.case-title {
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(2rem, 3.2vw, 3.3rem);
+  line-height: 1.06;
+  max-width: 18ch;
+}
+.case-title-main { display: block; }
+.sec-pine .case-title em { color: var(--gold-soft); }
+
+.case-shot { overflow: hidden; background: rgba(0, 0, 0, .18); }
+.case-shot img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.case-shot--lead {
+  grid-column: 8 / 13;
+  grid-row: 1 / 3;
+  aspect-ratio: 4 / 5;
+}
+.case-shot--wide { grid-column: 1 / 9; aspect-ratio: 16 / 10; }
+.case-shot--tall { grid-column: 9 / 13; aspect-ratio: 3 / 4; }
+.case-shot--tall img { object-position: 50% 28%; }
+
+.case-copy { grid-column: 1 / 8; }
+.case-act { margin-top: clamp(26px, 4vh, 40px); }
+
+.case-stats {
+  grid-column: 1 / 8;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid rgba(247, 245, 240, .2);
+}
+/* The hairlines between the three figures are page 5's own: the ledger
+   there is ruled vertically, not just topped. They run the height of the
+   figures and no further. */
+.case-stats > div {
+  padding: 22px clamp(14px, 1.8vw, 28px) 4px 0;
+  border-right: 1px solid rgba(247, 245, 240, .16);
+}
+.case-stats > div + div { padding-left: clamp(14px, 1.8vw, 28px); }
+.case-stats > div:last-child { border-right: 0; padding-right: 0; }
+.case-stats dt {
+  font-size: .8125rem;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+}
+.case-stats dd {
+  margin-top: 10px;
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(2.2rem, 3.4vw, 3.4rem);
+  line-height: 1;
+  color: var(--paper);
+}
+
+.case-awards {
+  grid-column: 8 / 13;
+  border-top: 1px solid rgba(247, 245, 240, .2);
+  padding-top: 22px;
+}
+.case-aw-title { margin-bottom: 6px; }
+.case-aw-list { list-style: none; }
+.case-aw-list li {
+  padding-block: 11px;
+  border-bottom: 1px solid rgba(247, 245, 240, .13);
+  font-size: 1.0625rem;
+  color: rgba(247, 245, 240, .86);
+}
+
+/* The Office is Burgermeister mirrored: the portrait moves to the left of
+   the grid and the words to the right, so the second case reads as an
+   answer to the first rather than as the same block refilled. The floor
+   team closes it at full measure. */
+/* The portrait is taller than the words beside it, and a two-row span
+   would split that surplus above and below them. Sitting the head on the
+   floor of its row and the copy on the ceiling of the next closes the
+   two up against the middle of the frame. */
+.case-in--to .case-head { grid-column: 6 / 13; align-self: end; }
+.case-in--to .case-copy { grid-column: 6 / 13; align-self: start; }
+.case-in--to .case-shot--lead {
+  grid-column: 1 / 6;
+  grid-row: 1 / 3;
+  aspect-ratio: 4 / 5;
+}
+.case-in--to .case-shot--wide { grid-column: 1 / 13; aspect-ratio: 3 / 2; }
+
+/* ---------- The close ----------
+   Europa Deli and Vice Lounge stood below as two typographic plates while
+   the section promised four houses. With two, the chapter ends inside The
+   Office — on the floor team's photograph, with nothing after it. The link
+   that used to hang under that photograph is gone: the header pill, the
+   About close and the whole of /contact/ already carry the invitation, and
+   a fourth one alone in the last row of the grid read as an orphan. */
+
+/* ============================================================
+   Contact — the approved form, unchanged. The written labels the PDF
+   crossed out are marks now, each with an accessible name.
+   ============================================================ */
+.contact-sec { padding-block: clamp(90px, 13vh, 160px); }
 .contact-sec .sec-display em { color: var(--gold); }
+
+/* On /contact/ the masthead carries the head, so the marks are the first
+   thing in their column. */
+.page-open + .contact-sec .contact-marks { margin-top: 0; }
+
+/* /insights/ — the dek column also carries the follow link. */
+.page-open-side .link-arrow { margin-top: clamp(18px, 2.6vh, 26px); }
+/* The follow CTA became a pill last round and fell out of the selector
+   above, which is why it ended up against the paragraph. A pill needs more
+   air than the underlined link it replaced, so it gets its own step. */
+.page-open-side .btn-outline { margin-top: clamp(22px, 3.4vh, 32px); }
 
 .contact-grid {
   display: grid;
   grid-template-columns: minmax(0, 5.4fr) minmax(320px, 6fr);
-  gap: clamp(46px, 8vw, 128px);
+  gap: clamp(46px, 8vw, 118px);
   align-items: start;
 }
 
-.contact-sec .sec-support { color: var(--pine-70); }
-
-.contact-list {
+/* No rule over the first mark. The list already closes each row with a
+   hairline, so the one above the e-mail was a second edge on the same
+   side of the same line and read as a table header. The separators
+   between the rows stay. */
+.contact-marks {
   margin-top: clamp(32px, 5vh, 52px);
-  border-top: 1px solid rgba(13, 42, 27, .24);
+  list-style: none;
 }
 
-.contact-list > div {
-  display: grid;
-  grid-template-columns: 100px minmax(0, 1fr);
-  gap: 20px;
-  align-items: baseline;
-  padding-block: 17px;
-  border-bottom: 1px solid rgba(13, 42, 27, .12);
-}
-
-.contact-list dt {
-  font-size: .6rem;
-  letter-spacing: .28em;
-  text-transform: uppercase;
-  color: var(--gold);
-}
-
-.contact-list dd {
-  min-width: 0;
-  font-size: 1.02rem;
+.contact-marks > li {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 60px;
+  padding-block: 12px;
+  border-bottom: 1px solid var(--rule);
+  font-size: 1.0625rem;
   color: var(--pine);
 }
 
-.contact-list a {
-  border-bottom: 1px solid rgba(121, 98, 58, .5);
+.contact-marks .mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  flex: 0 0 auto;
+  color: var(--gold);
+}
+.contact-marks .mark svg { width: 20px; height: 20px; fill: currentColor; }
+
+.contact-marks > li > a {
+  border-bottom: 1px solid rgba(122, 97, 53, .5);
   padding-bottom: 2px;
   transition: color .25s, border-color .25s;
 }
+.contact-marks > li > a:hover,
+.contact-marks > li > a:focus-visible { color: var(--gold); border-color: var(--gold); }
 
-.contact-list a:hover {
-  color: var(--gold);
-  border-color: var(--gold);
-}
+.contact-marks > li:last-child { border-bottom: 0; }
+.contact-marks-social { padding-block: 6px; }
+.contact-marks-social .social-row { margin-left: -8px; color: var(--pine); }
+.contact-marks-social .social-row a,
+.contact-marks-social .social-row .social-pending { width: 44px; height: 44px; }
+.contact-marks-social .social-row svg { width: 19px; height: 19px; }
+.contact-marks-social .social-pending { opacity: .5; }
 
 .form {
   display: flex;
@@ -2169,29 +1837,28 @@ html.motion-on .quote-in { opacity: 0; }
 }
 
 .form-label {
-  font-size: .6rem;
-  letter-spacing: .28em;
+  font-size: .8125rem;
+  letter-spacing: .22em;
   text-transform: uppercase;
   color: var(--gold);
 }
 
 .form-input {
   width: 100%;
+  min-height: 48px;
   appearance: none;
   border: 0;
-  border-bottom: 1px solid rgba(13, 42, 27, .34);
+  border-bottom: 1px solid rgba(13, 42, 27, .38);
   border-radius: 0;
   background: transparent;
   padding: 12px 0;
   font-family: 'Gamay', 'Segoe UI', system-ui, sans-serif;
-  font-size: 1rem;
+  font-size: 1.0625rem;
   color: var(--pine);
   outline: none;
 }
 
-.form-input::placeholder {
-  color: rgba(13, 42, 27, .4);
-}
+.form-input::placeholder { color: rgba(13, 42, 27, .54); }
 
 .form-field::after {
   content: '';
@@ -2217,72 +1884,61 @@ html.motion-on .quote-in { opacity: 0; }
   background-repeat: no-repeat;
 }
 
-.form-select option {
-  color: var(--pine);
-  background: var(--paper);
-}
+.form-select option { color: var(--pine); background: var(--paper); }
 
-.form-ta {
-  min-height: 108px;
-  resize: vertical;
-}
+.form-ta { min-height: 118px; resize: vertical; }
 
-/* Action — the clearest element in the section: a pine pill on paper */
 .form-btn {
   align-self: flex-start;
   margin-top: 14px;
+  min-height: 52px;
   border: 1px solid var(--pine);
   border-radius: 999px;
   background: var(--pine);
   color: var(--paper);
-  padding: 1.15em 2.4em;
+  padding: 1em 2.4em;
   font-family: 'Gamay', 'Segoe UI', system-ui, sans-serif;
-  font-size: .74rem;
-  letter-spacing: .22em;
+  font-size: .875rem;
+  letter-spacing: .18em;
   text-transform: uppercase;
   cursor: pointer;
   transition: background-color .3s var(--ease-out), color .3s var(--ease-out);
 }
 
-.form-btn .arr {
-  display: inline-block;
-  transition: transform .25s var(--ease-out);
-}
-
-.form-btn:hover {
-  background: transparent;
-  color: var(--pine);
-}
-
+.form-btn .arr { display: inline-block; transition: transform .25s var(--ease-out); }
+.form-btn:hover { background: transparent; color: var(--pine); }
 .form-btn:hover .arr { transform: translateX(5px); }
 
-/* ---------- Footer — a monumental signature ----------
-   A giant, near-transparent RINGLEB wordmark anchors the base like a
-   watermark; the navigation and credits sit above it, small and calm.
-   The word bleeds past the edges (clipped by the footer) for scale. */
+/* ============================================================
+   Footer — unchanged in identity: deep pine, three columns, the
+   monogram, the raised Ringleb signature and the credits. Only the
+   destinations moved (Opportunities to its page, contact to the form)
+   and the written links at the base became the four marks.
+   ============================================================ */
 .footer {
   position: relative;
   overflow: hidden;
   background: var(--pine-deep);
   color: var(--paper);
-  border-top: 1px solid rgba(237, 232, 219, .12);
-  padding-block: clamp(60px, 9vh, 104px) clamp(150px, 25vh, 320px);
+  border-top: 1px solid rgba(247, 245, 240, .12);
+  padding-block: clamp(60px, 9vh, 104px) clamp(34px, 5vh, 64px);
 }
 
-/* Monumental signature — raised enough that the full word, including the
-   "g" descender, reads clearly; line-height keeps that descender inside. */
+/* In flow, so the clearance above it is a margin rather than a subtraction
+   that a tall viewport can win. left/transform keep the centred overflow the
+   absolute version had; the footer still clips the sides. */
 .footer-sign {
-  position: absolute;
+  position: relative;
   left: 50%;
-  bottom: clamp(24px, 4vh, 70px);
   transform: translateX(-50%);
-  margin: 0;
+  width: max-content;
+  margin: clamp(64px, 10vh, 132px) 0 0;
   font-family: 'Gamay Editorial', Georgia, serif;
   font-weight: 900;
   font-size: clamp(5rem, 22vw, 21rem);
   line-height: .9;
   letter-spacing: -.02em;
-  color: rgba(237, 232, 219, .06);
+  color: rgba(247, 245, 240, .07);
   white-space: nowrap;
   pointer-events: none;
   user-select: none;
@@ -2296,42 +1952,33 @@ html.motion-on .quote-in { opacity: 0; }
   gap: clamp(34px, 5vw, 66px);
   align-items: start;
   padding-bottom: clamp(42px, 7vh, 68px);
-  border-bottom: 1px solid rgba(237, 232, 219, .14);
+  border-bottom: 1px solid rgba(247, 245, 240, .14);
 }
 
-.footer-id .monogram {
-  font-size: 1.1rem;
-  color: var(--gold-soft);
-}
-
-.footer-mono {
-  transition: color .25s;
-}
-
-.footer-mono:hover {
-  color: var(--paper);
-}
+.footer-id .monogram { font-size: 1.1rem; color: var(--gold-soft); }
+.footer-mono { transition: color .25s; }
+.footer-mono:hover { color: var(--paper); }
 
 .footer-name {
   margin-top: 16px;
   font-family: 'Gamay Editorial', Georgia, serif;
   font-weight: 900;
-  font-size: clamp(1.1rem, 1.55vw, 1.28rem);
+  font-size: clamp(1.15rem, 1.55vw, 1.35rem);
   line-height: 1.1;
 }
 
 .footer-line {
   margin-top: 8px;
-  font-size: .64rem;
-  letter-spacing: .24em;
+  font-size: .8125rem;
+  letter-spacing: .16em;
   text-transform: uppercase;
-  color: rgba(237, 232, 219, .54);
+  color: rgba(247, 245, 240, .68);
 }
 
 .footer-ch {
   margin-bottom: 18px;
-  font-size: .62rem;
-  letter-spacing: .28em;
+  font-size: .8125rem;
+  letter-spacing: .26em;
   text-transform: uppercase;
   color: var(--gold-soft);
 }
@@ -2339,366 +1986,234 @@ html.motion-on .quote-in { opacity: 0; }
 .footer-col {
   display: flex;
   flex-direction: column;
-  gap: 11px;
+  gap: 4px;
 }
 
 .footer-col a {
   width: max-content;
   max-width: 100%;
-  font-size: .8rem;
+  padding-block: 7px;
+  font-size: .9375rem;
   line-height: 1.4;
-  color: rgba(237, 232, 219, .66);
+  color: rgba(247, 245, 240, .76);
   transition: color .25s;
 }
 
-.footer-col a:hover {
-  color: var(--paper);
-}
+.footer-col a:hover,
+.footer-col a:focus-visible { color: var(--paper); }
 
 .footer-base {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 20px;
-  padding-top: 22px;
-  font-size: .64rem;
-  letter-spacing: .18em;
+  padding-top: 18px;
+  font-size: .8125rem;
+  letter-spacing: .1em;
   text-transform: uppercase;
-  color: rgba(237, 232, 219, .55);
+  color: rgba(247, 245, 240, .68);
 }
 
-.footer-soc {
-  display: flex;
-  gap: 26px;
+.footer-soc { margin-right: -8px; }
+.footer-soc a,
+.footer-soc .social-pending { width: 40px; height: 40px; }
+.footer-soc .social-pending { opacity: .5; }
+
+/* ==================== Preloader ====================
+   A short paper-on-ink intro: two words resolve into the A—R monogram,
+   which opens outward, then the panel wipes up (JS: initPreloader).
+   Home page only, first visit of the session only. Repeat visits and
+   ?static=1 never add it, and neither does a browser with scripts off —
+   so no-JS renders the page, not a locked overlay. */
+.site-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: none;
+  place-items: center;
+  background: var(--ink);
+  /* Belt-and-braces: if the module never loads the overlay fades out on
+     its own, so the page is never trapped. JS removes it well before, and
+     its own killswitch (4400ms) fires ahead of this either way. */
+  animation: preloaderFail .5s ease 5.2s forwards;
 }
 
-.footer-soc a {
-  transition: color .25s;
-}
+.preloader-inner { display: grid; place-items: center; }
 
-.footer-soc a:hover {
+.preloader-word,
+.preloader-mark { grid-area: 1 / 1; text-align: center; }
+
+.preloader-word {
+  font-family: 'Gamay Narrow', Georgia, serif;
+  font-style: italic;
+  font-weight: 900;
+  font-size: clamp(1.35rem, 3.4vw, 2.35rem);
   color: var(--paper);
+  white-space: nowrap;
+  opacity: 0;
 }
 
-/* ---------- Responsive ---------- */
+.preloader-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: .28em;
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(1.7rem, 3.6vw, 2.6rem);
+  color: var(--paper);
+  opacity: 0;
+}
+.preloader-mark .pm-dash {
+  width: .9em;
+  height: 2px;
+  background: var(--gold-soft);
+  display: inline-block;
+}
+
+html.preloader-on .site-preloader { display: grid; }
+
+@keyframes preloaderFail {
+  to { opacity: 0; visibility: hidden; pointer-events: none; }
+}
+
+/* ---------- /cases/ compatibility route ----------
+   The old Cases URL forwards to /#cases. A reader only ever sees this if
+   both the meta refresh and the script are blocked, so it is three lines
+   and a link, on the same paper as the rest of the site. */
+.route-fwd {
+  min-height: 100vh;
+  display: grid;
+  align-content: center;
+  gap: 14px;
+  padding: var(--mx-page);
+}
+.route-fwd-k {
+  font-size: .8125rem;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.route-fwd-p {
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(1.6rem, 3.4vw, 2.6rem);
+  line-height: 1.1;
+  max-width: 18ch;
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
 @media (max-width: 1080px) {
-  .section-grid,
-  .bm-proof,
-  .to-masthead,
-  .social-head,
-  .contact-grid {
+  .page-open--two .page-open-in { grid-template-columns: 1fr; align-items: start; }
+  .page-open-dek { margin-top: clamp(18px, 2.6vh, 26px); }
+
+  .about-grid,
+  .contact-grid,
+  .route-in {
     grid-template-columns: 1fr;
   }
 
-  /* Social masthead stacks; the arc keeps its scroll-snap rail */
-  .social-head { align-items: start; gap: clamp(20px, 4vw, 32px); }
-  .social-desc { max-width: 60ch; }
+  /* Four across stops working once the measure drops under ~1080: the disc
+     loses the room the name needs inside it. Two by two keeps the circle
+     the size it was drawn at. */
+  .case-marks { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
-  .bm-cover {
-    min-height: auto;
-    padding-block: clamp(62px, 9vh, 88px) clamp(64px, 9vh, 96px);
-  }
+  .about-lede,
+  .about-shot--main,
+  .about-body,
+  .about-close { grid-column: 1; grid-row: auto; }
 
-  .bm-cover-grid {
-    grid-template-columns: repeat(8, minmax(0, 1fr));
-    min-height: clamp(560px, 70vh, 690px);
-  }
+  .about-shot--main { aspect-ratio: 3 / 2; }
 
-  .bm-case-head {
-    grid-column: 1 / span 5;
-    grid-row: 1;
-  }
+  .press-index { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
-  .bm-case-head .sec-head {
-    max-width: 240px;
-  }
+  .case-in { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .case-head,
+  .case-copy,
+  .case-stats,
+  .case-awards,
+  .case-shot--wide,
+  .case-shot--tall { grid-column: 1 / -1; }
+  .case-shot--lead { grid-column: 1 / -1; grid-row: auto; aspect-ratio: 3 / 2; }
+  .case-shot--tall { aspect-ratio: 4 / 3; }
 
-  .bm-title {
-    max-width: 9.2ch;
-    font-size: clamp(3.3rem, 7.8vw, 5.45rem);
-  }
+  /* One column trims the portrait to a landscape band, so the head of a
+     standing figure has to be held in frame. */
+  .case-bm .case-shot--lead img { object-position: 50% 20%; }
 
-  .bm-photo {
-    grid-column: 5 / -1;
-    width: 100%;
-    height: clamp(390px, 54vh, 540px);
-    margin-top: clamp(48px, 6vh, 70px);
-  }
+  /* The mirror is a desktop figure; in one column both cases run head,
+     photograph, copy, photograph, in that order. The Office portrait keeps
+     its own 4:5 here rather than being cut to a band: the frame is a
+     full-length pour, and the band takes the top of it off. */
+  .case-in--to .case-head,
+  .case-in--to .case-copy,
+  .case-in--to .case-shot--wide { grid-column: 1 / -1; }
+  .case-in--to .case-shot--lead { grid-column: 1 / -1; grid-row: auto; aspect-ratio: 4 / 5; }
 
-  .bm-editorial-panel {
-    grid-column: 1 / span 5;
-    max-width: 500px;
-  }
+  .home-social-wrap { --social-measure: 100%; }
+}
 
-  .bm-awards {
-    grid-template-columns: minmax(110px, .32fr) minmax(0, 1fr);
-  }
-
-  .bm-aw-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .press-row {
-    grid-template-columns: 92px minmax(0, 1fr);
-  }
-
-  .press-thumb {
-    width: 92px;
-    height: 92px;
-  }
-
-  .press-link {
-    grid-column: 2;
-    justify-self: start;
-  }
-
-  /* Route panels stack their aside over the body (mirror reset) so E-2
-     and EB-5 stay readable and comparable on tablet/mobile. */
-  .opps-route-in {
-    grid-template-columns: 1fr;
-    gap: clamp(20px, 4vw, 32px);
-  }
-  .opps-mirror .opps-route-aside { order: 0; }
-  .opps-mirror .opps-route-body { order: 0; }
-
+/* Between the widest tablet and the swipe rail the three-up run has no room
+   to be large, so it becomes two columns with the third below. */
+@media (max-width: 1080px) and (min-width: 861px) {
+  .social-selection { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 860px) {
-  .site-nav { display: none; }
+  .sec { padding-block: clamp(64px, 9vh, 96px); }
 
-  .nav-pill {
-    padding: .68em 1.2em;
-    font-size: .64rem;
-  }
+  /* The card drops to one column: numeral, label, claim, explanation, in
+     the order they are written. Every placement is reset, or the desktop
+     row and column numbers would hold and leave empty tracks. */
+  .diag-card { grid-template-columns: minmax(0, 1fr); }
+  .diag-n,
+  .diag-k,
+  .diag-h,
+  .diag-p { grid-column: 1; grid-row: auto; }
+  .diag-k { margin-top: 14px; }
+  .diag-h { margin-top: clamp(16px, 2.4vh, 24px); max-width: 26ch; }
+  .route-in--note { align-items: start; }
 
-  /* Quote interlude: comfortable height on tablet/phone, not a huge void */
-  .quote { min-height: clamp(440px, 74vh, 640px); }
-
-  .sec {
-    padding-block: clamp(62px, 10vh, 104px);
-  }
-
-  .section-lede,
-  .press-head {
-    margin-bottom: 38px;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
-  }
-
-  .to-detail > div,
-  .contact-list > div {
-    grid-template-columns: 1fr;
-    gap: 6px;
-  }
-
-  .press-row {
-    grid-template-columns: 74px minmax(0, 1fr);
-    gap: 18px;
-  }
-
-  .press-thumb {
-    width: 74px;
-    height: 74px;
-  }
-
-  .press-link {
-    grid-column: 2;
-  }
-
-  .bm-feature {
-    padding-block: 0;
-  }
-
-  .bm-cover {
-    min-height: 0;
-    padding-block: clamp(54px, 9vh, 76px) 0;
-  }
-
-  .bm-cover-grid {
-    display: block;
-    min-height: 0;
-  }
-
-  .bm-monument-word {
-    position: absolute;
-    top: 28px;
-    left: 0;
-    width: max-content;
-    margin: 0;
-    transform: translateX(-10vw);
-    font-size: clamp(3.8rem, 17vw, 7rem);
-    color: rgba(237, 232, 219, .04);
-  }
-
-  .bm-case-head {
-    position: relative;
-    z-index: 3;
-    margin-bottom: 26px;
-  }
-
-  .bm-case-head .sec-head {
-    margin-bottom: 18px;
-  }
-
-  .bm-title {
-    max-width: 9ch;
-    font-size: clamp(2.85rem, 11.8vw, 5rem);
-    line-height: .86;
-  }
-
-  .bm-title em {
-    max-width: 10.2ch;
-    font-size: .88em;
-    line-height: .92;
-  }
-
-  .bm-cover {
-    padding-bottom: clamp(40px, 8vw, 64px);
-  }
-
-  .bm-photo {
-    width: 100%;
-    height: clamp(340px, 74vw, 470px);
-    margin: 0;
-    transform: none;
-    box-shadow: 0 26px 58px rgba(0, 0, 0, .24);
-  }
-
-  .bm-photo img {
-    height: 112%;
-    object-position: 50% 12%;
-  }
-
-  /* No card overlap: copy sits below the image, on the green ground */
-  .bm-editorial-panel {
-    width: 100%;
-    max-width: 44ch;
-    margin: clamp(28px, 6vw, 40px) 0 0;
-    padding: 0;
-  }
-
-  .bm-proof {
-    display: block;
-    padding-block: clamp(44px, 8vh, 72px);
-  }
-
-  .bm-stats {
-    grid-template-columns: 1fr;
-  }
-
-  .bm-stats > div {
-    min-height: 0;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 20px;
-    align-items: end;
-    padding: clamp(20px, 4vw, 28px) 0;
-    border-right: 0;
-    border-bottom: 1px solid rgba(13, 42, 27, .12);
-  }
-
-  .bm-stats > div:last-child {
-    border-bottom: 0;
-  }
-
-  .bm-stats dt {
-    align-self: center;
-    max-width: 16ch;
-  }
-
-  .bm-stats dd {
-    margin: 0;
-    font-size: clamp(4rem, 16vw, 7rem);
-    text-align: right;
-  }
-
-  .bm-awards {
-    grid-template-columns: 1fr;
-    margin-top: clamp(36px, 7vh, 54px);
-    padding-left: 0;
-    border-left: 0;
-    background: transparent;
-  }
-
-  .bm-aw-list {
-    grid-template-columns: 1fr;
-  }
-
-  .bm-aw-list li {
-    padding-left: 16px;
-  }
-
-  .footer-top {
-    grid-template-columns: 1fr;
-    gap: clamp(30px, 7vw, 48px);
-  }
-
-  .footer-base {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  /* Smaller signature band on phones/tablets, raised so the "g" reads */
-  .footer { padding-bottom: clamp(96px, 22vw, 170px); }
-  .footer-sign { font-size: clamp(4.2rem, 28vw, 9rem); bottom: clamp(16px, 4vw, 34px); }
+  .footer-top { grid-template-columns: 1fr; }
+  .footer-base { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .home-social-head { align-items: flex-start; flex-direction: column; }
+  .social-selection { grid-template-columns: repeat(3, minmax(250px, 1fr)); overflow-x:auto; padding-bottom:18px; scroll-snap-type:x proximity; }
+  .social-selection .reel-t { font-size: 1.1875rem; }
+  .social-selection .reel { scroll-snap-align:start; }
 }
 
-@media (max-width: 560px) {
-  .sec-display {
-    font-size: clamp(1.7rem, 9vw, 2.35rem);
-  }
+@media (max-width: 620px) {
+  .about-shot--main { aspect-ratio: 4 / 5; }
 
-  .bm-title {
-    max-width: 8.8ch;
-    font-size: clamp(2.75rem, 11.4vw, 4.2rem);
-    line-height: .86;
-  }
-
-  .bm-monument-word {
-    transform: translateX(-12vw);
-    font-size: clamp(3.45rem, 16vw, 5.4rem);
-  }
-
-  .bm-photo {
-    height: clamp(330px, 84vw, 430px);
-  }
-
-  .bm-editorial-panel {
+  /* Two discs side by side would leave ~70px of disc on a 360px screen.
+     They turn the row into a line each: the mark on the left, the name
+     and the street beside it. */
+  .case-marks { grid-template-columns: 1fr; gap: clamp(22px, 4vh, 32px); }
+  .case-marks a,
+  .case-marks .cm-still {
+    flex-direction: row;
+    align-items: center;
+    gap: clamp(18px, 5vw, 26px);
     width: 100%;
-    margin-top: clamp(24px, 6vw, 34px);
-    padding: 0;
+    max-width: none;
   }
+  .cm-disc { width: clamp(150px, 42vw, 178px); flex: 0 0 auto; }
+  .cm-place { text-align: left; }
 
-  .bm-cta {
-    width: 100%;
+  .press-index { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+  /* Stacked, the rule between the figures turns from vertical to horizontal. */
+  .case-stats { grid-template-columns: 1fr; }
+  .case-stats > div,
+  .case-stats > div + div {
+    padding: 22px 0 18px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(247, 245, 240, .16);
   }
+  .case-stats > div:last-child { border-bottom: 0; }
+}
 
-  .story-cta {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .bm-stats > div {
-    grid-template-columns: 1fr;
-    gap: 10px;
-    align-items: start;
-  }
-
-  .bm-stats dd {
-    font-size: clamp(4.8rem, 24vw, 7.2rem);
-    text-align: left;
-  }
-
-  .bm-aw-list span {
-    font-size: clamp(1.15rem, 7vw, 1.8rem);
-    line-height: 1.04;
-  }
-
-  .link-arrow,
-  .form-btn {
-    letter-spacing: .16em;
-  }
+@media (max-width: 440px) {
+  .reel-media { aspect-ratio: 4 / 5; }
 }

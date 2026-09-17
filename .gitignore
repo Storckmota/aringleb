@@ -4,3 +4,12 @@ audit-screenshots/
 *.log
 npm-debug.log*
 .claude/
+.impeccable/
+
+# Local environment and isolated Insights QA output
+.env
+.env.*
+!.env.example
+.qa-insights/
+coverage/
+.tmp/

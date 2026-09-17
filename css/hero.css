@@ -1,6 +1,6 @@
 /* ============================================================
-   Alexander Ringleb — Hero, art direction 02 (premium pass)
-   Bone paper · cut-out figure · name behind, role in front
+   Alexander Ringleb — shell: tokens, header, hero
+   One photograph in an ink room · static name · one CTA
    ============================================================ */
 
 /* ---------- Fonts (from the existing brand) ---------- */
@@ -27,92 +27,177 @@
 }
 
 /* ---------- Tokens ----------
-   Etapa 2 (seriedade): paper mais osso e menos amarelo, pine mais
-   profundo, e um pine-deep quase-preto para as cenas de fechamento
-   (quote, contact, footer). O dourado fica mais raro e mais escuro. */
+   PDF p.12 asks for a lighter ground ("vamos pra uma opcao mais clara?
+   Branco?"). Paper moves from bone to a warm off-white — light, but with
+   a temperature of its own, never flat white.
+
+   The hierarchy the client set for this round: charcoal carries content —
+   headings, body, structure — and pine is the signature, spent on the
+   marquee, a handful of named display lines and the buttons. So every
+   reading tone below is one charcoal, at two strengths, and the greens
+   that used to double as text colours (--pine-70, --pine-45) are now
+   charcoal tints under their old names, because they are read on paper
+   everywhere they are used. Pure black is never used. */
 :root {
-  --paper: #ede8db;
-  --paper-deep: #e3ddcb;
-  --pine: #0d2a1b;
-  --pine-deep: #081911;
-  --pine-70: rgba(13, 42, 27, .72);
-  --pine-45: rgba(13, 42, 27, .48);
-  --gold: #79623a;
-  --gold-soft: #a08549;
+  --paper: #eceeeb;
+  --paper-deep: #dfe3df;
+  --surface: #f5f6f3;
+  --surface-muted: #e6e9e5;
+  /* Charcoal — the reading colour of the whole site */
+  --text: #1b1d1b;
+  --text-muted: rgba(27, 29, 27, .78);
+  --pine: #0b4a32;
+  --pine-deep: #10291f;
+  /* Kept under their old names so every call site stays put; both are
+     charcoal now, and both are only ever read on a light ground. */
+  --pine-70: rgba(27, 29, 27, .78);
+  --pine-45: rgba(27, 29, 27, .58);
+  --rule: rgba(25, 29, 26, .16);
+  /* Hero ink — the field the hero photograph stands in. It is sampled from
+     the photograph's own shadow: the darkest bands of alex-story-04 read
+     #161211 (bottom edge) and #0d0c0c (the shelf line under the top), so
+     this warm near-black sits between the two and the picture's edges can
+     dissolve into it without a seam. Pure black would read cooler than the
+     room and draw the outline it is there to hide.
+     --ink-rgb is the same colour as channels, for the scrims that need it
+     at partial alpha. */
+  --ink: #14110e;
+  --ink-rgb: 20 17 14;
+  --ink-2: #1e1a16;
+  /* Warm bone — the EB-5 panel's ground on PDF p.9 (sampled #ece7db). The
+     paper tokens above are all cool; this is the only warm light surface
+     on the site and it exists so EB-5 answers the deep pine of E-2
+     instead of matching it in grey. */
+  --bone: #ece7db;
+  --ember: #5b330b;
+  --gold: #7a6135;
+  --gold-soft: #a98d4f;
   --mx-page: clamp(20px, 3.6vw, 60px);
   --ease-out: cubic-bezier(.16, 1, .3, 1);
-  /* driven by JS */
-  --mx: 0;
-  --my: 0;
-  --sp: 0;
-  --sb: 0px;               /* marquee scroll boost */
   color-scheme: light;
 }
 
 /* ---------- Base ---------- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { background: var(--paper); scroll-behavior: smooth; }
+/* No scroll-behavior here. The document scroll is the browser's, whole:
+   the wheel, the trackpad, the arrow keys, Page Up/Down, Home/End, the
+   scrollbar and a touch flick all land exactly where the platform says
+   they land, with the platform's own stopping distance.
+
+   `scroll-behavior: smooth` on the root used to be the site's second
+   layer of easing on top of js/scroll.js (removed). It also animated
+   things nobody asked to see animated — the browser's own scroll
+   restoration on a back/forward, a hash landing, the position
+   js/cases.js puts back when a panel closes — which is why three
+   different files had to suspend it by hand for one assignment.
+
+   In-page anchors keep the smooth glide they were given; js/hero.js
+   animates those explicitly, and only those, and skips it under reduced
+   motion. */
+html { background: var(--paper); }
 
 body {
   font-family: 'Gamay', 'Segoe UI', system-ui, sans-serif;
-  font-size: 16px;
-  line-height: 1.5;
-  color: var(--pine);
+  font-size: 1.0625rem;      /* 17px — the brief's floor for body copy */
+  line-height: 1.6;
+  color: var(--text);
   background: var(--paper);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
 
-::selection { background: var(--pine); color: var(--paper); }
+::selection { background: var(--pine); color: var(--surface); }
 
 a { color: inherit; text-decoration: none; }
 
 :focus-visible {
-  outline: 2px solid var(--gold);
+  outline: 2px solid var(--pine);
   outline-offset: 4px;
   border-radius: 2px;
 }
-/* On pine chapters the focus ring needs the lighter gold to read */
+/* Dark chapters need the lighter gold: pine on ink is a ring you cannot
+   see. The hero is one of them again, and so is the bar while it is still
+   over the hero — past it the bar turns to paper and takes the pine ring
+   back with .scrolled (css/site.css). */
 .sec-pine :focus-visible,
-.footer :focus-visible { outline-color: var(--gold-soft); }
+.page-head :focus-visible,
+.footer :focus-visible,
+.hero :focus-visible,
+html:not(.page-light) .site-head:not(.scrolled) :focus-visible { outline-color: var(--gold-soft); }
 
-/* ---------- Header (minimal) ---------- */
+/* ---------- Header ----------
+   Three zones (PDF p.1): monogram left, navigation on the true centre of
+   the viewport, social marks and the contact CTA right. Both outer
+   columns are 1fr, so the width of the marks can never pull the menu off
+   centre. Over the hero the bar is paper on ink; past it, the paper bar
+   the body needs — everything keys off currentColor, so the two states
+   need one switch, not two palettes. */
 .site-head {
   position: absolute;
   inset: 0 0 auto 0;
   z-index: 40;
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
-  padding: clamp(18px, 2.6vh, 28px) var(--mx-page);
+  column-gap: clamp(14px, 1.8vw, 36px);
+  padding: clamp(14px, 2vh, 22px) var(--mx-page);
+  color: var(--paper);
 }
 
 .monogram {
+  grid-column: 1;
+  justify-self: start;
+  position: relative;
+  z-index: 2;
   font-family: 'Gamay Editorial', Georgia, serif;
-  font-size: 1.05rem;
+  font-size: 1.2rem;
   letter-spacing: .02em;
 }
 
-.site-nav { display: flex; gap: clamp(18px, 2.4vw, 36px); }
+.nav-panel {
+  grid-column: 2;
+  justify-self: center;
+  min-width: 0;
+}
+
+.head-right {
+  grid-column: 3;
+  justify-self: end;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1vw, 18px);
+  min-width: 0;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(14px, 1.7vw, 30px);
+}
 
 .site-nav a {
   position: relative;
-  font-size: .7rem;
-  letter-spacing: .16em;
+  padding-block: 8px;
+  font-size: .9375rem;      /* 15px — above the brief's 14px floor */
+  letter-spacing: .12em;
   text-transform: uppercase;
-  color: var(--pine-70);
-  transition: color .3s;
+  color: currentColor;
+  opacity: .82;
+  transition: opacity .3s;
 }
-.site-nav a:hover { color: var(--pine); }
+.site-nav a:hover,
+.site-nav a:focus-visible { opacity: 1; }
+.site-nav a[aria-current="page"] { opacity: 1; }
 
 /* Hairline draws under the item — leaves the way it came */
-.site-nav > a::after,
-.nav-drop-wrap > a::after {
+.site-nav a::after {
   content: '';
   position: absolute;
   left: 0;
-  bottom: -6px;
+  bottom: 2px;
   width: 100%;
   height: 1px;
   background: currentColor;
@@ -120,59 +205,193 @@ a { color: inherit; text-decoration: none; }
   transform-origin: right;
   transition: transform .45s var(--ease-out);
 }
-.site-nav > a:hover::after,
-.site-nav > a:focus-visible::after,
-.nav-drop-wrap > a:hover::after,
-.nav-drop-wrap:focus-within > a::after {
+.site-nav a:hover::after,
+.site-nav a:focus-visible::after {
   transform: scaleX(1);
   transform-origin: left;
 }
+.site-nav a[aria-current="page"]::after { transform: scaleX(1); transform-origin: left; }
 
-/* ---------- Hero shell ---------- */
+/* ---------- Social marks ----------
+   Four marks, one weight, one optical size. Instagram is a link;
+   the three without a confirmed destination render as decorative
+   spans — present, but never pretending to be clickable. */
+.social-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  list-style: none;
+}
+
+.social-row a,
+.social-pending {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  color: currentColor;
+}
+
+.social-row svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.social-row a { opacity: .8; transition: opacity .3s var(--ease-out); }
+.social-row a:hover { opacity: 1; }
+.social-pending { opacity: .42; }
+
+.social-row--sheet { display: none; }
+
+.nav-pill {
+  flex: 0 0 auto;
+  font-size: .9375rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: currentColor;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: .7em 1.5em;
+  transition: background-color .4s var(--ease-out), color .4s var(--ease-out);
+}
+.nav-pill:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* ---------- Mobile menu button ---------- */
+.nav-toggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  margin-right: -10px;
+  background: none;
+  border: 0;
+  color: currentColor;
+  cursor: pointer;
+  place-items: center;
+  align-content: center;
+  justify-items: center;
+  gap: 6px;
+}
+/* On a 390px bar the pill and the button share what is left of the row,
+   and the flex row squeezes this one to 23px wide. The box keeps the width
+   it is given so the bars do not move; the area that answers a finger is
+   pushed back out past 44px with a transparent extension. */
+.nav-toggle { position: relative; }
+.nav-toggle::after {
+  content: "";
+  position: absolute;
+  inset: -2px -11px;
+}
+
+.nav-toggle-bar {
+  display: block;
+  width: 22px;
+  height: 1.5px;
+  background: currentColor;
+  transition: transform .4s var(--ease-out), opacity .3s;
+}
+.nav-toggle[aria-expanded="true"] .nav-toggle-bar:first-child { transform: translateY(3.75px) rotate(45deg); }
+.nav-toggle[aria-expanded="true"] .nav-toggle-bar:last-child { transform: translateY(-3.75px) rotate(-45deg); }
+
+/* ---------- Hero shell ----------
+   One dark room, one photograph standing in the middle of it, the words
+   over the composition (PDF p.1). Four things hold at once:
+
+   1. The room is black, and it is black everywhere the picture is not.
+      No wash, no bloom, no second copy of the frame behind the first:
+      the only things that touch the ink are the picture itself and
+      black-on-black gradients. Anything that lightened the field read as
+      smoke around a cut-out and was removed.
+
+   2. The photograph is the principal plane, not a picture parked on one.
+      The frame is driven from its WIDTH — a share of the viewport, set
+      once in --shot-pct — and the file is cropped into it with
+      object-fit: cover. That is the whole of the second correction. The
+      earlier build sized the frame from its height at the file's own 2:3
+      and contained the file inside it, which is what left a 430px column
+      of photograph in a 1900px room: 23% of the width, with black as the
+      dominant element. Nothing here stretches the file; cover preserves
+      its aspect ratio and --shot-y chooses which band of it is on screen.
+
+   3. The file sets the ceiling on how far the frame may open.
+      alex-story-04.webp is 1100x1650 and the original was never
+      delivered (PENDING.md §0a), so --shot-w carries a hard cap: the
+      frame never renders wider than --shot-max, which holds the upscale
+      at about 1.35x at its very worst and under 1.15x on every viewport
+      the brief names. The cap only binds above ~2100px, where it trades a
+      few points of width for pixels that are actually in the file.
+
+   4. The vertical order is fixed and the picture obeys it: statement,
+      photograph, the picture dissolving into black, then the name across
+      the foot. The frame now runs from just under the statement to the
+      fold, so the dissolve is doing real work: it is what ends the
+      photograph, and the name is set on the black it ends in. */
 .hero {
+  /* The composition in six numbers.
+     --shot-pct  the frame's share of the viewport width. This is the one
+                 number the composition turns on.
+     --shot-max  the ceiling the 1100px file imposes on that share.
+     --shot-top  where the frame begins, measured down the viewport.
+     --shot-h    how tall it is. It runs to the fold; the veil ends it.
+     --shot-y    which horizontal band of the file the frame is cut from
+                 (object-position), so the crop is a decision and not a
+                 by-product of the box.
+     --veil-in   where the picture starts going to black, so the name at
+                 the foot lands on a clean field. */
+  --shot-pct: 60vw;
+  --shot-max: 1480px;
+  --shot-w: min(var(--shot-pct), var(--shot-max));
+  --shot-top: clamp(186px, 20svh, 250px);
+  --shot-h: calc(100svh - var(--shot-top));
+  --shot-y: 44%;
+  --veil-in: 66%;
   position: relative;
-  height: 100vh;
-  height: 100svh;
-  min-height: 640px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  justify-items: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: clamp(84px, 11.5vh, 132px) var(--mx-page) clamp(28px, 4.5vh, 52px);
+  background: var(--ink);
+  color: var(--paper);
+  isolation: isolate;
   overflow: hidden;
 }
 
-.paper {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(44% 52% at 50% 58%, #f4f0e4 0%, transparent 68%),
-    radial-gradient(56% 50% at 50% 62%, rgba(214, 186, 120, .12), transparent 74%),
-    linear-gradient(180deg, #f3eee0 0%, var(--paper) 42%, var(--paper-deep) 100%);
-}
-
-/* ---------- Masthead (z3): kicker + statement ---------- */
-.masthead {
-  position: absolute;
-  z-index: 3;
-  left: var(--mx-page);
-  right: var(--mx-page);
-  top: clamp(64px, 8vh, 100px);
+/* ---------- The statement ----------
+   The headline alone, centred over the figure, the way the client's own
+   page 1 sets it. The small gold "Alexander Ringleb" that used to stand
+   over it is gone: it said the same thing the monumental setting at the
+   foot says, and a label over a heading is the one thing the heading
+   never needs. */
+.hero-say {
+  grid-row: 1;
+  position: relative;
+  z-index: 2;
+  max-width: 100%;
   text-align: center;
-  transform: translate3d(0, calc(var(--sp) * -6vh), 0);
-  opacity: calc(1 - var(--sp) * 1.3);
 }
 
-.kicker { overflow: hidden; margin-bottom: clamp(12px, 1.8vh, 18px); }
-.kicker-in {
-  display: inline-block;
-  font-size: .68rem;
-  letter-spacing: .3em;
-  text-transform: uppercase;
-  color: var(--gold);
+/* The measure belongs to the display face, not to the block: ch on
+   .hero-say would be counted in the 17px body font and cut the headline
+   to about a third of the line it needs. */
+.headline { max-width: 15ch; margin-inline: auto; }
+
+@media (max-width: 999px) {
+  .headline { max-width: 16ch; }
 }
 
 .headline {
   font-family: 'Gamay Editorial', Georgia, serif;
   font-weight: 900;
-  font-size: clamp(2.1rem, 4.35vw, 4.35rem);
-  line-height: 1.03;
+  font-size: clamp(2.2rem, 4.3vw, 4.15rem);
+  line-height: 1.04;
   letter-spacing: .002em;
+  text-wrap: balance;
+  color: var(--paper);
 }
 
 .headline .line { display: block; overflow: hidden; padding-block: .04em; }
@@ -184,222 +403,340 @@ a { color: inherit; text-decoration: none; }
   padding-right: .05em;
 }
 
-/* ---------- Proof stamps (z6) ---------- */
-.stamp {
-  position: absolute;
-  z-index: 6;
-  top: 37%;
-  display: flex;
-  flex-direction: column;
-  gap: .5em;
-  font-size: .66rem;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  color: var(--pine-70);
-  opacity: calc(1 - var(--sp) * 1.6);
-}
-.stamp::before {
-  content: '';
-  width: 26px;
-  height: 1px;
-  background: var(--gold-soft);
-  margin-bottom: .55em;
-  transform-origin: left;
-}
-.stamp-l { left: var(--mx-page); }
-.stamp-r { right: var(--mx-page); text-align: right; align-items: flex-end; }
-.stamp-r::before { transform-origin: right; }
-.stamp-dim { color: var(--pine-45); }
-
-/* ---------- The name, monumental, behind the figure (z2) ---------- */
-/* Letters dissolve at the page edges — no hard-cut glyph slivers */
-.marquee {
-  position: absolute;
-  z-index: 2;
-  left: 0;
-  right: 0;
-  top: 44%;
-  overflow: hidden;
-  pointer-events: none;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 4.5%, #000 95.5%, transparent 100%);
-  mask-image: linear-gradient(90deg, transparent 0, #000 4.5%, #000 95.5%, transparent 100%);
-}
-
-.marquee-track {
-  display: flex;
-  width: max-content;
-  transform: translate3d(calc(var(--sb) + var(--mx) * -14px), 0, 0);
-}
-
-.marquee-run {
-  display: block;
-  animation: slide 92s linear infinite;
-  font-family: 'Gamay Editorial', Georgia, serif;
-  font-weight: 900;
-  font-size: clamp(88px, 16vw, 300px);
-  line-height: .92;
-  letter-spacing: .005em;
-  white-space: nowrap;
-  color: var(--pine);
-  user-select: none;
-}
-
-@keyframes slide {
-  to { transform: translateX(-100%); }
-}
-
-/* ---------- Figure (z4): the cut-out, grounded at the fold ---------- */
-/* Grounded past the fold: the shins bleed off-screen, so the body
-   reads as standing on the page edge, never as fading away */
-.figure {
-  position: absolute;
-  z-index: 4;
-  left: 50%;
-  bottom: -4vh;
-  height: min(72vh, 148vw);
-  aspect-ratio: 880 / 1788;
-  transform: translate3d(calc(-50% + var(--mx) * 6px), calc(var(--my) * 4px + var(--sp) * 6vh), 0);
-  pointer-events: none;
-}
-
-/* Whisper of a fade at the crop edge — only ever visible mid-scroll */
-.figure-in {
-  width: 100%;
-  height: 100%;
-  -webkit-mask-image: linear-gradient(#000 97%, transparent 100%);
-  mask-image: linear-gradient(#000 97%, transparent 100%);
-}
-
-/* Photographic direction — EDITORIAL, the adopted primary presentation:
-   regraded asset (muted shirt, film fade, natural skin). CSS stays
-   near-neutral so the grade lives in the file; shadow short and decided. */
-.figure img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: 50% 100%;
-  display: block;
-  filter:
-    sepia(.05)
-    drop-shadow(14px 20px 16px rgba(13, 42, 27,.15));
-}
-
-/* ?photo=refined — secondary alternative (comparison only):
-   the original photo, flash softened via CSS */
-html.photo-refined .figure img {
-  filter:
-    sepia(.12) saturate(.92) contrast(1.02) brightness(.99)
-    drop-shadow(12px 18px 18px rgba(13, 42, 27,.16));
-}
-
-/* ?photo=slot — internal reference only (not a launch version):
-   reserved plate for the future on-location shoot */
-.plate { display: none; }
-
-html.photo-slot .figure picture { display: none; }
-html.photo-slot .plate {
+/* ---------- The stage ----------
+   The picture's own layer, under the words and under the veil. It is an
+   empty black plane: it paints nothing of its own, it only gives the
+   frame something absolute to hang from. */
+.hero-stage {
   position: absolute;
   inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 18px;
-  border: 1px solid rgba(13, 42, 27,.3);
-  background: rgba(233, 226, 205, .72);
-  box-shadow: 12px 18px 30px rgba(13, 42, 27,.08);
-  text-align: center;
-  padding: 8%;
+  z-index: 0;
+  pointer-events: none;      /* the words above stay selectable */
 }
-.plate-mark {
-  font-family: 'Gamay Editorial', Georgia, serif;
-  font-size: clamp(2rem, 3.4vw, 3.2rem);
-  color: rgba(13, 42, 27,.55);
-}
-.plate-note {
-  font-size: .62rem;
-  letter-spacing: .22em;
-  text-transform: uppercase;
-  line-height: 2.1;
-  color: var(--pine-70);
-}
-.plate-note span { color: var(--pine-45); }
 
-/* ---------- The role, small, in front of the figure (z5) ---------- */
-.ribbon {
+/* ---------- The frame ----------
+   Hung from the top, not stood on the floor. Bottom-alignment is what
+   used to leave the gap under the statement: whatever height the picture
+   took, its top fell wherever the leftover happened to be. Driving it
+   from the top edge instead makes the opening distance a decision — the
+   frame starts just under the statement on every viewport, and the base
+   runs to the fold because the veil closes it there.
+
+   Width and height are now independent, which is the point: the width is
+   the share of the room the photograph is meant to hold, the height is
+   the room left under the statement, and object-fit: cover reconciles
+   the two without touching the file's aspect ratio. */
+.hero-shot {
   position: absolute;
-  z-index: 5;
-  left: 0;
-  right: 0;
-  top: 88.5%;
+  top: var(--shot-top);
+  left: 50%;
+  transform: translateX(-50%);
+  width: var(--shot-w);
+  height: var(--shot-h);
+  max-width: 100%;
   overflow: hidden;
-  pointer-events: none;
-  opacity: calc(.8 - var(--sp) * 1.4);
 }
+.hero-shot picture { display: block; }
 
-.ribbon-track {
-  display: flex;
-  width: max-content;
-  transform: translate3d(calc(var(--sb) * -.45 + var(--mx) * 8px), 0, 0);
-}
+/* ---------- Dissolving the frame ----------
+   The requirement is that no line shows where the photograph ends:
 
-.ribbon-run {
+       black -> soft dark transition -> sharp photograph -> soft dark
+       transition -> black
+
+   Two linear gradients are used as one mask and intersected, so each
+   outer edge fades to nothing while the whole middle stays at full
+   opacity. A mask removes the picture; it never adds light. There is no
+   blur, no shadow and no filter anywhere near this element — the pixels
+   inside the plateau are the file's own, untouched, and the pixels
+   outside it are the ink field itself.
+
+   The percentages are read against the frame, and the frame is now about
+   three times wider than the one they were first written for, so they
+   are smaller numbers doing the same job over a longer run:
+
+     sides   13% — on a 1248px frame that is about 160px a side, which is
+             the record shelving either side of him and never reaches the
+             figure. The earlier 22% was tuned on a 430px column, where
+             the same job needed a larger share; kept at 22% on the wide
+             frame it would have eaten a third of the room the width was
+             opened to show. What matters is that the ramp is long enough
+             in real pixels that it does not draw a vertical line of its
+             own, and 160px is twice the run the narrow frame ever had.
+     top     12% — the shelf band across the top of the crop is the
+             brightest part of the file; the fade finishes above his hair,
+             so the eye reads a room emerging out of the black rather than
+             a photograph pasted onto it.
+     bottom  16% — it meets the veil coming the other way, so the foot of
+             the picture is already going before the veil does any work.
+
+   object-position: 50% var(--shot-y) is the framing control. cover fills
+   the width, so the file is cropped top and bottom only, and --shot-y
+   picks which band survives: it is set to keep the shelves above his
+   head, his face, and his torso down to the forearms, and never to
+   close in on the face alone. */
+.hero-shot img {
+  --edge-x: 13%;
+  --edge-top: 10%;
+  --edge-bottom: 16%;
   display: block;
-  animation: slide 68s linear infinite reverse;
-  font-size: .7rem;
-  letter-spacing: .32em;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% var(--shot-y);
+  -webkit-mask-image:
+    linear-gradient(to right,
+      transparent 0,
+      rgba(0, 0, 0, .12) calc(var(--edge-x) * .36),
+      rgba(0, 0, 0, .56) calc(var(--edge-x) * .7),
+      #000 var(--edge-x),
+      #000 calc(100% - var(--edge-x)),
+      rgba(0, 0, 0, .56) calc(100% - var(--edge-x) * .7),
+      rgba(0, 0, 0, .12) calc(100% - var(--edge-x) * .36),
+      transparent 100%),
+    linear-gradient(to bottom,
+      transparent 0,
+      rgba(0, 0, 0, .1) calc(var(--edge-top) * .38),
+      rgba(0, 0, 0, .52) calc(var(--edge-top) * .72),
+      #000 var(--edge-top),
+      #000 calc(100% - var(--edge-bottom)),
+      rgba(0, 0, 0, .74) calc(100% - var(--edge-bottom) * .76),
+      rgba(0, 0, 0, .40) calc(100% - var(--edge-bottom) * .5),
+      rgba(0, 0, 0, .12) calc(100% - var(--edge-bottom) * .24),
+      transparent 100%);
+  mask-image:
+    linear-gradient(to right,
+      transparent 0,
+      rgba(0, 0, 0, .12) calc(var(--edge-x) * .36),
+      rgba(0, 0, 0, .56) calc(var(--edge-x) * .7),
+      #000 var(--edge-x),
+      #000 calc(100% - var(--edge-x)),
+      rgba(0, 0, 0, .56) calc(100% - var(--edge-x) * .7),
+      rgba(0, 0, 0, .12) calc(100% - var(--edge-x) * .36),
+      transparent 100%),
+    linear-gradient(to bottom,
+      transparent 0,
+      rgba(0, 0, 0, .1) calc(var(--edge-top) * .38),
+      rgba(0, 0, 0, .52) calc(var(--edge-top) * .72),
+      #000 var(--edge-top),
+      #000 calc(100% - var(--edge-bottom)),
+      rgba(0, 0, 0, .74) calc(100% - var(--edge-bottom) * .76),
+      rgba(0, 0, 0, .40) calc(100% - var(--edge-bottom) * .5),
+      rgba(0, 0, 0, .12) calc(100% - var(--edge-bottom) * .24),
+      transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* ---------- The veil: black, and only black ----------
+   Two layers, both of them the ink colour at rising alpha, sitting over
+   the picture and under every word (z-index 1, between .hero-stage at 0
+   and the text at 2).
+
+   Top — a short one, and measured in pixels off --shot-top rather than
+   as a share of the frame. It has one job: hold the statement clear of
+   the brightest part of the crop, the shelving across the top. When it
+   was written as a share of --shot-h it grew with the frame, and on the
+   wide frame that put a quarter-strength wash over his head — the one
+   place in the composition that must not be dimmed. It now reaches full
+   transparency 130px below the top of the frame, which is above his
+   hair on every desktop viewport.
+
+   Bottom — the clean zone for the name, and the answer to "the
+   photograph does not disappear in a controlled way". It opens at
+   --veil-in, two thirds of the way down, where he is still torso and
+   there is nothing to lose; it is past half strength by three quarters,
+   effectively solid at nine tenths, and the last stop is the ink itself
+   with no alpha at all, so the foot of the hero is the same black as the
+   sides. The name sits on that black.
+
+   Every stop is the ink token at a rising alpha — one hue, one colour.
+   No white, no grey, no radial, nothing that lifts the field. */
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom,
+      var(--ink) 0,
+      var(--ink) var(--shot-top),
+      rgb(var(--ink-rgb) / .55) calc(var(--shot-top) + 42px),
+      rgb(var(--ink-rgb) / 0) calc(var(--shot-top) + 130px))
+      top / 100% 100% no-repeat,
+    linear-gradient(to bottom,
+      rgb(var(--ink-rgb) / 0) 0,
+      rgb(var(--ink-rgb) / .58) 18%,
+      rgb(var(--ink-rgb) / .82) 44%,
+      rgb(var(--ink-rgb) / .96) 62%,
+      var(--ink) 78%,
+      var(--ink) 100%)
+      bottom / 100% calc(100% - var(--veil-in)) no-repeat;
+}
+
+/* Stacked, the frame goes back to the file's own 2:3 and keeps it. A
+   phone has the vertical room and none of the horizontal, so the crop
+   that buys presence on a desktop would cost it here: a wide band of a
+   2:3 file on a 390px screen is a letterbox of his shoulders. Setting
+   the box to 2:3 makes cover and contain the same operation — nothing is
+   cropped, --shot-y has no overflow to move — and the whole seated
+   figure is on screen the way it was approved.
+
+   The vw ceiling — 86 down to 999px, 82 on a phone — is what keeps true
+   black down both edges instead of letting the picture run to the bezel,
+   and what guarantees there is nothing to scroll sideways to. The px
+   ceiling moved from 430 to 560 with the desktop frame: it only binds
+   between about 650 and 999px, where 430 was leaving the tablet at half
+   the presence the phone and the desktop both have. 560px of a 1100px
+   file is still half its pixels. */
+@media (max-width: 999px) {
+  .hero {
+    --shot-w: min(86vw, 560px);
+    --shot-h: calc(var(--shot-w) * 1.5);
+    --shot-top: 21svh;
+    /* The wider tablet frame puts more of the picture under the name, so
+       the veil opens earlier to meet it: at 54% his forearms were still
+       legible behind ALEXANDER. */
+    --veil-in: 46%;
+  }
+  .hero-shot img { --edge-x: 15%; --edge-top: 12%; --edge-bottom: 32%; }
+}
+
+@media (max-width: 620px) {
+  .hero {
+    --shot-w: min(82vw, 400px);
+    --shot-top: 22svh;
+    --veil-in: 58%;
+    padding-top: clamp(80px, 10.5vh, 104px);
+  }
+}
+
+/* ---------- The foot of the composition ----------
+   The name and the CTA share the last grid row, one at each page margin,
+   so the bottom of the hero is a line that spans the whole viewport
+   instead of a button floating near the middle of it.
+
+   The row itself takes no z-index, so its two children can sit on
+   different layers: the name at 1, under the closing scrim, the CTA at
+   2, over everything. */
+.hero-foot {
+  grid-row: 3;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: clamp(24px, 4vw, 64px);
+  width: 100%;
+  margin-top: clamp(22px, 3.4vh, 38px);
+}
+
+/* ---------- The name, monumental ----------
+   Mass C of the composition. It is the reason the bottom left corner is
+   no longer empty, and the reason the eye reads the hero as wide: set
+   across the foot of the room it carries the horizontal line the
+   photograph on its own cannot.
+
+   It is the same monument the footer signs the site with — Gamay
+   Editorial, paper at low alpha — only nearer the surface, because here
+   it has work to do and there it is a watermark.
+
+   Three things had to change for it to be readable end to end:
+
+   Ground. It no longer crosses the picture. The veil above is solid ink
+   by nine tenths of the hero, so every glyph stands on the same black
+   the sides of the viewport are, and no letter is half lit by whatever
+   happens to be behind it.
+
+   Tracking. The footer sign can afford -.028em because nothing has to be
+   read out of it. Here the word is the man's name, so it opens up: the
+   clamp gives .015em at the narrow end, tracks with the viewport in the
+   middle, and stops at .035em — wide enough that the letterforms stop
+   fusing at this weight, narrow enough that ALEXANDER still reads as one
+   word. The size clamp came down a step with it so the line still clears
+   the CTA at 1440 with room to spare.
+
+   Weight of voice. At .46 of paper on ink it measures 4.39:1 — past the
+   3:1 large text needs by a wide margin, and a quarter of the statement
+   above it, which is full paper at 16.12:1. .55 was tried first and read
+   as a second headline rather than a signature. No glow, no stroke, no
+   shadow: one flat colour for the whole word, so nothing about it
+   changes as the picture fades out behind it.
+
+   It never moves. No entrance, no parallax, no marquee. */
+.hero-name {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  font-family: 'Gamay Editorial', Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(2rem, 5.6vw, 6.6rem);
+  line-height: .86;
+  letter-spacing: clamp(.015em, .16vw, .035em);
   text-transform: uppercase;
   white-space: nowrap;
-  color: var(--gold);
-  text-shadow: 0 0 8px var(--paper);
+  color: rgba(247, 245, 240, .46);
   user-select: none;
+  /* The word is all caps, so the line box carries descender room no
+     glyph uses; -.07em sets its baseline against the CTA's. The tracking
+     also leaves whitespace after the B, and -.035em takes that back so
+     the name stays optically flush against the CTA side. */
+  margin: 0 -.035em -.07em 0;
 }
 
-/* ---------- CTA (z7): editorial, bordered, label flip ----------
-   .cta-wrap owns position + entrance; .cta owns hover + magnetism. */
+/* ---------- CTA ----------
+   PDF p.1 closes the composition with the one button in the bottom right
+   corner — the corner of the *viewport*, which is where the first
+   reference put it. It used to be measured against the photograph's own
+   width instead, which on a 1920 screen parked it 535px short of the
+   margin and left it reading as part of the picture rather than as the
+   end of the page. The name at the other margin is what it answers now,
+   so nothing is left floating. Visual, border, hover, type, arrow and
+   link are untouched; only where it stands has changed. */
 .cta-wrap {
-  position: absolute;
-  z-index: 7;
-  right: var(--mx-page);
-  bottom: clamp(22px, 3.4vh, 34px);
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
+  justify-content: flex-end;
 }
 
-/* Same hairline grammar as the stamps: the CTA belongs to the system */
-.cta-wrap::before {
-  content: '';
-  width: 26px;
-  height: 1px;
-  background: var(--gold-soft);
-}
-
+/* The same filled pill the site uses everywhere, inverted for the ink it
+   now stands on: paper fill, ink label, and the same swap on hover. The
+   geometry, the label, the flip and the magnetic behaviour are untouched —
+   only the two colours the dark field makes unreadable. */
 .cta {
   display: inline-block;
-  border: 1px solid rgba(13, 42, 27,.32);
+  border: 1px solid var(--pine);
   border-radius: 999px;
-  background: transparent;
-  color: var(--pine);
-  padding: 1em 1.8em;
-  font-size: .68rem;
-  letter-spacing: .18em;
+  background: var(--pine);
+  color: var(--paper);
+  padding: 1em 1.9em;
+  font-size: .9375rem;
+  letter-spacing: .12em;
   text-transform: uppercase;
   transition: background-color .45s var(--ease-out), border-color .45s, color .45s var(--ease-out), transform .45s var(--ease-out);
   will-change: transform;
 }
 .cta:hover {
-  background: var(--pine);
+  background: transparent;
   border-color: var(--pine);
+  color: var(--pine);
+}
+
+.hero-cta {
+  background: var(--paper);
+  border-color: var(--paper);
+  color: var(--ink);
+}
+.hero-cta:hover {
+  background: transparent;
+  border-color: var(--paper);
   color: var(--paper);
 }
 
-.cta-flip {
-  display: block;
-  overflow: hidden;
-  height: 1.1em;
-}
+.cta-flip { display: block; overflow: hidden; height: 1.1em; }
 .cta-label {
   display: block;
   height: 1.1em;
@@ -408,230 +745,247 @@ html.photo-slot .plate {
 }
 .cta:hover .cta-label { transform: translateY(-100%); }
 
-/* Secondary CTA — the official site's "Explore my work →", kept quieter
-   than the pill: a caps hairline link in the stamps' grammar. */
-.cta-ghost {
-  font-size: .58rem;
-  letter-spacing: .22em;
-  text-transform: uppercase;
-  color: var(--pine);
-  opacity: .58;
-  padding-bottom: 3px;
-  border-bottom: 1px solid var(--gold-soft);
-  transition: opacity .45s var(--ease-out), border-color .45s var(--ease-out);
+/* ---------- One "Let's talk" at a time ----------
+   The hero holds the CTA at rest; past the hero it is the header pill.
+   The two fade in sequence (out, then in), never together, and
+   visibility keeps the hidden one out of the tab order. Without JS the
+   header pill is the only one, so there is never a pair. On the inner
+   pages there is no hero, so hero.js docks the header immediately. */
+html.js #nav-talk {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .26s var(--ease-out), visibility 0s .26s;
 }
-.cta-ghost:hover {
+html.js.head-docked #nav-talk {
   opacity: 1;
-  border-color: var(--pine);
+  visibility: visible;
+  transition: opacity .3s var(--ease-out) .26s, visibility 0s;
 }
-
-/* ---------- Mobile-only merged proof line ---------- */
-.stamp-mobile { display: none; }
-
-/* ---------- Atmosphere ---------- */
-.grain {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
-  background-size: 160px 160px;
-  opacity: .035;
-  mix-blend-mode: multiply;
-  pointer-events: none;
+html.js .hero-cta {
+  transition: background-color .45s var(--ease-out), border-color .45s,
+              color .45s var(--ease-out), transform .45s var(--ease-out),
+              opacity .3s var(--ease-out) .26s;
 }
+html.js.head-docked .hero-cta {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .26s var(--ease-out), visibility 0s .26s;
+}
+html:not(.js) .hero-cta { display: none; }
+
+/* Arriving at /#insights from another page, the browser paints the top of
+   the document before it reaches the target element — so the hero flashes
+   past on the way down. The class is set in the head, before paint, and the
+   page is held until js/hero.js has it at the section. The keyframe is the
+   failsafe: if the module never runs, the page reveals itself anyway. */
+html.hash-entry body {
+  visibility: hidden;
+  animation: hash-reveal 0s linear 1.2s forwards;
+}
+html.hash-entry.hash-landed body {
+  visibility: visible;
+  animation: none;
+}
+@keyframes hash-reveal { to { visibility: visible; } }
+
+/* An anchor landing must not arrive under the fixed bar. */
+:target { scroll-margin-top: clamp(72px, 9vh, 92px); }
+#about, #insights, #contact, #top { scroll-margin-top: clamp(72px, 9vh, 92px); }
+
+/* Icon sprite host — present, never painted */
+.svg-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
 
 /* ============================================================
    Entrance choreography
    html.anim  = initial (hidden) states + transitions armed
    html.is-ready = release to final states
+   The name is deliberately absent from this list: it is on the page
+   from the first frame and never moves.
    ============================================================ */
-
-html.anim .marquee {
+html.anim:not(.hash-entry) .hero-shot {
   opacity: 0;
-  transform: translate3d(10vw, 24%, 0);
-  transition: opacity .8s var(--ease-out) .1s, transform 1.5s var(--ease-out) .1s;
+  transition: opacity 1.2s var(--ease-out) .15s;
 }
-html.anim .figure-in {
-  opacity: 0;
-  transform: translateY(7%);
-  transition: opacity 1s var(--ease-out) .4s, transform 1.4s var(--ease-out) .4s;
-}
-html.anim .kicker-in {
-  transform: translateY(110%);
-  transition: transform .9s var(--ease-out) .8s;
-}
-html.anim .headline .line-in {
+html.anim:not(.hash-entry) .headline .line-in {
   transform: translateY(112%);
   transition: transform 1.05s var(--ease-out);
 }
-html.anim .headline .line:nth-child(1) .line-in { transition-delay: .9s; }
-html.anim .headline .line:nth-child(2) .line-in { transition-delay: 1s; }
-html.anim .stamp::before {
-  transform: scaleX(0);
-  transition: transform .8s var(--ease-out) 1.2s;
-}
-html.anim .stamp span {
-  opacity: 0;
-  transform: translateY(8px);
-  transition: opacity .8s var(--ease-out) 1.3s, transform .8s var(--ease-out) 1.3s;
-}
-html.anim .stamp span:nth-child(2) { transition-delay: 1.42s; }
-html.anim .ribbon {
-  opacity: 0;
-  transition: opacity 1s var(--ease-out) 1.5s;
-}
-html.anim .cta-wrap {
+html.anim:not(.hash-entry) .headline .line:nth-child(1) .line-in { transition-delay: .6s; }
+html.anim:not(.hash-entry) .headline .line:nth-child(2) .line-in { transition-delay: .7s; }
+html.anim:not(.hash-entry) .cta-wrap {
   opacity: 0;
   transform: translateY(10px);
-  transition: opacity .7s var(--ease-out) 1.62s, transform .7s var(--ease-out) 1.62s;
+  transition: opacity .7s var(--ease-out) .98s, transform .7s var(--ease-out) .98s;
 }
-html.anim .site-head {
+html.anim:not(.hash-entry) .site-head {
   opacity: 0;
   transform: translateY(-8px);
-  transition: opacity .8s var(--ease-out) 1.7s, transform .8s var(--ease-out) 1.7s;
+  transition: opacity .8s var(--ease-out) 1.04s, transform .8s var(--ease-out) 1.04s;
 }
 
 /* Release */
-html.anim.is-ready .marquee { opacity: 1; transform: translate3d(0, 0, 0); }
-html.anim.is-ready .figure-in { opacity: 1; transform: none; }
-html.anim.is-ready .kicker-in,
-html.anim.is-ready .headline .line-in { transform: none; }
-html.anim.is-ready .stamp::before { transform: scaleX(1); }
-html.anim.is-ready .stamp span { opacity: 1; transform: none; }
-html.anim.is-ready .ribbon { opacity: 1; }
-html.anim.is-ready .cta-wrap { opacity: 1; transform: none; }
-html.anim.is-ready .site-head { opacity: 1; transform: none; }
+html.anim.is-ready:not(.hash-entry) .hero-shot { opacity: 1; }
+html.anim.is-ready:not(.hash-entry) .headline .line-in { transform: none; }
+html.anim.is-ready:not(.hash-entry) .cta-wrap { opacity: 1; transform: none; }
+html.anim.is-ready:not(.hash-entry) .site-head { opacity: 1; transform: none; }
 
-/* ---------- Reduced motion ----------
-   JS bails out, vars stay 0; only the animations stop. */
+/* The inner pages have no hero to wait for: the bar is simply there. */
+html.anim:not(.hash-entry) .page-sub .site-head,
+.page-sub html.anim .site-head { opacity: 1; transform: none; }
+
+/* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  .marquee-run, .ribbon-run, .grain { animation: none; }
-  *, *::before, *::after { transition-duration: .01ms !important; }
+  *, *::before, *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
 
 /* ============================================================
-   Mobile — its own composition (≤860px)
-   Statement high, figure large and grounded, name behind the
-   chest, role ribbon at the thighs, single proof line, thumb CTA.
+   Menu breakpoint (≤1180px) — the row folds into a panel.
+   The menu takes over BEFORE the three zones start compressing, so the
+   navigation is never squeezed off the centre.
+   ============================================================ */
+@media (max-width: 1180px) {
+  .nav-toggle { display: grid; }
+  .social-row--head { display: none; }
+  .social-row--sheet { display: flex; }
+
+  .nav-panel {
+    position: fixed;
+    inset: 0 0 auto 0;
+    width: 100%;
+    justify-self: stretch;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 0;
+    padding: calc(clamp(14px, 2vh, 22px) + 60px) var(--mx-page) 34px;
+    background: var(--ink-2);
+    color: var(--paper);
+    transform: translateY(-101%);
+    visibility: hidden;
+    transition: transform .55s var(--ease-out), visibility 0s .55s;
+  }
+  .nav-panel.is-open {
+    transform: none;
+    visibility: visible;
+    transition: transform .55s var(--ease-out);
+  }
+
+  /* Without JS nothing can open the sheet, so it is not a sheet: the
+     navigation sits under the bar as a plain block and stays reachable. */
+  html:not(.js) .nav-panel {
+    position: static;
+    transform: none;
+    visibility: visible;
+    padding: 0;
+    background: none;
+    grid-column: 1 / -1;
+    margin-top: 14px;
+  }
+  html:not(.js) .nav-toggle { display: none; }
+
+  .site-nav {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    width: 100%;
+  }
+  .site-nav a {
+    width: 100%;
+    padding-block: 15px;      /* ≥ 44px touch target with the 15px line */
+    border-bottom: 1px solid rgba(247, 245, 240, .14);
+    font-size: 1.0625rem;
+    letter-spacing: .16em;
+    opacity: .94;
+  }
+  .site-nav a::after { display: none; }
+  html:not(.js) .site-nav a { border-bottom-color: rgba(247, 245, 240, .2); }
+
+  .social-row--sheet { margin-top: 24px; gap: 6px; }
+  .social-row--sheet a,
+  .social-row--sheet .social-pending { width: 44px; height: 44px; }
+  .social-row--sheet svg { width: 20px; height: 20px; }
+}
+
+/* ============================================================
+   Mobile & portrait tablet (≤860px) — the same composition, stacked.
    ============================================================ */
 @media (max-width: 860px) {
-  .site-nav a:not(:last-child) { display: none; }
+  /* 600px was the floor the stacked paper hero needed; against a picture
+     measured in svh it became a ceiling instead, clipping the foot of the
+     frame and pushing the statement down onto his head. The floor is kept
+     for the odd very short phone in landscape, but the screen wins. */
+  .hero { min-height: max(600px, 100svh); }
 
-  .hero { min-height: 660px; }
+  .headline { font-size: clamp(1.95rem, 8.4vw, 2.9rem); line-height: 1.06; }
 
-  .paper {
-    background:
-      radial-gradient(110% 46% at 50% 60%, #f3efe2 0%, transparent 74%),
-      linear-gradient(180deg, #f3eee0 0%, var(--paper) 42%, var(--paper-deep) 100%);
+  /* Side by side there is no width left for either: at 390px the name
+     would need more than the whole row on its own. So the foot stacks —
+     the name on two lines against the left margin, the button under it
+     against the right — and the corner-to-corner reading survives in the
+     only direction a phone has to give. */
+  .hero-foot {
+    flex-direction: column;
+    align-items: stretch;
+    gap: clamp(12px, 2vh, 20px);
+    margin-top: clamp(16px, 2.4vh, 24px);
   }
 
-  .masthead { top: clamp(60px, 9svh, 96px); }
-  .kicker { margin-bottom: 10px; }
-  .kicker-in { font-size: .58rem; letter-spacing: .24em; }
-  .headline { font-size: clamp(1.9rem, 8.6vw, 2.9rem); line-height: 1.05; }
-
-  .stamp-l, .stamp-r { display: none; }
-  .stamp-mobile {
-    display: block;
-    position: absolute;
-    z-index: 6;
-    left: 24px;
-    right: 24px;
-    bottom: calc(clamp(18px, 3vh, 32px) + 66px);
-    text-align: center;
-    text-wrap: balance;
-    font-size: .6rem;
-    letter-spacing: .16em;
-    text-transform: uppercase;
-    color: var(--pine);
-    text-shadow: 0 0 12px var(--paper), 0 0 4px var(--paper), 0 0 2px var(--paper);
-    opacity: calc(1 - var(--sp) * 1.6);
+  /* The break is deliberate, not a wrap: 8ch cuts it after ALEXANDER so
+     RINGLEB gets its own full line instead of one orphaned syllable. The
+     tracking and the colour are the desktop ones — a phone is where a
+     name at this weight fuses first, so it keeps every bit of the
+     opening, and the veil gives it the same clean black to sit on. */
+  .hero-name {
+    white-space: normal;
+    max-width: 8ch;
+    font-size: clamp(2rem, 11.1vw, 3.4rem);
+    line-height: .92;
+    letter-spacing: clamp(.018em, .3vw, .04em);
   }
 
-  .figure { height: min(70svh, 168vw); bottom: -3svh; }
+  .cta { padding: 1.05em 1.9em; }
+}
 
-  .marquee { top: 46svh; }
-  .marquee-run { font-size: 22vw; }
 
-  .ribbon { top: 77svh; }
-  .ribbon-run { font-size: .6rem; letter-spacing: .26em; }
-
-  .cta-wrap {
-    right: 0;
-    left: 0;
-    width: max-content;
-    margin-inline: auto;
-    bottom: clamp(18px, 3vh, 32px);
-    align-items: center;
-  }
-  .cta-wrap::before { display: none; }
-  .cta {
-    padding: 1.1em 2em;
-    white-space: nowrap;
-    background: var(--paper);
-  }
-  /* Over the photo the hairline link needs the marquee's paper halo */
-  .cta-ghost {
-    opacity: .8;
-    text-shadow: 0 0 10px var(--paper);
+/* Shorter desktop viewports (1280×720 and friends): the statement comes
+   down a step and the frame comes up with it, so the opening distance
+   under the headline survives a screen with 360 fewer pixels of room.
+   Everything else is measured in svh and follows on its own. */
+@media (max-height: 780px) and (min-width: 861px) {
+  .headline { font-size: clamp(2.1rem, 3.8vw, 3.4rem); }
+  .hero {
+    /* Only the opening distance moves. The width is a share of the
+       screen and the height is whatever is left under the statement, so
+       bringing --shot-top up is the entire adjustment — the frame gets
+       proportionally taller on a short screen, which is what keeps the
+       same amount of him in view. The old rule re-declared --shot-w from
+       --shot-h to hold the file's 2:3 under contain; cover has no such
+       tie, and leaving that line in was what shrank a 1280x720 frame
+       back to 341px, a quarter of the width. */
+    --shot-top: clamp(150px, 21svh, 200px);
+    padding-block: clamp(76px, 10vh, 104px) clamp(36px, 5vh, 56px);
   }
 }
 
-/* Shorter desktop viewports: keep the head clear of the statement */
-@media (max-height: 820px) and (min-width: 861px) {
-  .headline { font-size: clamp(2rem, 4vw, 3.4rem); }
-  .figure { height: min(68vh, 148vw); }
-  .ribbon { top: 87%; }
-}
-
-/* Very short landscape viewports: keep the statement readable */
+/* Very short landscape viewports: at 480px of screen the statement has
+   nowhere to stand, so the hero stops trying to be exactly a screen tall
+   and takes a 600px floor instead. --shot-h is measured against that
+   floor rather than against 100svh, or the frame would be sized for a
+   hero shorter than the one it sits in and leave a band of bare ink
+   under it. The photograph runs past the fold by design; the rest of it
+   is one flick away and nothing is cropped to get there. */
 @media (max-height: 560px) and (min-width: 861px) {
-  .masthead { top: 7vh; }
-  .marquee { top: 40%; }
-  .figure { height: 62vh; }
-}
-
-/* ============================================================
-   Loader — minimal A—R hold (deliberately simple this round).
-   Paper ground so it dissolves straight into the hero — no dark
-   flash. Brief mark, quick fade. Hidden without JS ([hidden]);
-   only runs under html.anim; reduced motion barely shows it.
-   ============================================================ */
-.loader {
-  position: fixed;
-  inset: 0;
-  z-index: 200;
-  background: var(--paper);
-  display: grid;
-  place-items: center;
-  transition: opacity .55s var(--ease-out);
-}
-.loader.reveal { opacity: 0; }
-.loader.done { display: none; }
-
-.loader-mark {
-  display: inline-flex;
-  align-items: center;
-  gap: .5em;
-  font-family: 'Gamay Editorial', Georgia, serif;
-  font-weight: 900;
-  font-size: clamp(1.25rem, 2vw, 1.7rem);
-  letter-spacing: .02em;
-  color: var(--pine);
-  opacity: 0;
-  transition: opacity .5s var(--ease-out);
-}
-.loader.mark .loader-mark { opacity: 1; }
-
-.lm-a, .lm-r { display: inline-block; }
-.lm-dash {
-  width: 24px;
-  height: 2px;
-  background: var(--gold-soft);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .loader, .loader * { transition: none !important; }
-  .loader-mark { opacity: 1; }
+  .hero {
+    min-height: 600px;
+    --shot-top: clamp(112px, 20svh, 150px);
+    --shot-h: calc(600px - var(--shot-top));
+    --veil-in: 66%;
+  }
+  .headline { font-size: clamp(1.8rem, 3vw, 2.5rem); }
+  .hero-name { font-size: clamp(2rem, 4.6vw, 4rem); }
 }
