@@ -149,14 +149,20 @@
 
     if (!hero) docEl.classList.add('head-docked');   // no hero CTA to hand over from
 
+    /* Floating is the bar's second shape (css/site.css): on the home page
+       it lets go of the edges when the hero is behind it, on a page that
+       opens on paper as soon as the page moves at all. */
     const setHead = () => {
       const y = window.scrollY;
       if (lightPage) {
         head.classList.add('scrolled');
+        head.classList.toggle('is-floating', y > 24);
       } else {
         const coverH = cover ? cover.offsetHeight : 0;
         const headH = head.offsetHeight || 64;
-        head.classList.toggle('scrolled', y > Math.max(40, coverH - headH));
+        const past = y > Math.max(40, coverH - headH);
+        head.classList.toggle('scrolled', past);
+        head.classList.toggle('is-floating', past);
       }
 
       if (!hero) return;
@@ -252,8 +258,15 @@
   const panel = document.getElementById('site-nav');
 
   if (toggle && panel) {
+    /* Open, the sheet is the page: the document stops scrolling under it
+       (overflow on the root only — the scroll position is untouched, so
+       closing lands exactly where the reader was), and everything behind
+       it is inert, so Tab walks the menu and nothing else. */
+    const behind = [document.querySelector('main'), document.querySelector('footer')].filter(Boolean);
     const setMenu = (open) => {
       panel.classList.toggle('is-open', open);
+      docEl.classList.toggle('menu-open', open);
+      behind.forEach((el) => { el.inert = open; });
       toggle.setAttribute('aria-expanded', String(open));
       toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
     };

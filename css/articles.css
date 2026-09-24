@@ -18,7 +18,7 @@
 .editorial-article { padding-top:clamp(132px,13vw,190px); padding-bottom:clamp(70px,9vw,110px); overflow-wrap:anywhere; }
 .article-open { max-width:960px; margin:0 auto 44px; }
 .article-open .page-kicker { margin-top:40px; }
-.article-open h1 { font-family:'Gamay Editorial',serif; font-weight:900; font-size:clamp(2.35rem,5.5vw,4.5rem); line-height:1.06; margin:20px 0 26px; }
+.article-open h1 { font-family:var(--display-light); font-weight:400; letter-spacing:var(--display-track); font-size:clamp(2.35rem,5.5vw,4.5rem); line-height:1.06; margin:20px 0 26px; }
 .article-lede { max-width:64ch; font-size:clamp(1.25rem,2.1vw,1.65rem); line-height:1.5; margin-bottom:24px; color:var(--text-muted); }
 .article-cover { max-width:1100px; aspect-ratio:16/9; overflow:hidden; margin:0 auto 56px; background:var(--paper-deep); }
 .article-cover img { display:block; width:100%; height:100%; object-fit:cover; }
@@ -38,7 +38,7 @@
 .article-end { border-top:1px solid var(--rule); padding-top:28px; margin-top:56px; display:flex; flex-wrap:wrap; gap:18px 28px; font-size:1rem; }
 
 .related-articles { padding-bottom:clamp(84px,10vw,140px); }
-.related-articles > h2 { margin:12px 0 38px; font-family:'Gamay Editorial',serif; font-size:clamp(2rem,4vw,3.6rem); line-height:1.08; }
+.related-articles > h2 { margin:12px 0 38px; font-family:var(--display-light); font-weight:400; letter-spacing:var(--display-track); font-size:clamp(2rem,4vw,3.6rem); line-height:1.08; }
 .related-list { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:clamp(24px,3vw,42px); list-style:none; }
 .related-list .article-entry-link { grid-template-columns:1fr; }
 .related-list .article-entry-cover { aspect-ratio:16/10; }
