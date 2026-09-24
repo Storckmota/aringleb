@@ -59,14 +59,74 @@
     }
   }
 
-  /* ---------- 1. Entrance ---------- */
-  const release = () => requestAnimationFrame(() => docEl.classList.add('is-ready'));
+  /* ---------- 1. Entrance ----------
+     Two conditions, not one. The hero used to open on the fonts alone,
+     which on a first visit meant the whole choreography played out behind
+     the preloader and the wipe revealed a composition that had already
+     finished arriving. So the release now waits for both:
+
+       fonts      the faces the headline and the name are set in, capped
+                  at 900ms so a slow font never holds the page;
+       preloader  the overlay actually leaving the document, announced by
+                  js/motion.js the moment it does. When no overlay is
+                  showing — a repeat visit, ?static=1, a hash landing,
+                  reduced motion — this condition is already met and the
+                  entrance opens on the fonts exactly as before. No visit
+                  ever waits for a preloader it is not being shown.
+
+     The failsafe on that wait is not a second guess at the duration —
+     that is the bug this replaces. It asks the only question that
+     matters, which is whether the overlay is still covering the page, and
+     it does not start asking until the overlay's own CSS fallback has
+     already taken it off screen (5.2s + .5s in css/site.css). So a
+     preloader that is simply slow is waited out, a preloader whose script
+     never ran is not waited for at all, and 9s is the ceiling in either
+     case. Every path resolves, and release() only ever runs once. */
+  let released = false;
+  const release = () => {
+    if (released) return;
+    released = true;
+    /* One frame with the armed state painted, so the transitions actually
+       run instead of being collapsed into the same style resolution. A
+       hidden tab never fires rAF, so a short timer stands behind it; the
+       class is idempotent and lands exactly once either way. */
+    requestAnimationFrame(() => docEl.classList.add('is-ready'));
+    setTimeout(() => docEl.classList.add('is-ready'), 120);
+  };
 
   const fontsReady = (document.fonts && document.fonts.ready)
     ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 900))])
     : new Promise((r) => setTimeout(r, 150));
 
-  fontsReady.then(release);
+  const preloaderGone = (reduced || !docEl.classList.contains('preloader-on'))
+    ? Promise.resolve()
+    : new Promise((resolve) => {
+        // The class covers the race: if the overlay left before this
+        // module ran, there is no event left to hear.
+        if (docEl.classList.contains('preloader-done')) { resolve(); return; }
+        document.addEventListener('ar:preloader-done', resolve, { once: true });
+
+        const covering = () => {
+          const el = document.getElementById('site-preloader');
+          if (!el) return false;
+          const cs = getComputedStyle(el);
+          return cs.visibility !== 'hidden' && parseFloat(cs.opacity) > .01;
+        };
+        const ceiling = performance.now() + 9000;
+        const look = () => {
+          if (!covering() || performance.now() > ceiling) resolve();
+          else setTimeout(look, 250);
+        };
+        setTimeout(look, 5900);
+      });
+
+  /* The stylesheet carries its own release for the case where this module
+     never runs at all. It is armed by default and disarmed here, at the
+     one point where the release above is certain to be scheduled — so the
+     two can never both fire, and a hero.js that dies earlier still leaves
+     the CSS holding the floor. */
+  docEl.classList.add('entrance-owned');
+  Promise.all([fontsReady, preloaderGone]).then(release);
 
   /* ---------- 2. Header state + the single "Let's talk" ----------
      The bar keeps its paper-on-ink treatment while a dark cover is behind

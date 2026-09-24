@@ -54,11 +54,12 @@
   --pine-45: rgba(27, 29, 27, .58);
   --rule: rgba(25, 29, 26, .16);
   /* Hero ink — the field the hero photograph stands in. It is sampled from
-     the photograph's own shadow: the darkest bands of alex-story-04 read
-     #161211 (bottom edge) and #0d0c0c (the shelf line under the top), so
-     this warm near-black sits between the two and the picture's edges can
-     dissolve into it without a seam. Pure black would read cooler than the
-     room and draw the outline it is there to hide.
+     the photograph's own shadow, and it survived the change of file
+     unchanged because the room did not change: MIC_0309 reads #14110f in
+     the bottom right corner, #181412 at the top left and #171213 across
+     the floor, so this warm near-black is the room's own shadow and the
+     picture's edges dissolve into it without a seam. Pure black would read
+     cooler than the room and draw the outline it is there to hide.
      --ink-rgb is the same colour as channels, for the scrims that need it
      at partial alpha. */
   --ink: #14110e;
@@ -151,7 +152,10 @@ html:not(.page-light) .site-head:not(.scrolled) :focus-visible { outline-color: 
   position: relative;
   z-index: 2;
   font-family: 'Gamay Editorial', Georgia, serif;
-  font-size: 1.2rem;
+  /* The mark stays the largest thing in the bar, but only just: at
+     1.2rem it read as a third size class next to the 16px labels. 18px
+     keeps A—R dominant at the left margin and proportional to the row. */
+  font-size: 1.125rem;
   letter-spacing: .02em;
 }
 
@@ -181,7 +185,10 @@ html:not(.page-light) .site-head:not(.scrolled) :focus-visible { outline-color: 
 .site-nav a {
   position: relative;
   padding-block: 8px;
-  font-size: .9375rem;      /* 15px — above the brief's 14px floor */
+  /* 16px is the one size for every functional label in the bar — these
+     links, the "Let's talk" pill, and the same links inside the mobile
+     sheet. Weight, tracking, case and colour are untouched. */
+  font-size: 1rem;
   letter-spacing: .12em;
   text-transform: uppercase;
   color: currentColor;
@@ -246,7 +253,7 @@ html:not(.page-light) .site-head:not(.scrolled) :focus-visible { outline-color: 
 
 .nav-pill {
   flex: 0 0 auto;
-  font-size: .9375rem;
+  font-size: 1rem;          /* the bar's one functional size */
   letter-spacing: .12em;
   text-transform: uppercase;
   color: currentColor;
@@ -317,12 +324,19 @@ html:not(.page-light) .site-head:not(.scrolled) :focus-visible { outline-color: 
       its aspect ratio and --shot-y chooses which band of it is on screen.
 
    3. The file sets the ceiling on how far the frame may open.
-      alex-story-04.webp is 1100x1650 and the original was never
-      delivered (PENDING.md §0a), so --shot-w carries a hard cap: the
-      frame never renders wider than --shot-max, which holds the upscale
-      at about 1.35x at its very worst and under 1.15x on every viewport
-      the brief names. The cap only binds above ~2100px, where it trades a
-      few points of width for pixels that are actually in the file.
+      The source is the original MIC_0309.png — 2465x2458, square — so
+      the cap that the old 1100px web copy forced is no longer what it
+      was: --shot-max only exists to stop the frame from ever asking for
+      more pixels than the file has, and at 1800px it still leaves the
+      widest derivative (2200) with a real pixel behind every CSS one at
+      2x. The cap binds above 3000px of viewport; below that the frame is
+      exactly the --shot-pct share it is meant to be.
+
+      The square file is also why the crop numbers below were re-derived
+      rather than inherited. A 2:3 file in a landscape frame is cropped
+      hard top and bottom; a square file in the same frame is cropped
+      lightly, so --shot-y moves the band over a shorter run and the
+      whole seated figure — face, arms, hands — stays in the composition.
 
    4. The vertical order is fixed and the picture obeys it: statement,
       photograph, the picture dissolving into black, then the name across
@@ -342,11 +356,11 @@ html:not(.page-light) .site-head:not(.scrolled) :focus-visible { outline-color: 
      --veil-in   where the picture starts going to black, so the name at
                  the foot lands on a clean field. */
   --shot-pct: 60vw;
-  --shot-max: 1480px;
+  --shot-max: 1800px;
   --shot-w: min(var(--shot-pct), var(--shot-max));
   --shot-top: clamp(186px, 20svh, 250px);
   --shot-h: calc(100svh - var(--shot-top));
-  --shot-y: 44%;
+  --shot-y: 46%;
   --veil-in: 66%;
   position: relative;
   display: grid;
@@ -436,7 +450,16 @@ html:not(.page-light) .site-head:not(.scrolled) :focus-visible { outline-color: 
   max-width: 100%;
   overflow: hidden;
 }
-.hero-shot picture { display: block; }
+/* <picture> is a real box in the layout, so it has to carry the frame's
+   size down to the image: without width/height here the <img> resolves
+   height:100% against an auto-height parent, renders at its own aspect
+   ratio and cover never engages — the frame silently becomes a top crop
+   of the whole file. */
+.hero-shot picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
 
 /* ---------- Dissolving the frame ----------
    The requirement is that no line shows where the photograph ends:
@@ -472,9 +495,12 @@ html:not(.page-light) .site-head:not(.scrolled) :focus-visible { outline-color: 
 
    object-position: 50% var(--shot-y) is the framing control. cover fills
    the width, so the file is cropped top and bottom only, and --shot-y
-   picks which band survives: it is set to keep the shelves above his
-   head, his face, and his torso down to the forearms, and never to
-   close in on the face alone. */
+   picks which band survives. On the square original the frame keeps
+   about three quarters of the file's height, so the band is chosen, not
+   forced: 46% sets the shelving and the top of the frame above his hair,
+   the face at roughly a third of the way down the frame, and the arms,
+   the tattoos and the hands inside it, with the chair and the floor
+   running out under the veil. It is never a crop on the face alone. */
 .hero-shot img {
   --edge-x: 13%;
   --edge-top: 10%;
@@ -577,25 +603,31 @@ html:not(.page-light) .site-head:not(.scrolled) :focus-visible { outline-color: 
       bottom / 100% calc(100% - var(--veil-in)) no-repeat;
 }
 
-/* Stacked, the frame goes back to the file's own 2:3 and keeps it. A
-   phone has the vertical room and none of the horizontal, so the crop
-   that buys presence on a desktop would cost it here: a wide band of a
-   2:3 file on a 390px screen is a letterbox of his shoulders. Setting
-   the box to 2:3 makes cover and contain the same operation — nothing is
-   cropped, --shot-y has no overflow to move — and the whole seated
-   figure is on screen the way it was approved.
+/* Stacked, the frame turns portrait and the crop changes direction. A
+   phone has the vertical room and none of the horizontal, so the wide
+   band that buys presence on a desktop would cost it here: it would be a
+   letterbox of his shoulders. The box is set taller than the square file
+   instead, so cover scales the picture to the frame's HEIGHT and trims
+   the sides — the dark room and the record shelving either side of him,
+   which the edge mask is dissolving anyway. The seated figure, the
+   chair, the arms and the hands all stay inside the trim.
 
-   The vw ceiling — 86 down to 999px, 82 on a phone — is what keeps true
-   black down both edges instead of letting the picture run to the bezel,
-   and what guarantees there is nothing to scroll sideways to. The px
-   ceiling moved from 430 to 560 with the desktop frame: it only binds
-   between about 650 and 999px, where 430 was leaving the tablet at half
-   the presence the phone and the desktop both have. 560px of a 1100px
-   file is still half its pixels. */
+   The ratios are the whole adjustment: 1.22 on a tablet takes about 18%
+   off the width, 1.32 on a phone about 24%, and at 24% the crop still
+   stops well outside the side table on the left and the arm of the chair
+   on the right. --shot-y has no vertical overflow to move here, so the
+   full height of the file is on screen at both sizes.
+
+   The vw ceiling — 86 down to 999px and on a phone alike — is what keeps
+   true black down both edges instead of letting the picture run to the
+   bezel, and what guarantees there is nothing to scroll sideways to. The
+   phone's px ceiling moved from 400 to 420 with the ratio, so a large
+   phone gains the height the square file makes available without
+   touching the margin either side. */
 @media (max-width: 999px) {
   .hero {
     --shot-w: min(86vw, 560px);
-    --shot-h: calc(var(--shot-w) * 1.5);
+    --shot-h: calc(var(--shot-w) * 1.22);
     --shot-top: 21svh;
     /* The wider tablet frame puts more of the picture under the name, so
        the veil opens earlier to meet it: at 54% his forearms were still
@@ -607,7 +639,8 @@ html:not(.page-light) .site-head:not(.scrolled) :focus-visible { outline-color: 
 
 @media (max-width: 620px) {
   .hero {
-    --shot-w: min(82vw, 400px);
+    --shot-w: min(86vw, 420px);
+    --shot-h: calc(var(--shot-w) * 1.32);
     --shot-top: 22svh;
     --veil-in: 58%;
     padding-top: clamp(80px, 10.5vh, 104px);
@@ -664,7 +697,11 @@ html:not(.page-light) .site-head:not(.scrolled) :focus-visible { outline-color: 
    shadow: one flat colour for the whole word, so nothing about it
    changes as the picture fades out behind it.
 
-   It never moves. No entrance, no parallax, no marquee. */
+   It moves exactly once. The name now arrives with the opening — it
+   fades up on a short rise after the statement has landed and a moment
+   before the button, and then it is still for the rest of the visit. No
+   parallax, no marquee, no scroll dependency: one entrance, then a
+   monument. The choreography is at the foot of this file. */
 .hero-name {
   position: relative;
   z-index: 2;
@@ -799,9 +836,81 @@ html.hash-entry.hash-landed body {
    Entrance choreography
    html.anim  = initial (hidden) states + transitions armed
    html.is-ready = release to final states
-   The name is deliberately absent from this list: it is on the page
-   from the first frame and never moves.
+
+   The order is the order the composition is read in: the photograph
+   surfaces out of the ink, the statement rises line by line, the name
+   fades up under it, the button and the bar arrive last. The name was
+   held out of this list while it was treated as part of the furniture;
+   it is part of the opening now, on the one gesture the rest of the hero
+   uses — opacity and a short rise, nothing else.
+
+   When it opens is js/hero.js's call, and on a first visit it is held
+   until the preloader has actually left the document. The overlay covers
+   the whole viewport, so a choreography that ran underneath it was a
+   choreography nobody saw.
+
+   Three guarantees, in the cascade rather than in a script:
+   · no JS — html.anim is never added, so every element is at its final
+     state from the first frame;
+   · prefers-reduced-motion — the inline gate skips html.anim for the
+     same reason, so there is no movement to reduce;
+   · html.anim set but never released (a module that fails to load or
+     throws before is-ready) — entrance-release puts every one of these
+     elements at exactly the state .is-ready would have given it.
+     Nothing here can hide content for longer than that delay.
+
+   That third guarantee is the stylesheet's alone, and it applies only
+   while the stylesheet is alone: js/hero.js stamps html.entrance-owned
+   the moment its own release is certain to be scheduled, which takes
+   these rules out of the cascade. So the two releases can never both run,
+   the script's wait is never cut short by a clock it cannot see, and a
+   hero.js that fails before that point leaves the CSS still holding.
+
+   The delay has two values because the page has two openings. Without a
+   preloader the release would have been due on the fonts, so 2.2s is
+   already well past it. With one, the overlay is on screen for the first
+   three seconds and its own CSS fallback runs to 5.7s, so 6.0s is the
+   first moment at which showing the hero means showing it to somebody.
    ============================================================ */
+
+/* Two keyframes, not one, and the difference is the frame: .hero-shot is
+   centred with translateX(-50%) and only ever animates its opacity, so a
+   release that reset its transform would push the photograph half its own
+   width to the right. It gets the opacity-only release; everything that
+   actually travels gets both properties. */
+@keyframes entrance-fade { to { opacity: 1; } }
+@keyframes entrance-release { to { opacity: 1; transform: none; } }
+html.anim:not(.hash-entry) .hero-shot {
+  animation: entrance-fade 0s linear 2.2s forwards;
+}
+html.anim:not(.hash-entry) .headline .line-in,
+html.anim:not(.hash-entry) .hero-name,
+html.anim:not(.hash-entry) .cta-wrap,
+html.anim:not(.hash-entry) .site-head {
+  animation: entrance-release 0s linear 2.2s forwards;
+}
+/* The preloader is on screen for the first three of those seconds, so the
+   failsafe moves back behind the whole of it. The class stays on <html>
+   after the overlay is removed, which is what keeps this stable for the
+   rest of the load. */
+html.preloader-on.anim:not(.hash-entry) .hero-shot,
+html.preloader-on.anim:not(.hash-entry) .headline .line-in,
+html.preloader-on.anim:not(.hash-entry) .hero-name,
+html.preloader-on.anim:not(.hash-entry) .cta-wrap,
+html.preloader-on.anim:not(.hash-entry) .site-head {
+  animation-delay: 6s;
+}
+
+/* js/hero.js is running and owns the release: stand down. The selectors
+   carry the same :not() the armed rules do, so this always outranks both
+   of them rather than relying on source order to win. */
+html.entrance-owned.anim:not(.hash-entry) .hero-shot,
+html.entrance-owned.anim:not(.hash-entry) .headline .line-in,
+html.entrance-owned.anim:not(.hash-entry) .hero-name,
+html.entrance-owned.anim:not(.hash-entry) .cta-wrap,
+html.entrance-owned.anim:not(.hash-entry) .site-head {
+  animation: none;
+}
 html.anim:not(.hash-entry) .hero-shot {
   opacity: 0;
   transition: opacity 1.2s var(--ease-out) .15s;
@@ -812,6 +921,14 @@ html.anim:not(.hash-entry) .headline .line-in {
 }
 html.anim:not(.hash-entry) .headline .line:nth-child(1) .line-in { transition-delay: .6s; }
 html.anim:not(.hash-entry) .headline .line:nth-child(2) .line-in { transition-delay: .7s; }
+/* The name: after the second headline line has started (.7s), before the
+   button (.98s). 12px of rise — a quarter of what the headline travels,
+   because a word this size only has to settle, not arrive. */
+html.anim:not(.hash-entry) .hero-name {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity .85s var(--ease-out) .84s, transform .85s var(--ease-out) .84s;
+}
 html.anim:not(.hash-entry) .cta-wrap {
   opacity: 0;
   transform: translateY(10px);
@@ -826,6 +943,7 @@ html.anim:not(.hash-entry) .site-head {
 /* Release */
 html.anim.is-ready:not(.hash-entry) .hero-shot { opacity: 1; }
 html.anim.is-ready:not(.hash-entry) .headline .line-in { transform: none; }
+html.anim.is-ready:not(.hash-entry) .hero-name { opacity: 1; transform: none; }
 html.anim.is-ready:not(.hash-entry) .cta-wrap { opacity: 1; transform: none; }
 html.anim.is-ready:not(.hash-entry) .site-head { opacity: 1; transform: none; }
 
@@ -843,13 +961,28 @@ html.anim:not(.hash-entry) .page-sub .site-head,
 }
 
 /* ============================================================
-   Menu breakpoint (≤1180px) — the row folds into a panel.
-   The menu takes over BEFORE the three zones start compressing, so the
-   navigation is never squeezed off the centre.
+   The bar in a narrow window — two steps, not one.
+
+   Step one (≤1300px): the social marks leave the bar. With every label
+   at 16px the right zone needs about 311px, the centred menu needs 525,
+   and a 1fr auto 1fr grid cannot hold all three at their natural widths
+   under roughly 1290px of viewport: the marks and the pill run past the
+   page margin, and the pill is the one that gets clipped. The marks are
+   the part of the bar that is already dropped below 1180 — they are
+   repeated in Contact and in the footer, and three of the four are not
+   even links yet — so they are what gives way first. Navigation and the
+   one CTA stay where they are.
+
+   Step two (≤1180px): the row folds into the panel, and the marks come
+   back inside it. The menu still takes over before the navigation itself
+   has to compress.
    ============================================================ */
+@media (max-width: 1300px) {
+  .social-row--head { display: none; }
+}
+
 @media (max-width: 1180px) {
   .nav-toggle { display: grid; }
-  .social-row--head { display: none; }
   .social-row--sheet { display: flex; }
 
   .nav-panel {
@@ -896,9 +1029,9 @@ html.anim:not(.hash-entry) .page-sub .site-head,
   }
   .site-nav a {
     width: 100%;
-    padding-block: 15px;      /* ≥ 44px touch target with the 15px line */
+    padding-block: 15px;      /* 55px of touch target on a 16px line */
     border-bottom: 1px solid rgba(247, 245, 240, .14);
-    font-size: 1.0625rem;
+    font-size: 1rem;          /* the same functional size as the bar */
     letter-spacing: .16em;
     opacity: .94;
   }
