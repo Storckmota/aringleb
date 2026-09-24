@@ -7,14 +7,19 @@
 <meta name="description" content="Alexander Ringleb is a Miami-based hospitality operator, restaurant builder, and strategic partner for international investors entering the South Florida market. Burgermeister, The Office Delray, Europa Deli and Vice Lounge.">
 <meta property="og:title" content="Alexander Ringleb &middot; Miami Hospitality Operator &amp; Partner">
 <meta property="og:description" content="35 years in hospitality. Your edge in the Miami market. For investors &amp; partners in South Florida.">
-<meta property="og:image" content="assets/img/hero-story-1000.webp">
+<meta property="og:image" content="assets/img/hero-ringleb-1400.webp">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f7f5f0'/%3E%3Ctext x='32' y='44' font-family='Georgia,serif' font-weight='700' font-size='34' fill='%230d2a1b' text-anchor='middle'%3EAR%3C/text%3E%3C/svg%3E">
 <link rel="preload" href="assets/fonts/GamayEditorialBlack.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/GamayRegular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/GamayNarrowBlackItalic.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" as="image" type="image/webp" href="assets/img/alex-story-04.webp"
-      imagesrcset="assets/img/hero-story-720.webp 720w, assets/img/hero-story-1000.webp 1000w, assets/img/alex-story-04.webp 1100w"
-      imagesizes="(max-width: 999px) 96vw, min(60vw, 1480px)">
+<!-- The hero photograph is the LCP element, so the frame the first paint
+     needs is requested from the head. Only the AVIF set is preloaded: a
+     second preload for the WebP would make every AVIF-capable browser
+     download both. Browsers without AVIF ignore this link and fetch the
+     WebP from <picture> on the fetchpriority="high" the <img> carries. -->
+<link rel="preload" as="image" type="image/avif" href="assets/img/hero-ringleb-1400.avif"
+      imagesrcset="assets/img/hero-ringleb-800.avif 800w, assets/img/hero-ringleb-1400.avif 1400w, assets/img/hero-ringleb-2200.avif 2200w"
+      imagesizes="(max-width: 620px) min(86vw, 420px), (max-width: 999px) min(86vw, 560px), min(60vw, 1800px)">
 <link rel="stylesheet" href="css/hero.css">
 <link rel="stylesheet" href="css/site.css">
 <script>
@@ -137,11 +142,13 @@
        So: one dark room, one photograph standing in the middle of it, the
        words over the composition. The photograph is the ground, not a
        picture parked on a panel — so it is framed and cropped rather than
-       contained: the frame is a near-square window on the file's own
-       2:3 (css/hero.css, .hero-shot), which buys the horizontal presence
-       the 2:3 slab never had without scaling a single pixel of the file
-       past what it has. The only file of this frame is 1100x1650
-       (PENDING.md §0a), and that number, not taste, sets the ceiling.
+       contained: the frame is a landscape window cut out of the file
+       (css/hero.css, .hero-shot), which buys the horizontal presence a
+       portrait slab never had without scaling a single pixel of the file
+       past what it has. The source is now the original MIC_0309.png at
+       2465x2458 — a square frame, so the crop rules written for the old
+       2:3 file were re-derived rather than reused, and the derivatives
+       (800/1400/2200) are reductions of it, never upscales.
 
        The dark sides are not padding. Three things fill them: the
        picture's own edges dissolve into the room (the .hero-shot img
@@ -157,13 +164,20 @@
 
     <div class="hero-stage">
       <figure class="hero-shot">
-        <img src="assets/img/alex-story-04.webp"
-             srcset="assets/img/hero-story-720.webp 720w,
-                     assets/img/hero-story-1000.webp 1000w,
-                     assets/img/alex-story-04.webp 1100w"
-             sizes="(max-width: 999px) 96vw, min(60vw, 1480px)"
-             alt="Alexander Ringleb seated in a black shirt in front of shelves of records"
-             fetchpriority="high" width="1100" height="1650">
+        <picture>
+          <source type="image/avif"
+                  srcset="assets/img/hero-ringleb-800.avif 800w,
+                          assets/img/hero-ringleb-1400.avif 1400w,
+                          assets/img/hero-ringleb-2200.avif 2200w"
+                  sizes="(max-width: 620px) min(86vw, 420px), (max-width: 999px) min(86vw, 560px), min(60vw, 1800px)">
+          <img src="assets/img/hero-ringleb-1400.webp"
+               srcset="assets/img/hero-ringleb-800.webp 800w,
+                       assets/img/hero-ringleb-1400.webp 1400w,
+                       assets/img/hero-ringleb-2200.webp 2200w"
+               sizes="(max-width: 620px) min(86vw, 420px), (max-width: 999px) min(86vw, 560px), min(60vw, 1800px)"
+               alt="Alexander Ringleb seated in a black shirt in front of shelves of records"
+               fetchpriority="high" width="1400" height="1396">
+        </picture>
       </figure>
     </div>
 
@@ -175,9 +189,10 @@
     </div>
 
     <!-- The foot: the name at one margin, the one CTA at the other. The
-         name is monumental and it never moves — no loop, no marquee, no
-         scroll dependency, and it is deliberately absent from the
-         entrance choreography. It is a real line of text, not decoration:
+         name is monumental and it moves exactly once — it fades up with
+         the rest of the opening, after the statement and just before the
+         button, and then it is still for good. No loop, no marquee, no
+         scroll dependency. It is a real line of text, not decoration:
          this is now the page's one occurrence of the full name. -->
     <div class="hero-foot">
       <p class="hero-name">Alexander Ringleb</p>

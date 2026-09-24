@@ -38,6 +38,11 @@
    see it; ?preload=1 forces it. A killswitch and a CSS fallback
    guarantee the overlay is never trapped, even if this module fails.
 
+   finish() is the single funnel — the wipe's end, the 4.4s killswitch and
+   the catch all land on it — so it is also where the page is told the
+   overlay is gone. The hero's own entrance starts from that signal rather
+   than from a clock, which is what keeps the two from playing at once.
+
    The sequence is a real sequence: each stage awaits the previous one's
    animation.finished before it starts. The first build fired five
    overlapping animations off a shared clock with fill: 'both', and a
@@ -51,10 +56,25 @@
    there is no second layer that could overlap the first. */
 initPreloader();
 function initPreloader() {
+  const docEl = document.documentElement;
+
+  /* The one thing the rest of the page listens for. It fires the moment
+     the overlay stops covering the document and never fires twice — the
+     class is the state, the event is the notification, and a listener
+     that arrives late reads the class instead of missing the event.
+     js/hero.js holds the hero's entrance until this lands, so every exit
+     below announces, including the ones that never draw anything. */
+  const announce = () => {
+    if (docEl.classList.contains('preloader-done')) return;
+    docEl.classList.add('preloader-done');
+    document.dispatchEvent(new Event('ar:preloader-done'));
+  };
+
   const overlay = document.getElementById('site-preloader');
-  if (!overlay) return;
-  if (!document.documentElement.classList.contains('preloader-on')) {
+  if (!overlay) { announce(); return; }
+  if (!docEl.classList.contains('preloader-on')) {
     overlay.remove();
+    announce();
     return;
   }
 
@@ -62,7 +82,7 @@ function initPreloader() {
   const word = overlay.querySelector('.preloader-word');
   const mark = overlay.querySelector('.preloader-mark');
   const dash = mark ? mark.querySelector('.pm-dash') : null;
-  if (!inner || !word || !mark) { overlay.remove(); return; }
+  if (!inner || !word || !mark) { overlay.remove(); announce(); return; }
 
   let done = false;
   const finish = () => {
@@ -71,6 +91,7 @@ function initPreloader() {
     clearTimeout(kill);
     try { sessionStorage.setItem('arPreloaderSeen', '1'); } catch (e) { /* blocked */ }
     overlay.remove();
+    announce();
   };
   const kill = setTimeout(finish, 4400);   // safety: never trap the page
 

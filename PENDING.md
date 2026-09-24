@@ -3,21 +3,27 @@
 Itens que o briefing marca como "não inventar". Nada aqui virou link falso,
 copy inventada ou aviso visível de material faltando no site.
 
-## 0a. Original exato da nova fotografia da hero
+## 0a. Original da fotografia da hero — RESOLVIDO
 
-A imagem solicitada foi identificada visualmente em
-`assets/img/alex-story-04.webp`: Alexander sentado, camisa preta, mãos unidas,
-diante das prateleiras de discos. Ela foi comparada com o pacote original da
-cliente pelos critérios de roupa, pose, cenário e enquadramento; nenhum dos
-originais corresponde a esse frame. Os arquivos brutos foram arquivados fora
-do repositório de produção após a conversão dos assets utilizados.
+A cliente entregou o original: `assets/img/MIC_0309.png`, **2465×2458 px**,
+praticamente quadrado. Alexander sentado na poltrona, camisa preta, diante das
+prateleiras de discos. É esse arquivo que passou a ser a única fonte da hero.
 
-A melhor fonte disponível continua sendo o WebP de **1100×1650 px**. Os
-derivados `hero-story-1000.webp` (1000×1500) e `hero-story-720.webp`
-(720×1080) foram reduzidos a partir dela; nenhum arquivo foi ampliado ou
-sharpened artificialmente. Para ganhar qualidade real em telas grandes é
-necessário receber o original desse mesmo frame, idealmente com pelo menos
-2000 px no lado curto.
+Derivados publicados, todos reduções do original (nenhum upscale, nenhum
+sharpen artificial):
+
+| largura | AVIF | WebP |
+| --- | --- | --- |
+| 800×798 | 21 KB | 41 KB |
+| 1400×1396 | 39 KB | 86 KB |
+| 2200×2194 | 63 KB | 165 KB |
+
+O PNG original fica versionado como fonte, mas não é publicado: nada no HTML
+aponta para ele, então o Vite não o copia para `dist`. Os derivados antigos
+`alex-story-04.webp`, `hero-story-1000.webp` e `hero-story-720.webp` foram
+removidos depois que a última referência a eles saiu do projeto.
+`hero-alex-1000.webp` continua no repositório porque as quatro páginas
+internas ainda o usam como `og:image`.
 
 ## 0b. Vídeos permanentes dos três posts selecionados na Home
 
