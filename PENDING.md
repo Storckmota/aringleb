@@ -25,22 +25,18 @@ removidos depois que a última referência a eles saiu do projeto.
 `hero-alex-1000.webp` continua no repositório porque as quatro páginas
 internas ainda o usam como `og:image`.
 
-## 0b. Vídeos permanentes dos três posts selecionados na Home
+## 0b. Vídeos permanentes dos posts de Insights — RESOLVIDO
 
-O schema `socialPost` do CMS armazena o permalink do Instagram e uma capa
-permanente, mas declara explicitamente que o vídeo não é copiado. A consulta e
-os assets atuais também não oferecem MP4/WebM permanente. Por isso os três
-itens abaixo usam seus posters reais e **não exibem controles falsos**:
+Os seis Reels selecionados foram associados aos respectivos shortcodes e
+copiados como MP4s controlados pelo projeto em `public/assets/video/`. A Home
+reutiliza `social-1.mp4` a `social-3.mp4`; `/insights/` usa os seis arquivos.
+As URLs assinadas e temporárias do CDN do Instagram não aparecem no HTML nem
+em produção.
 
-1. Miami Marine Stadium — `social-1.jpg`;
-2. The ‘luxury’ condo problem — `social-2.jpg`;
-3. Miami’s dining squeeze — `social-3.jpg`.
-
-O componente já aceita uma URL controlada pelo projeto em `data-video-src` e
-aplica autoplay muted, pausa fora da viewport, áudio exclusivo, fallback e
-reduced motion. Para ativá-lo, fornecer um MP4/WebM permanente para cada item
-ou adicionar ao documento `socialPost` um campo permanente de arquivo Sanity
-(não uma página do Instagram nem uma URL assinada temporária).
+Cada `<figure data-social-media>` agora declara seu `data-video-src`. O
+componente aplica autoplay muted, pausa fora da viewport, áudio exclusivo,
+fallback e reduced motion, mantendo as capas permanentes como poster e como
+experiência sem JavaScript.
 
 ## 1. URLs sociais
 

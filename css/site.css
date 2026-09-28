@@ -206,10 +206,12 @@ html.page-light .site-head::before,
 
 @media (min-width: 1181px) {
   .site-head.is-floating { translate: 0 8px; }
+  /* The bar is 70px around a 46px pill, so the plate is inset only 2px top
+     and bottom: 10px of glass above and below the pill, 24px either side. */
   .site-head.is-floating::before {
-    inset: 6px calc(var(--mx-page) - 24px) 4px;
+    inset: 2px calc(var(--mx-page) - 24px);
     border-color: rgba(25, 29, 26, .09);
-    border-radius: 18px;
+    border-radius: 22px;
     --bar-bg: rgba(240, 241, 238, .74);
     box-shadow: 0 10px 30px -18px rgba(20, 17, 14, .28), 0 1px 0 transparent;
   }
@@ -597,6 +599,11 @@ html:not(.js):not(.page-hero) .site-nav a { border-bottom-color: var(--rule); }
 }
 
 .page-back { margin-top: clamp(48px, 7vh, 84px); }
+/* On a phone the closing "Let's talk" on Insights sat flush on the footer.
+   The same step it keeps above now opens under it too, on the paper. */
+@media (max-width: 620px) {
+  .insights + .wrap { padding-bottom: clamp(48px, 7vh, 84px); }
+}
 
 /* ============================================================
    About — one composition (PDF p.3). One dominant photograph, the four
@@ -1751,7 +1758,24 @@ html.js .case-drawer-panel .case-shot { background: var(--paper-deep); }
   margin-top: 14px;
   gap: .45em;
 }
-.reel-media video { display:block; width:100%; height:100%; object-fit:cover; }
+/* The video lies over the poster, not in its place: the poster is what shows
+   until the first frame plays, so loading never flashes an empty box. */
+.reel-media video {
+  position:absolute;
+  inset:0;
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  background:transparent;
+  opacity:0;
+  transition:opacity .5s var(--ease-out), transform .9s var(--ease-out);
+}
+.reel-media.has-frame video { opacity:1; }
+.reel-media.has-video video { cursor:pointer; }
+.reel:has(.reel-cta:hover, .reel-cta:focus-visible) .reel-media video { transform: scale(1.04); }
+.reel-media video:fullscreen { object-fit:contain; background:#000; transform:none; }
+.reel-media video:-webkit-full-screen { object-fit:contain; background:#000; transform:none; }
 .reel-media.is-broken {
   display:grid;
   place-items:center;
@@ -1766,21 +1790,32 @@ html.js .case-drawer-panel .case-shot { background: var(--paper-deep); }
   text-align:center;
   text-transform:uppercase;
 }
-.video-audio {
+/* The picture is the control: a real button laid over the whole frame with
+   nothing drawn on it. touch-action is left alone so a swipe across it still
+   scrolls the page or the rail; js/social.js ignores a press that dragged.
+   The ring is keyboard-only and sits inside the frame, where the card's
+   overflow cannot clip it. */
+.video-hit {
   position:absolute;
-  right:12px;
-  bottom:12px;
-  min-width:44px;
-  min-height:44px;
-  padding:0 13px;
-  border:1px solid rgba(245,246,243,.7);
-  border-radius:999px;
-  background:rgba(15,20,16,.72);
-  color:#fff;
-  font:inherit;
-  font-size:.8125rem;
+  inset:0;
+  z-index:1;
+  display:block;
+  width:100%;
+  height:100%;
+  margin:0;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  -webkit-appearance:none;
+  appearance:none;
   cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
 }
+.video-hit:focus { outline:none; }
+.video-hit:focus-visible { outline:2px solid var(--pine); outline-offset:-4px; box-shadow:inset 0 0 0 6px rgba(245,246,243,.85); }
+/* Inline fallback (no full screen): the native controls must answer. */
+.reel-media.is-inline .video-hit { pointer-events:none; }
 
 .case { overflow: hidden; }
 
