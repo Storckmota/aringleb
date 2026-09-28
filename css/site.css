@@ -206,10 +206,10 @@ html.page-light .site-head::before,
 
 @media (min-width: 1181px) {
   .site-head.is-floating { translate: 0 8px; }
-  /* The bar is 70px around a 46px pill, so the plate is inset only 2px top
-     and bottom: 10px of glass above and below the pill, 24px either side. */
+  /* The bar is 60px around a 44px pill, so the plate takes the bar's full
+     height: 8px of glass above and below the pill, 24px either side. */
   .site-head.is-floating::before {
-    inset: 2px calc(var(--mx-page) - 24px);
+    inset: 0 calc(var(--mx-page) - 24px);
     border-color: rgba(25, 29, 26, .09);
     border-radius: 22px;
     --bar-bg: rgba(240, 241, 238, .74);

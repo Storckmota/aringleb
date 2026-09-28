@@ -74,6 +74,11 @@
   --gold: #7a6135;
   --gold-soft: #a98d4f;
   --mx-page: clamp(20px, 3.6vw, 60px);
+  /* The bar and the air under it. The hero's first line is placed from
+     these two numbers, not from the viewport height, so the distance from
+     the bar to the headline is the same on every desktop. */
+  --head-h: 60px;
+  --hero-gap: 40px;
 
   /* ---------- Motion ----------
      The curves and the two short durations the whole site shares. The
@@ -170,10 +175,10 @@ html:not(.page-light) .site-head:not(.scrolled) :focus-visible { outline-color: 
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   column-gap: clamp(14px, 1.8vw, 36px);
-  /* The bar is the 46px pill plus 12px of air above and below it: 70px on
-     a desktop, 60px on a phone (8px around a 44px pill). The old
-     clamp(14px, 2vh, 22px) and a 1.5 line-height stacked into 90px+. */
-  --head-pad-y: 12px;
+  /* The bar is --head-h tall at every width: its 44px targets (links, A—R,
+     pill, menu button) plus the padding left over. Nothing in the row is
+     taller than 44px, so the padding alone decides the height. */
+  --head-pad-y: calc((var(--head-h) - 44px) / 2);
   padding: var(--head-pad-y) var(--mx-page);
   color: var(--paper);
 }
@@ -297,7 +302,7 @@ html:not(.page-light) .site-head:not(.scrolled) :focus-visible { outline-color: 
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 46px;             /* the bar's height is this plus its padding */
+  height: 44px;             /* the bar's height is this plus its padding */
   font-size: 1rem;          /* the bar's one functional size */
   line-height: 1;
   letter-spacing: .12em;
@@ -419,7 +424,10 @@ html:not(.page-light) .site-head:not(.scrolled) :focus-visible { outline-color: 
   justify-items: center;
   min-height: 100vh;
   min-height: 100svh;
-  padding: clamp(84px, 11.5vh, 132px) var(--mx-page) clamp(28px, 4.5vh, 52px);
+  /* The headline starts --hero-gap under the bar's real bottom edge. It
+     used to be clamp(84px, 11.5vh, 132px) against a bar of fixed height,
+     so the gap swung from 6px at 1280x720 to 54px at 1920x1080. */
+  padding: calc(var(--head-h) + var(--hero-gap)) var(--mx-page) clamp(28px, 4.5vh, 52px);
   background: var(--ink);
   color: var(--paper);
   isolation: isolate;
@@ -695,9 +703,8 @@ html:not(.page-light) .site-head:not(.scrolled) :focus-visible { outline-color: 
 @media (max-width: 620px) {
   /* The pill keeps its 16px label; only the air inside it comes in, so
      the bar on a phone is a line of type and a control, not a button
-     taking a third of the screen. 44px tall, with 8px of bar around it. */
-  .site-head { --head-pad-y: 8px; }
-  .nav-pill { height: 44px; padding: 0 1.2em; letter-spacing: .1em; }
+     taking a third of the screen. */
+  .nav-pill { padding: 0 1.2em; letter-spacing: .1em; }
   .hero {
     --shot-w: min(86vw, 420px);
     --shot-h: calc(var(--shot-w) * 1.32);
@@ -1281,7 +1288,8 @@ html.anim.page-sub:not(.hash-entry) .site-head {
        tie, and leaving that line in was what shrank a 1280x720 frame
        back to 341px, a quarter of the width. */
     --shot-top: clamp(150px, 21svh, 200px);
-    padding-block: clamp(76px, 10vh, 104px) clamp(36px, 5vh, 56px);
+    /* Only the foot changes here; the top stays bar + --hero-gap. */
+    padding-bottom: clamp(36px, 5vh, 56px);
   }
 }
 
