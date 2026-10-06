@@ -134,7 +134,7 @@ html { background: var(--paper); }
 
 body {
   font-family: 'Gamay', 'Segoe UI', system-ui, sans-serif;
-  font-size: 1.0625rem;      /* 17px — the brief's floor for body copy */
+  font-size: 1.125rem;       /* 18px — one step above the brief's 17px floor */
   line-height: 1.6;
   color: var(--text);
   background: var(--paper);

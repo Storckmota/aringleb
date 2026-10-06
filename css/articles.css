@@ -7,12 +7,12 @@
 .article-entry-cover img { display:block; width:100%; height:100%; object-fit:cover; }
 .article-entry-copy { align-self:center; display:grid; gap:14px; min-width:0; }
 .article-entry h3 { font-family:'Gamay Editorial',serif; font-weight:900; font-size:clamp(1.5rem,2.3vw,2.3rem); line-height:1.12; overflow-wrap:anywhere; }
-.article-meta { font-size:.875rem; line-height:1.55; color:var(--text-muted); }
-.article-excerpt { font-size:1.0625rem; line-height:1.6; color:var(--text-muted); }
+.article-meta { font-size:.9375rem; line-height:1.55; color:var(--text-muted); }
+.article-excerpt { font-size:1.125rem; line-height:1.6; color:var(--text-muted); }
 .article-read { display:inline-flex; align-items:center; min-height:40px; width:max-content; color:var(--pine); font-size:.9375rem; text-decoration:underline; text-underline-offset:5px; }
 .article-entry-link:hover .article-read { text-decoration-thickness:2px; }
 .article-entry-link:focus-visible,.editorial-article a:focus-visible { outline:3px solid var(--pine); outline-offset:6px; border-radius:2px; }
-.article-empty { max-width:48ch; padding:24px 0; color:var(--text-muted); font-size:1.0625rem; line-height:1.65; }
+.article-empty { max-width:48ch; padding:24px 0; color:var(--text-muted); font-size:1.125rem; line-height:1.65; }
 .blog-after { padding-bottom:clamp(70px,9vw,120px); }
 
 .editorial-article { padding-top:clamp(132px,13vw,190px); padding-bottom:clamp(70px,9vw,110px); overflow-wrap:anywhere; }
@@ -34,7 +34,7 @@
 .article-body a,.article-end a { color:var(--pine); text-decoration:underline; text-underline-offset:4px; }
 .article-body strong { font-weight:bold; }
 .article-body img { max-width:100%; height:auto; display:block; }
-.article-body figcaption { font-size:.9375rem; color:var(--text-muted); margin-top:12px; }
+.article-body figcaption { font-size:1rem; color:var(--text-muted); margin-top:12px; }
 .article-end { border-top:1px solid var(--rule); padding-top:28px; margin-top:56px; display:flex; flex-wrap:wrap; gap:18px 28px; font-size:1rem; }
 
 .related-articles { padding-bottom:clamp(84px,10vw,140px); }

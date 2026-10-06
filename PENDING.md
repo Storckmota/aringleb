@@ -154,7 +154,7 @@ Nenhuma foto entrou num Case por "combinar visualmente".
 
 | Arquivo | Onde está | O que sustenta |
 |---|---|---|
-| `alex-burgermeister.webp` | Burgermeister, foto de abertura | É a fotografia que a **página 4 do PDF** usa no bloco Burgermeister |
+| `DSC_4159-*.webp` (`DSC_4159`) | Burgermeister, foto de abertura | Original entregue pela cliente em out/2026; mesmo neon da sala de `DSC_4054` |
 | `case-bm-room-*.webp` (`DSC_4054`) | Burgermeister | Cozinha de hambúrguer, prateleiras de pão brioche, o hambúrguer na mesa. **Não confirmado por escrito** |
 | `case-bm-work-*.webp` (`DSC_4117`) | Burgermeister | Mesma sala, mesmo neon, mesma sessão de `DSC_4054`. **Não confirmado por escrito** |
 | `office-team-*.webp` (`MIC_8727`) | The Office, foto de fechamento | As camisas da equipe dizem **"The Office Delray · Atlantic Ave, FL"**. Confirmado pela própria imagem |
